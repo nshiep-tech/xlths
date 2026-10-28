@@ -1,0 +1,1624 @@
+<title>Mô phỏng tích chập</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FAFAF8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="XLTHS">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<style>.inst .home-link{margin-left:auto;display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-weight:700;text-decoration:none}.inst .home-link::before{content:none}@media (pointer:coarse){.inst .home-link{min-height:40px}}</style>
+<style>
+/* Layout: phòng thí nghiệm một trang — hai bảng nhập x, h cạnh nhau; kết quả y; rồi hai cách giải (bảng cộng chồng, thanh trượt lật–dịch) */
+:root {
+  --bg: #FAFAF8; --surface: #FFFFFE; --ink: #161616; --body: #3A3A37; --muted: #6B6B67;
+  --line: #E2E2DE; --soft: #F1F1ED; --red: #C41E3A; --red-tint: #FBEBEE;
+  --green: #1A7F4B; --green-ink: #145F39; --green-tint: #E7F4EC; --gray: #B9B9B3;
+  --f-body: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: clamp(28px, 4.6vw, 40px); font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 22px; font-weight: 700; }
+h3 { font-size: 17px; font-weight: 700; }
+.eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); display: flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ""; width: 26px; height: 4px; background: currentColor; }
+.eyebrow.g { color: var(--green); }
+.lede { color: var(--body); max-width: 70ch; }
+header { display: flex; flex-direction: column; gap: 10px; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.presets span { font-size: 14px; color: var(--muted); font-weight: 600; margin-right: 4px; }
+.chip { font: inherit; font-size: 14px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.chip:hover { border-color: var(--ink); }
+.inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.x { border-top: 4px solid var(--red); }
+.card.h { border-top: 4px solid var(--green); }
+.card.y { border-top: 4px solid var(--ink); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field.grow { flex: 1; min-width: 180px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field input { font: inherit; font-family: var(--f-mono); font-size: 15px; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); width: 100%; }
+.field input.n0 { width: 78px; text-align: center; }
+.field input.bad { border-color: var(--red); background: var(--red-tint); }
+.btn { font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 8px 12px; cursor: pointer; border: 1.5px solid var(--ink); background: var(--surface); color: var(--ink); white-space: nowrap; }
+.btn.solid { background: var(--ink); color: #FFFFFE; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:focus-visible, .chip:focus-visible, input:focus-visible { outline: 3px solid #E58A9A; outline-offset: 2px; }
+.err { color: var(--red); font-size: 14px; font-weight: 600; min-height: 1.3em; }
+.hint { font-size: 13.5px; color: var(--muted); }
+.plot { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.plot svg { display: block; width: 100%; height: auto; }
+.plot.edit svg { touch-action: none; }
+.plot.edit svg { cursor: ns-resize; }
+svg text { font-family: var(--f-body); }
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.fact { background: var(--soft); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fact b { font-family: var(--f-mono); font-size: 18px; }
+.fact small { color: var(--muted); font-size: 13px; }
+.fact.ok b { color: var(--green-ink); }
+.yval { font-family: var(--f-mono); font-size: 18px; font-weight: 700; color: var(--green-ink); overflow-x: auto; white-space: nowrap; padding-bottom: 2px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.tab { font: inherit; font-weight: 600; font-size: 15px; border-radius: 999px; padding: 8px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--red); border-color: var(--red); color: #FFFFFE; }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 14.5px; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-family: var(--f-mono); background: var(--soft); }
+td.z { color: var(--gray); }
+tr.sum td { font-weight: 800; background: var(--green-tint); color: var(--green-ink); border-bottom: 0; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ctrl input[type=range] { flex: 1; min-width: 160px; accent-color: var(--red); }
+.nbadge { font-family: var(--f-mono); font-weight: 700; font-size: 18px; color: var(--red); min-width: 76px; }
+.calc { font-family: var(--f-mono); font-size: 15px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; white-space: nowrap; line-height: 1.7; }
+.calc .res { color: var(--green-ink); font-weight: 700; }
+.calc .idx { color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.note { background: var(--green-tint); border-radius: 12px; padding: 14px 18px; color: var(--ink); }
+footer { color: var(--muted); font-size: 13.5px; }
+.mode-tab { font: inherit; font-size: 16px; font-weight: 700; border: 2px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 10px; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.mode-tab b { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--soft); border: 1.5px solid var(--line); color: var(--ink); font-size: 14px; }
+.mode-tab:hover { border-color: var(--ink); color: var(--ink); }
+.mode-tab[aria-selected="true"] { background: #FBEBEE; border-color: var(--red); color: var(--ink); box-shadow: inset 0 -4px 0 var(--red); }
+.mode-tab[aria-selected="true"] b { background: var(--red); border-color: var(--red); color: #FFFFFE; }
+.mode { display: flex; flex-direction: column; }
+.de-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.eq { font-family: var(--f-mono); font-size: 18px; font-weight: 700; overflow-x: auto; white-space: nowrap; background: var(--soft); border-radius: 8px; padding: 10px 12px; }
+.eq .xr { color: var(--red); } .eq .yg { color: var(--green-ink); }
+.params { display: flex; flex-direction: column; gap: 8px; }
+.param { display: grid; grid-template-columns: 112px 1fr 84px; gap: 10px; align-items: center; }
+.param label { font-weight: 700; font-size: 15px; }
+.param label small { font-weight: 500; color: var(--muted); font-family: var(--f-mono); font-size: 12.5px; }
+.param input[type=range] { width: 100%; accent-color: var(--green); }
+.param.fb input[type=range] { accent-color: var(--red); }
+.param input[type=number] { font: inherit; font-family: var(--f-mono); font-size: 15px; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: 8px; width: 100%; text-align: center; background: var(--surface); color: var(--ink); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: inherit; font-size: 14px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #FFFFFE; }
+.fact.bad b { color: var(--red); }
+.fact b.small { font-size: 15px; }
+.big-ok { color: var(--green-ink); font-weight: 700; }
+.big-bad { color: var(--red); font-weight: 700; }
+/* ===== Bố cục mới: thanh trên + thanh bên (đầu vào) + vùng giữa (kết quả) ===== */
+:root { --sw: 380px; --topH: 72px; }
+.top { position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; flex-direction: row; align-items: center; gap: 16px; padding: 10px 18px; padding-top: max(10px, env(safe-area-inset-top, 0px)); padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.top .ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.top .eyebrow { font-size: 11px; }
+.top h1 { font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0; }
+.side-btn { font: inherit; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 12px; cursor: pointer; white-space: nowrap; }
+.side-btn:hover { border-color: var(--ink); }
+.side-btn[aria-expanded="true"] { background: var(--red-tint); border-color: var(--red); }
+.modes { display: flex; gap: 8px; flex-wrap: nowrap; }
+.mode-tab { font-size: 15px; padding: 8px 14px; white-space: nowrap; }
+.mode-tab b { width: 24px; height: 24px; font-size: 13px; }
+.app { display: grid; grid-template-columns: var(--sw) minmax(0, 1fr); align-items: start; }
+.app.closed { grid-template-columns: minmax(0, 1fr); }
+.app.closed .side { display: none; }
+.side { position: sticky; top: var(--topH); height: calc(100vh - var(--topH)); height: calc(100dvh - var(--topH)); overflow-y: auto; overscroll-behavior: contain; background: #F4F4F0; border-right: 1px solid var(--line); padding: 14px 16px 40px; display: flex; flex-direction: column; gap: 14px; }
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.side-head h2 { font-size: 16px; font-weight: 800; }
+.icon-btn { font: inherit; font-size: 18px; font-weight: 700; width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.icon-btn:hover { border-color: var(--ink); }
+.side-body { display: flex; flex-direction: column; gap: 14px; }
+.side .presets span { width: 100%; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+.side .chip { font-size: 13px; padding: 5px 11px; }
+.side .card { padding: 14px; gap: 10px; }
+.side .field.grow { min-width: 150px; }
+.side .btn { padding: 6px 10px; font-size: 13.5px; }
+.side .err { min-height: 0; }
+.side .err:empty { display: none; }
+.side .eq.sm { font-size: 15px; padding: 8px 10px; }
+.side .param { grid-template-columns: 68px 1fr 70px; gap: 8px; }
+.side .param label { display: flex; flex-direction: column; line-height: 1.2; }
+.side .seg button { font-size: 13px; padding: 5px 10px; }
+main { min-width: 0; width: 100%; max-width: 1080px; margin: 0 auto; padding: 22px 26px 64px; padding-right: max(26px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; container-type: inline-size; }
+.mode { gap: 22px; }
+.sum { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.sum-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sum-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+.sum-text .k { display: inline-block; min-width: 92px; margin-right: 6px; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.sum-text .v { font-family: var(--f-mono); font-weight: 700; overflow-wrap: anywhere; }
+.sum-text .v.x { color: var(--red); } .sum-text .v.h { color: var(--green-ink); }
+.sum .eq { font-size: 17px; padding: 6px 10px; display: inline-block; max-width: 100%; vertical-align: middle; }
+.mini { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.mini.two { grid-template-columns: 1fr 1fr; }
+.app:not(.closed) .open-side, .app:not(.closed) .mini { display: none; }
+.scrim { display: none; }
+@container (max-width: 860px) { .de-grid { grid-template-columns: 1fr; } .facts { grid-template-columns: 1fr 1fr; } }
+@container (max-width: 560px) { .mini.two { grid-template-columns: 1fr; } .sum-text { flex-basis: 100%; } .sum-text .k { display: block; } .sum .open-side { width: 100%; } }
+@media (max-width: 1020px) { .top .ttl { display: none; } .top { justify-content: space-between; } }
+@media (max-width: 900px) {
+  .app, .app.closed { grid-template-columns: minmax(0, 1fr); }
+  .side { position: fixed; z-index: 40; top: 0; left: 0; bottom: 0; width: min(380px, 92vw); height: auto; padding-top: max(14px, env(safe-area-inset-top, 0px)); box-shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(22,22,22,0.12); }
+  .scrim { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(250, 250, 248, 0.72); }
+  .app.closed .scrim { display: none; }
+  main { padding: 16px 16px 56px; }
+}
+@media (max-width: 560px) {
+  .top { gap: 8px; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  .side-btn span { display: none; }
+  .mode-tab { font-size: 13.5px; padding: 7px 10px; gap: 6px; }
+  .mode-tab b { display: none; }
+}
+/* ===== Tab 3: Bài tập tính chất hệ ===== */
+.mode-tab .sh { display: none; }
+.teach { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.teach input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--red); flex: none; }
+.teach span { display: flex; flex-direction: column; font-size: 14px; line-height: 1.35; }
+.teach small { color: var(--muted); font-size: 12.5px; }
+.ex-list { display: flex; flex-direction: column; gap: 2px; }
+.ex-gl { font-size: 11.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 4px; }
+.ex-gl:first-child { margin-top: 0; }
+.ex-it { font: inherit; font-size: 13.5px; text-align: left; border: 0; background: transparent; color: var(--ink); padding: 6px 8px; border-radius: 8px; cursor: pointer; display: grid; grid-template-columns: 34px 1fr; gap: 6px; align-items: baseline; line-height: 1.35; }
+.ex-it:hover { background: var(--soft); }
+.ex-it b { font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-weight: 700; }
+.ex-it[aria-current="true"] { background: var(--red-tint); box-shadow: inset 3px 0 0 var(--red); }
+.ex-it[aria-current="true"] b { color: var(--red); }
+.ex-it .tagc { font-size: 10.5px; font-weight: 700; color: var(--green-ink); background: var(--green-tint); border-radius: 4px; padding: 0 5px; margin-left: 4px; letter-spacing: 0.04em; }
+.ex-ctrl { display: flex; flex-direction: column; gap: 10px; }
+.ex-ctrl .xf { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: center; }
+.ex-ctrl .xf label { font-size: 13px; font-weight: 700; line-height: 1.25; }
+.ex-ctrl .xf label small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; }
+.ex-ctrl input { font: inherit; font-family: var(--f-mono); font-size: 14px; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: 8px; width: 100%; background: var(--surface); color: var(--ink); min-width: 0; }
+.ex-ctrl input.bad { border-color: var(--red); background: var(--red-tint); }
+.ex-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ex-group { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); display: flex; align-items: center; gap: 10px; }
+.ex-group::before { content: ""; width: 22px; height: 3px; background: currentColor; }
+.ex-head h2 { font-size: 22px; text-wrap: balance; }
+.ex-q { font-size: 16px; color: var(--body); display: flex; flex-direction: column; gap: 8px; }
+.ex-q .eqline, .ex-steps .eqline, #ex-demo .eqline { font-family: var(--f-mono); font-weight: 700; color: var(--ink); background: var(--soft); border-radius: 8px; padding: 8px 12px; overflow-x: auto; white-space: nowrap; font-size: 15.5px; }
+.ex-method { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 0 12px 12px 0; padding: 12px 18px; display: flex; flex-direction: column; gap: 6px; }
+.ex-method h3 { font-size: 15px; color: var(--green-ink); }
+.ex-method ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 3px; font-size: 14.5px; color: var(--body); }
+.ex-method .tip { font-size: 14px; color: var(--body); }
+.ex-sol-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ex-steps { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; counter-reset: st; }
+.ex-steps li { counter-increment: st; display: grid; grid-template-columns: 30px 1fr; gap: 10px; font-size: 15.5px; color: var(--body); line-height: 1.6; }
+.ex-steps li::before { content: counter(st); font-family: var(--f-mono); font-weight: 700; font-size: 13px; color: var(--red); background: var(--red-tint); border-radius: 50%; width: 26px; height: 26px; display: grid; place-items: center; margin-top: 1px; }
+.ex-steps li > div { min-width: 0; }
+.ex-steps .eqline { margin: 6px 0; }
+.ex-steps b { color: var(--ink); }
+.ex-ans { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-radius: 10px; padding: 10px 14px; font-size: 16px; }
+.ex-ans:empty { display: none; }
+.ex-ans.ok { background: var(--green-tint); color: var(--green-ink); }
+.ex-ans.no { background: var(--red-tint); color: #8F1730; }
+.ex-ans.neu { background: var(--soft); color: var(--ink); }
+.ex-ans .badge { font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: 13px; border: 1.5px solid currentColor; border-radius: 999px; padding: 2px 10px; }
+.ex-mean { font-size: 15px; color: var(--body); display: flex; flex-direction: column; gap: 8px; }
+.ex-mean b { color: var(--ink); }
+.ex-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ex-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ex-verdict { border-radius: 10px; padding: 10px 14px; font-size: 15px; font-weight: 600; }
+.ex-verdict.ok { background: var(--green-tint); color: var(--green-ink); }
+.ex-verdict.no { background: var(--red-tint); color: #8F1730; }
+.ex-verdict.neu { background: var(--soft); color: var(--ink); }
+.ex-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; color: var(--body); }
+.ex-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.ex-legend i.ink { background: var(--ink); }
+.ex-legend i.ring { border: 2.5px solid var(--green); }
+.ex-legend i.red { background: var(--red); }
+.ex-legend i.grn { background: var(--green); }
+.ex-legend i.tint { background: var(--red-tint); border-radius: 3px; }
+.paths { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.paths div { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.paths span { border: 1.5px solid var(--line); border-radius: 6px; padding: 2px 8px; background: var(--surface); font-family: var(--f-mono); font-size: 13px; }
+.paths span.sys { border-color: var(--ink); font-weight: 700; }
+.paths span.shift { border-color: var(--red); color: #8F1730; }
+.paths em { font-style: normal; color: var(--muted); }
+.paths .lab { font-family: var(--f-body); border: 0; padding: 0; font-weight: 700; min-width: 64px; background: transparent; }
+.elrow { display: grid; grid-template-columns: 210px 1fr; gap: 12px; align-items: center; }
+.elrow .sym { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px; }
+.elrow .sym svg { display: block; width: 100%; height: auto; }
+.blk svg, .df1 svg { display: block; width: 100%; height: auto; }
+.df1 { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+.df1 svg { min-width: 520px; }
+.cmp-tbl td.okc { color: var(--green-ink); font-weight: 800; }
+.cmp-tbl td.noc { color: var(--red); font-weight: 800; background: var(--red-tint); }
+@container (max-width: 760px) { .ex-grid2 { grid-template-columns: 1fr; } .elrow { grid-template-columns: 1fr; } .elrow .sym { max-width: 260px; } }
+@media (max-width: 560px) { .mode-tab .lg { display: none; } .mode-tab .sh { display: inline; } .ex-head h2 { font-size: 19px; } }
+
+/* Dải tên trường ở đầu trang */
+.inst { background: #F4F4F0; border-bottom: 1px solid var(--line); padding-block: 7px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); line-height: 1.35; }
+.inst::before { content: ""; width: 18px; height: 3px; background: var(--red); flex: none; }
+.inst b { font-weight: 800; }
+.inst span { color: var(--muted); font-weight: 600; }
+.inst span::before { content: "· "; }
+@media (max-width: 560px) { .inst { font-size: 12.5px; letter-spacing: 0; text-transform: none; gap: 0 8px; } .inst::before { display: none; } .inst span::before { content: none; } }
+
+.author { display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 2px 18px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); text-align: center; flex: none; }
+.author small, .byline small { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.author b { font-size: 15px; font-weight: 800; letter-spacing: 0.09em; color: var(--ink); white-space: nowrap; }
+.author b::after { content: ""; display: block; width: 28px; height: 3px; margin: 4px auto 0; background: var(--red); border-radius: 2px; }
+.byline { display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 0; }
+.by-k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); }
+.by-n { display: inline-flex; align-items: baseline; gap: 8px; }
+.by-n b { font-size: 15px; font-weight: 800; letter-spacing: 0.08em; color: var(--ink); white-space: nowrap; }
+@media (max-width: 1320px) { .author { display: none; } .byline { display: flex; } }
+
+/* ===== Tối ưu cho điện thoại và màn hình cảm ứng (Safari, Chrome) ===== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, input, select, label, a { -webkit-tap-highlight-color: rgba(196, 30, 58, 0.12); touch-action: manipulation; }
+@media (pointer: coarse), (max-width: 620px) {
+  .btn, .chip, .seg button, .tab, .mode-tab, .side-btn, .ex-it { min-height: 44px; }
+  .icon-btn { min-width: 44px; min-height: 44px; }
+  input[type=range] { height: 34px; }
+}
+@media (max-width: 620px) {
+  input:not([type=range]):not([type=checkbox]), select, textarea { font-size: 16px !important; }
+  .hint { font-size: 14.5px; }
+  .chip { font-size: 14px; padding: 8px 14px; }
+  .seg button { font-size: 14px; padding: 8px 12px; }
+  .btn { font-size: 15px; }
+  table { font-size: 14.5px; }
+  .by-k { font-size: 12.5px; }
+  .byline small, .author small { font-size: 12px; }
+}
+</style>
+
+<div class="inst" role="note" aria-label="Đơn vị"><b>Trường Đại học Công nghệ Thông tin và Truyền thông</b><span>Đại học Thái Nguyên</span><a class="home-link" href="./">‹ Trang chủ</a></div>
+<noscript><style>#side,#scrim,.side,.scrim{display:none!important}</style></noscript>
+<noscript><div style="margin:12px;padding:14px 16px;border:2px solid #C41E3A;border-radius:12px;background:#FFF5F6;color:#161616;font:16px/1.5 Arial,sans-serif"><b style="color:#C41E3A">Trình xem này không chạy được phần mềm.</b><br>Zalo, Messenger và trình xem tệp chỉ hiện trang tĩnh, không chạy JavaScript. Hãy mở bằng <b>đường link</b> trong Safari hoặc Chrome, hoặc dùng ứng dụng đã thêm vào Màn hình chính.</div></noscript>
+
+<header class="top" id="top">
+  <button class="side-btn" id="side-toggle" type="button" aria-controls="side" aria-expanded="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg>
+    <span id="side-label">Ẩn đầu vào</span>
+  </button>
+  <div class="ttl">
+    <p class="eyebrow">Xử lý tín hiệu số · Buổi 2</p>
+    <h1>Mô phỏng tích chập và phương trình sai phân</h1>
+  </div>
+  <div class="author" aria-label="Giảng viên Nguyễn Sỹ Hiệp">
+    <small>Giảng viên</small>
+    <b>NGUYỄN SỸ HIỆP</b>
+  </div>
+  <div class="modes" role="tablist" aria-label="Chọn phần">
+    <button class="mode-tab" role="tab" id="mt-conv" aria-controls="mode-conv" aria-selected="true"><b>1</b> Tích chập</button>
+    <button class="mode-tab" role="tab" id="mt-de" aria-controls="mode-de" aria-selected="false"><b>2</b> <span class="lg">Phương trình sai phân</span><span class="sh">Sai phân</span></button>
+    <button class="mode-tab" role="tab" id="mt-ex" aria-controls="mode-ex" aria-selected="false"><b>3</b> <span class="lg">Bài tập tính chất hệ</span><span class="sh">Bài tập</span></button>
+  </div>
+</header>
+
+<div class="app" id="app">
+  <aside class="side" id="side" aria-label="Bảng nhập đầu vào">
+    <div class="side-head">
+      <h2 id="side-title">Đầu vào · Tích chập</h2>
+      <button class="icon-btn" id="side-close" type="button" aria-label="Ẩn bảng nhập">«</button>
+    </div>
+
+    <div id="side-conv" class="side-body">
+      <div class="presets" role="group" aria-label="Ví dụ có sẵn">
+        <span>Ví dụ có sẵn</span>
+        <button class="chip" data-preset="0">Cộng dồn {1,2,3} * {1,1}</button>
+        <button class="chip" data-preset="1">{1,2,3} * {0,1,2,3}</button>
+        <button class="chip" data-preset="2">Cái hang (vọng 0,5)</button>
+        <button class="chip" data-preset="3">Làm mượt răng cưa</button>
+        <button class="chip" data-preset="4">Phát hiện thay đổi</button>
+        <button class="chip" data-preset="5">Tiếng vọng đơn (echo)</button>
+        <button class="chip" data-preset="6">Bắt đầu trước n = 0</button>
+      </div>
+      <div class="card x">
+        <h3 style="color:var(--red)">Tín hiệu vào x(n)</h3>
+        <div class="row">
+          <div class="field grow"><label for="x-vals">Các mẫu (cách nhau bằng dấu cách hoặc ;)</label><input id="x-vals" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label for="x-n0">Bắt đầu tại n =</label><input id="x-n0" class="n0" type="number" step="1" min="-6" max="6"></div>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" data-add="x">+ Thêm</button>
+          <button class="btn" type="button" data-del="x">− Bớt</button>
+          <button class="btn" type="button" data-zero="x">Về 0</button>
+        </div>
+        <p class="err" id="x-err" aria-live="polite"></p>
+        <div class="plot edit" id="x-plot"></div>
+        <p class="hint">Kéo chấm đỏ lên xuống để đổi giá trị (bước 0,5).</p>
+      </div>
+      <div class="card h">
+        <h3 style="color:var(--green)">Đáp ứng xung h(n)</h3>
+        <div class="row">
+          <div class="field grow"><label for="h-vals">Các mẫu (cách nhau bằng dấu cách hoặc ;)</label><input id="h-vals" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label for="h-n0">Bắt đầu tại n =</label><input id="h-n0" class="n0" type="number" step="1" min="-6" max="6"></div>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" data-add="h">+ Thêm</button>
+          <button class="btn" type="button" data-del="h">− Bớt</button>
+          <button class="btn" type="button" data-zero="h">Về 0</button>
+        </div>
+        <p class="err" id="h-err" aria-live="polite"></p>
+        <div class="plot edit" id="h-plot"></div>
+        <p class="hint">Kéo chấm xanh lên xuống để đổi giá trị (bước 0,5).</p>
+      </div>
+    </div>
+
+    <div id="side-de" class="side-body" hidden>
+      <div class="presets" role="group" aria-label="Hệ có sẵn" id="de-presets"><span>Hệ có sẵn</span></div>
+      <div class="card h">
+        <h3 style="color:var(--green)">Hệ số của phương trình</h3>
+        <p class="eq sm" id="de-eq"></p>
+        <p class="hint" id="de-eq2"></p>
+        <div class="params" id="de-params"></div>
+        <p class="hint"><b>b</b>: trọng số cho tiếng hét x hiện tại và quá khứ. <b>α</b>: trọng số cho tiếng vọng y quá khứ (hồi tiếp). Slide viết −a₁, −a₂, nghĩa là a₁ = −α₁, a₂ = −α₂.</p>
+      </div>
+      <div class="card x">
+        <h3 style="color:var(--red)">Đầu vào x(n)</h3>
+        <div class="seg" role="group" aria-label="Chọn đầu vào" id="de-inputs"></div>
+        <div class="row">
+          <div class="field"><label for="de-N">Số mẫu hiển thị</label><input id="de-N" class="n0" type="number" min="8" max="80" step="1"></div>
+          <div class="field" id="de-pwrap"><label for="de-P" id="de-plabel">Tham số</label><input id="de-P" class="n0" type="number" min="1" max="60" step="1"></div>
+          <div class="field grow" id="de-cwrap" hidden><label for="de-custom">Các mẫu (cách nhau bằng dấu cách hoặc ;)</label><input id="de-custom" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <p class="err" id="de-err" aria-live="polite"></p>
+        <div class="plot" id="de-xplot"></div>
+      </div>
+    </div>
+    <div id="side-ex" class="side-body" hidden>
+      <div class="card">
+        <label class="teach"><input type="checkbox" id="ex-teach"> <span><b>Chế độ lên lớp</b><small>Ẩn lời giải, bấm để hiện từng bước</small></span></label>
+      </div>
+      <nav class="card" aria-label="Danh sách bài tập">
+        <div id="ex-list" class="ex-list"></div>
+      </nav>
+      <div class="card x" id="ex-ctrl-card">
+        <h3>Thử với số liệu khác</h3>
+        <div id="ex-ctrl" class="ex-ctrl"></div>
+        <p class="err" id="ex-err" aria-live="polite"></p>
+        <button class="btn" type="button" id="ex-reset">Về số liệu của đề</button>
+      </div>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <main id="main">
+    <div class="byline">
+      <span class="by-k">Xử lý tín hiệu số · Buổi 2</span>
+      <span class="by-n"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b></span>
+    </div>
+    <div id="mode-conv" role="tabpanel" aria-labelledby="mt-conv" class="mode">
+      <div class="sum" id="sum-conv-box">
+        <div class="sum-top">
+          <div class="sum-text" id="sum-conv"></div>
+          <button class="btn open-side" type="button" data-open-side>Sửa đầu vào</button>
+        </div>
+        <div class="mini two"><div class="plot" id="mini-x"></div><div class="plot" id="mini-h"></div></div>
+      </div>
+
+      <section class="card y" aria-labelledby="h-y">
+        <h2 id="h-y">Đầu ra y(n) = x(n) * h(n)</h2>
+        <div class="yval" id="y-vals"></div>
+        <div class="plot" id="y-plot"></div>
+        <div class="facts">
+          <div class="fact"><small>Số mẫu của y</small><b id="f-len"></b></div>
+          <div class="fact"><small>y bắt đầu tại</small><b id="f-start"></b></div>
+          <div class="fact"><small>y kết thúc tại</small><b id="f-end"></b></div>
+          <div class="fact ok"><small>Kiểm tra tổng</small><b id="f-sum"></b></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-how">
+        <p class="eyebrow g">Xem cách tính</p>
+        <h2 id="h-how">Hai cách ra cùng một kết quả</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-c1" aria-controls="p-c1" aria-selected="true">Cách 1 · Cộng chồng các bản sao</button>
+          <button class="tab" role="tab" id="tab-c2" aria-controls="p-c2" aria-selected="false">Cách 2 · Lật, dịch, nhân, cộng</button>
+        </div>
+        <div id="p-c1" role="tabpanel" aria-labelledby="tab-c1" class="stack">
+          <p class="note">Mỗi mẫu x(k) khác 0 sinh ra <b>một hàng</b>: chép h(n), nhân với x(k), bắt đầu từ cột n = k + (điểm đầu của h). Cộng dọc từng cột được y(n). Dấu chấm là ô bằng 0.</p>
+          <div class="tbl-wrap"><table id="c1-table"></table></div>
+          <div class="stack" id="c1-rows"></div>
+        </div>
+        <div id="p-c2" role="tabpanel" aria-labelledby="tab-c2" class="stack" hidden>
+          <p class="note">x(k) đứng yên; h được <b>lật</b> thành h(−k) rồi <b>dịch</b> tới n thành h(n−k). Ô nền xanh là chỗ hai tín hiệu chồng nhau: <b>nhân</b> từng cặp rồi <b>cộng</b> lại được y(n).</p>
+          <div class="ctrl">
+            <button class="btn" type="button" id="c2-prev" aria-label="Lùi một mẫu">◀ Lùi</button>
+            <span class="nbadge" id="c2-nb"></span>
+            <input type="range" id="c2-rng" step="1" aria-label="Chọn n">
+            <button class="btn" type="button" id="c2-next" aria-label="Tiến một mẫu">Tiến ▶</button>
+            <button class="btn solid" type="button" id="c2-play">Chạy tự động</button>
+          </div>
+          <div class="calc" id="c2-calc"></div>
+          <div class="plot" id="c2-x"></div>
+          <div class="plot" id="c2-h"></div>
+          <div class="plot" id="c2-p"></div>
+          <div class="plot" id="c2-y"></div>
+        </div>
+      </section>
+    </div>
+
+    <div id="mode-de" role="tabpanel" aria-labelledby="mt-de" class="mode" hidden>
+      <div class="sum">
+        <div class="sum-top">
+          <div class="sum-text" id="sum-de"></div>
+          <button class="btn open-side" type="button" data-open-side>Chỉnh hệ số</button>
+        </div>
+        <div class="mini"><div class="plot" id="mini-dx"></div></div>
+      </div>
+
+      <section class="card y" aria-labelledby="de-yh">
+        <h2 id="de-yh">Đầu ra y(n)</h2>
+        <div class="row">
+          <button class="btn" type="button" id="de-pin">Ghim đường này để so sánh</button>
+          <button class="btn" type="button" id="de-unpin" disabled>Bỏ ghim</button>
+          <span class="hint" id="de-pinnote">Ghim kết quả hiện tại, rồi đổi hệ số để thấy đường mới khác đường cũ (màu xám) thế nào.</span>
+        </div>
+        <div class="plot" id="de-yplot"></div>
+        <div class="facts" id="de-facts"></div>
+      </section>
+
+      <div class="de-grid">
+        <div class="card">
+          <h3>Đáp ứng xung h(n) của hệ này</h3>
+          <p class="hint">Cho một xung δ(n) vào phương trình, đầu ra chính là h(n). Đây là cầu nối với tab Tích chập.</p>
+          <div class="plot" id="de-hplot"></div>
+          <p id="de-hnote" class="hint"></p>
+        </div>
+        <div class="card">
+          <h3>Máy tính lần lượt từng mẫu</h3>
+          <p class="hint">Chip trong thiết bị làm đúng như bảng này: mỗi nhịp lấy mẫu vào mới và kết quả nhịp trước.</p>
+          <div class="tbl-wrap"><table id="de-steps"></table></div>
+        </div>
+      </div>
+
+      <div class="de-grid">
+        <div class="card">
+          <h3>Công thức nhảy cóc (đầu vào bậc thang, hét đều)</h3>
+          <div id="de-jump"></div>
+        </div>
+        <div class="card">
+          <h3>Kiểm tra: tích chập cho cùng kết quả</h3>
+          <div id="de-check"></div>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>Gợi ý khảo sát:</b> chọn “Cái hang”, rồi ghim đường y(n). Sau đó lần lượt:
+        <ul style="margin:6px 0 0;padding-left:20px">
+          <li>Kéo α₁ từ 0,5 lên 0,9: tiếng to hơn và lâu ổn định hơn.</li>
+          <li>Kéo α₁ vượt 1: nghiệm |λ| &gt; 1, đầu ra tăng mãi, hệ mất ổn định.</li>
+          <li>Cho α₁ âm: tiếng vọng đảo dấu, đầu ra lên xuống đan xen.</li>
+          <li>Thêm α₂ âm, ví dụ α₁ = 1,6 và α₂ = −0,8: nghiệm phức, đầu ra dao động tắt dần.</li>
+          <li>Đặt α₁ = α₂ = 0: không còn hồi tiếp, h(n) hữu hạn, đó là bộ lọc FIR.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="mode-ex" role="tabpanel" aria-labelledby="mt-ex" class="mode" hidden>
+      <section class="card ex-head">
+        <div class="ex-top">
+          <p class="ex-group" id="ex-group"></p>
+          <button class="btn open-side" type="button" data-open-side>Danh sách bài, số liệu</button>
+        </div>
+        <h2 id="ex-title"></h2>
+        <div class="ex-q" id="ex-q"></div>
+      </section>
+
+      <section class="ex-method" id="ex-method"></section>
+
+      <section class="card y">
+        <h3 id="ex-demo-title">Kiểm tra bằng đồ thị</h3>
+        <div id="ex-demo" class="stack"></div>
+      </section>
+
+      <section class="card ex-sol" id="ex-sol-card">
+        <div class="ex-sol-head">
+          <h3>Lời giải</h3>
+          <div class="row" id="ex-reveal">
+            <button class="btn" type="button" id="ex-next-step">Hiện bước tiếp theo</button>
+            <button class="btn" type="button" id="ex-all-steps">Hiện toàn bộ</button>
+          </div>
+        </div>
+        <ol class="ex-steps" id="ex-steps"></ol>
+        <div class="ex-ans" id="ex-ans"></div>
+      </section>
+
+      <section class="card h">
+        <h3>Ý nghĩa và ứng dụng</h3>
+        <div class="ex-mean" id="ex-mean"></div>
+      </section>
+
+      <div class="ex-nav">
+        <button class="btn" type="button" id="ex-prev">← Bài trước</button>
+        <span class="hint" id="ex-pos"></span>
+        <button class="btn" type="button" id="ex-next">Bài sau →</button>
+      </div>
+    </div>
+
+    <footer>Quy ước: số thập phân hiển thị bằng dấu phẩy (0,5). Khi nhập có thể gõ 0,5 hoặc 0.5; các mẫu cách nhau bằng dấu cách hoặc dấu chấm phẩy. Tối đa 12 mẫu cho mỗi tín hiệu, giá trị trong khoảng −10 đến 10.</footer>
+  </main>
+</div>
+
+<script>
+const C = { red: "#C41E3A", green: "#1A7F4B", ink: "#161616", mute: "#5E5E5A", gray: "#B9B9B3", line: "#E2E2DE", redT: "#FBEBEE", greenT: "#E7F4EC" };
+const ROWC = [C.red, C.green, C.mute];
+const MAXLEN = 12, VMAX = 10;
+const PRESETS = [
+  { x: [1, 2, 3], xs: 0, h: [1, 1], hs: 0 },
+  { x: [1, 2, 3], xs: 0, h: [0, 1, 2, 3], hs: 0 },
+  { x: [2, 1], xs: 0, h: [1, 0.5, 0.25, 0.125, 0.0625], hs: 0 },
+  { x: [3, 1, 3, 1, 3, 1], xs: 0, h: [0.5, 0.5], hs: 0 },
+  { x: [0, 0, 1, 1, 1, 1], xs: 0, h: [1, -1], hs: 0 },
+  { x: [2, 1], xs: 0, h: [1, 0, 0.5], hs: 0 },
+  { x: [1, 2], xs: -1, h: [1, 1, 1], hs: 0 },
+];
+const S = { x: [1, 2, 3], xs: 0, h: [1, 1], hs: 0, n: 0, tab: 1 };
+
+const r4 = v => Math.round(v * 10000) / 10000;
+const fmt = v => { v = r4(v); if (Object.is(v, -0)) v = 0; return (v < 0 ? "−" : "") + String(Math.abs(v)).replace(".", ","); };
+const fmtP = v => (v < 0 ? "(" + fmt(v) + ")" : fmt(v));
+const fi = n => (n < 0 ? "−" + Math.abs(n) : String(n));
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+
+function derived() {
+  const D = {};
+  D.xe = S.xs + S.x.length - 1; D.he = S.hs + S.h.length - 1;
+  D.xv = k => (k >= S.xs && k <= D.xe ? S.x[k - S.xs] : 0);
+  D.hv = m => (m >= S.hs && m <= D.he ? S.h[m - S.hs] : 0);
+  D.ys = S.xs + S.hs; D.ye = D.xe + D.he;
+  D.y = range(D.ys, D.ye).map(n => { let s = 0; for (let k = S.xs; k <= D.xe; k++) s += D.xv(k) * D.hv(n - k); return r4(s); });
+  D.yv = n => (n >= D.ys && n <= D.ye ? D.y[n - D.ys] : 0);
+  D.nmin = Math.min(S.xs, S.hs, D.ys) - 1; D.nmax = Math.max(D.xe, D.he, D.ye) + 1;
+  D.kmin = Math.min(S.xs, D.ys - D.he, -D.he, 0) - 1;
+  D.kmax = Math.max(D.xe, D.ye - S.hs, -S.hs, 0) + 1;
+  return D;
+}
+
+function yr(vals, minSpan) {
+  const mx = Math.max(0, ...vals), mn = Math.min(0, ...vals);
+  let ymax = mx > 0 ? mx * 1.3 : 0, ymin = mn < 0 ? mn * 1.4 : 0;
+  if (minSpan) { ymax = Math.max(ymax, minSpan); if (mn < 0) ymin = Math.min(ymin, -minSpan); }
+  if (ymax === 0 && ymin === 0) ymax = 1;
+  if (ymax === 0) ymax = Math.abs(ymin) * 0.35;
+  const ticks = [0]; if (mx > 0) ticks.push(r4(mx)); if (mn < 0) ticks.push(r4(mn));
+  return { ymin: r4(ymin), ymax: r4(ymax), ticks };
+}
+
+function wrapT(t, maxc) { const out = []; let cur = ""; String(t).split(" ").forEach(w => { const nx = cur ? cur + " " + w : w; if (nx.length > maxc && cur) { out.push(cur); cur = w; } else cur = nx; }); if (cur) out.push(cur); return out.length ? out : [""]; }
+const vwNow = () => document.documentElement.clientWidth || window.innerWidth;
+function plot(o) {
+  const vw = vwNow();
+  let W = o.W || 680;
+  if (vw < 620) W = Math.max(280, Math.min(W, Math.round(W === 380 ? Math.min(380, vw * 0.92) - 62 : vw - 76)));
+  const L = 46, R = 14, B = 30, narrow = W < 480, tfs = narrow ? 13.5 : 14.5;
+  const tl = wrapT(o.title, Math.floor((W - (narrow ? 24 : L + 100)) / (tfs * 0.56)));
+  const exH = (tl.length - 1) * (tfs + 4), T = 34 + exH, H = (o.height || 200) + exH;
+  const k0 = o.kmin - 0.6, k1 = o.kmax + 0.6;
+  const { ymin, ymax } = o;
+  const sx = k => L + (k - k0) / (k1 - k0) * (W - L - R);
+  const sy = v => T + (ymax - v) / (ymax - ymin) * (H - T - B);
+  const step = sx(1) - sx(0);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.title}">`;
+  s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#FFFFFE"/>`;
+  (o.hl || []).forEach(k => { s += `<rect x="${sx(k) - step * 0.42}" y="${T - 6}" width="${step * 0.84}" height="${H - T - B + 10}" rx="6" fill="${o.hlColor || C.greenT}"/>`; });
+  (o.ticks || [0]).forEach(t => {
+    s += `<line x1="${L}" x2="${W - R}" y1="${sy(t)}" y2="${sy(t)}" stroke="${t === 0 ? "#9A9A96" : C.line}" stroke-width="${t === 0 ? 1.4 : 1}" ${t === 0 ? "" : 'stroke-dasharray="4 4"'}/>`;
+    s += `<text x="${L - 8}" y="${sy(t) + 4}" text-anchor="end" font-size="12" fill="${C.mute}">${fmtTick(t)}</text>`;
+  });
+  const ks = range(o.kmin, o.kmax);
+  const every = Math.max(1, Math.ceil(ks.length / Math.max(6, Math.floor((W - L - R) / 31))));
+  ks.forEach((k, i) => { if (k % every === 0) s += `<text x="${sx(k)}" y="${H - 9}" text-anchor="middle" font-size="12.5" fill="${k === 0 ? C.ink : C.mute}" font-weight="${k === 0 ? 700 : 400}">${fi(k)}</text>`; });
+  const tx = narrow ? 12 : L;
+  s += `<text x="${tx}" y="21" font-size="${tfs}" font-weight="700" fill="${o.titleColor || C.ink}">${tl.map((l, i) => `<tspan x="${tx}" dy="${i ? tfs + 4 : 0}">${l}</tspan>`).join("")}</text>`;
+  if (!narrow) s += `<text x="${W - R}" y="21" text-anchor="end" font-size="12.5" fill="${C.mute}">trục ${o.axis || "n"}</text>`;
+  const slot = (W - L - R) / (o.kmax - o.kmin + 1.2);
+  o.series.forEach(se => { const okLab = se.pts.every(([kk, v]) => kk < o.kmin || kk > o.kmax || Math.abs(v) < 1e-9 || fmt(v).length * 7.4 < slot * 0.95); se.pts.forEach(([k, v]) => {
+    if (k < o.kmin || k > o.kmax) return;
+    const x = sx(k), y0 = sy(0), y = sy(v), col = se.color;
+    s += `<line x1="${x}" x2="${x}" y1="${y0}" y2="${y}" stroke="${col}" stroke-width="${se.w || 3}" stroke-linecap="round" ${se.dash ? 'stroke-dasharray="3 4"' : ""}/>`;
+    s += `<circle cx="${x}" cy="${y}" r="${se.r || 5.5}" fill="${se.hollow ? "#FFFFFE" : col}" stroke="${col}" stroke-width="2"/>`;
+    if (se.labels !== false && okLab && Math.abs(v) > 1e-9) s += `<text x="${x}" y="${v >= 0 ? y - 10 : y + 20}" text-anchor="middle" font-size="12.5" font-weight="600" fill="${col}">${fmt(v)}</text>`;
+  }); });
+  if (o.editable) ks.forEach(k => { if (o.editable(k)) s += `<rect data-k="${k}" x="${sx(k) - step / 2}" y="${T - 10}" width="${step}" height="${H - T - B + 20}" fill="transparent"/>`; });
+  o.geom = { sx, sy, T, B, H, W, ymin, ymax };
+  return s + `</svg>`;
+}
+
+const SUP = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻" };
+function fmtTick(t) {
+  if (Math.abs(t) < 1e5) return fmt(t);
+  const e = Math.floor(Math.log10(Math.abs(t))), m = Math.round(Math.abs(t) / Math.pow(10, e));
+  return (t < 0 ? "−" : "") + (m === 1 ? "" : m + "·") + "10" + String(e).split("").map(c => SUP[c]).join("");
+}
+const fmtList = a => a.map(fmt).join("; ");
+function parseList(str) {
+  const t = str.replace(/;/g, " ").replace(/,\s+/g, " ").trim();
+  if (!t) return { err: "Hãy nhập ít nhất một mẫu." };
+  const parts = t.split(/\s+/);
+  if (parts.length > MAXLEN) return { err: `Tối đa ${MAXLEN} mẫu.` };
+  const vals = parts.map(p => Number(p.replace(/−/g, "-").replace(",", ".")));
+  const bad = parts.find((p, i) => Number.isNaN(vals[i]));
+  if (bad !== undefined) return { err: `“${bad}” không phải là số. Ví dụ hợp lệ: 1 0,5 −2` };
+  if (vals.some(v => Math.abs(v) > VMAX)) return { err: `Giá trị phải nằm trong khoảng −${VMAX} đến ${VMAX}.` };
+  return { vals: vals.map(r4) };
+}
+
+const $ = id => document.getElementById(id);
+let editRange = { x: null, h: null };
+let drag = null;
+
+function renderInputs(skipText) {
+  ["x", "h"].forEach(w => {
+    if (skipText !== w) $(w + "-vals").value = fmtList(S[w]);
+    $(w + "-n0").value = S[w + "s"];
+  });
+}
+
+function renderEditPlots() {
+  const D = derived();
+  ["x", "h"].forEach(w => {
+    const arr = S[w], st = S[w + "s"], en = st + arr.length - 1, f = w === "x" ? D.xv : D.hv;
+    const lo = Math.min(st, 0) - 1, hi = Math.max(en, 0) + 2;
+    const rr = drag && drag.w === w ? editRange[w] : (editRange[w] = (() => { const m = Math.max(3, Math.ceil(Math.max(...arr.map(Math.abs)) + 1)); return { ymin: -m, ymax: m }; })());
+    const ticks = [0, rr.ymax - 1, rr.ymin + 1];
+    const o = { W: 380, kmin: lo, kmax: hi, ymin: rr.ymin, ymax: rr.ymax, ticks, height: 200,
+      title: w === "x" ? "x(n)" : "h(n)", titleColor: w === "x" ? C.red : C.green,
+      series: [{ color: w === "x" ? C.red : C.green, pts: range(st, en).map(k => [k, f(k)]) }],
+      editable: k => k >= st && k <= en };
+    $(w + "-plot").innerHTML = plot(o);
+    $(w + "-plot").geom = o.geom;
+  });
+}
+
+function renderOutput() {
+  const D = derived();
+  const yR = yr(D.y);
+  $("y-plot").innerHTML = plot({ kmin: D.nmin, kmax: D.nmax, ...yR, height: 220, title: "y(n)", titleColor: C.ink, series: [{ color: C.ink, pts: range(D.ys, D.ye).map(n => [n, D.yv(n)]) }] });
+  $("y-vals").textContent = `y(n) = {${fmtList(D.y)}}   với n = ${fi(D.ys)} … ${fi(D.ye)}`;
+  $("f-len").textContent = `${S.x.length} + ${S.h.length} − 1 = ${D.y.length}`;
+  $("f-start").textContent = `n = ${fi(S.xs)} + ${fi(S.hs)} = ${fi(D.ys)}`;
+  $("f-end").textContent = `n = ${fi(D.ye)}`;
+  const sx = r4(S.x.reduce((a, b) => a + b, 0)), sh = r4(S.h.reduce((a, b) => a + b, 0)), sy = r4(D.y.reduce((a, b) => a + b, 0));
+  $("f-sum").textContent = `${fmt(sy)} = ${fmt(sx)} × ${fmt(sh)}`;
+
+  const ns = range(D.ys, D.ye);
+  const contrib = range(S.xs, D.xe).filter(k => D.xv(k) !== 0);
+  const lab = k => { const sh2 = k === 0 ? "" : (k > 0 ? "−" + k : "+" + Math.abs(k)); return `${fmtP(D.xv(k))}·h(n${sh2})`; };
+  let t = `<thead><tr><th>x(k) → hàng</th>${ns.map(n => `<th>n=${fi(n)}</th>`).join("")}</tr></thead><tbody>`;
+  contrib.forEach((k, j) => {
+    t += `<tr><td style="color:${ROWC[j % 3]};font-weight:600">x(${fi(k)}) = ${fmt(D.xv(k))} → ${lab(k)}</td>${ns.map(n => { const m = n - k; return m >= S.hs && m <= D.he ? `<td>${fmt(D.xv(k) * D.hv(m))}</td>` : `<td class="z">·</td>`; }).join("")}</tr>`;
+  });
+  if (!contrib.length) t += `<tr><td colspan="${ns.length + 1}">x(n) toàn số 0 nên không có hàng nào: y(n) = 0.</td></tr>`;
+  t += `<tr class="sum"><td>y(n) = cộng dọc</td>${ns.map(n => `<td>${fmt(D.yv(n))}</td>`).join("")}</tr></tbody>`;
+  $("c1-table").innerHTML = t;
+  const rowVals = contrib.flatMap(k => ns.map(n => D.xv(k) * D.hv(n - k)));
+  const rr = yr(rowVals.length ? rowVals : [1]);
+  $("c1-rows").innerHTML = contrib.map((k, j) => `<div class="plot">${plot({ kmin: D.nmin, kmax: D.nmax, ...rr, height: 150,
+    title: `Hàng ${j + 1}: x(${fi(k)}) = ${fmt(D.xv(k))} → ${lab(k)}`, titleColor: ROWC[j % 3],
+    series: [{ color: ROWC[j % 3], pts: ns.filter(n => n - k >= S.hs && n - k <= D.he).map(n => [n, D.xv(k) * D.hv(n - k)]) }] })}</div>`).join("")
+    + `<div class="plot">${plot({ kmin: D.nmin, kmax: D.nmax, ...yR, height: 170, title: "Cộng dọc các hàng → y(n)", titleColor: C.green, series: [{ color: C.ink, pts: ns.map(n => [n, D.yv(n)]) }] })}</div>`;
+
+  $("sum-conv").innerHTML = `<div><span class="k">Đầu vào</span><span class="v x">x(n) = {${fmtList(S.x)}}</span> <span class="hint">bắt đầu n = ${fi(S.xs)}</span></div>
+    <div><span class="k">Hệ thống</span><span class="v h">h(n) = {${fmtList(S.h)}}</span> <span class="hint">bắt đầu n = ${fi(S.hs)}</span></div>`;
+  const xm = yr(S.x), hm = yr(S.h);
+  $("mini-x").innerHTML = plot({ W: 420, kmin: D.nmin, kmax: D.nmax, ...xm, height: 150, title: "x(n)", titleColor: C.red, series: [{ color: C.red, pts: range(S.xs, D.xe).map(k => [k, D.xv(k)]) }] });
+  $("mini-h").innerHTML = plot({ W: 420, kmin: D.nmin, kmax: D.nmax, ...hm, height: 150, title: "h(n)", titleColor: C.green, series: [{ color: C.green, pts: range(S.hs, D.he).map(k => [k, D.hv(k)]) }] });
+  S.n = Math.max(D.ys, Math.min(D.ye, S.n));
+  const rng = $("c2-rng"); rng.min = D.ys; rng.max = D.ye; rng.value = S.n;
+  renderStep();
+}
+
+function renderStep() {
+  const D = derived(), n = S.n;
+  const ks = range(D.kmin, D.kmax);
+  const ov = ks.filter(k => D.xv(k) !== 0 && D.hv(n - k) !== 0);
+  const xr = yr(S.x), hr = yr(S.h);
+  $("c2-nb").textContent = "n = " + fi(n);
+  $("c2-rng").value = n;
+  $("c2-x").innerHTML = plot({ kmin: D.kmin, kmax: D.kmax, ...xr, height: 170, hl: ov, axis: "k", title: "x(k): đứng yên", titleColor: C.red, series: [{ color: C.red, pts: ks.map(k => [k, D.xv(k)]) }] });
+  const hs = [];
+  if (n !== 0) hs.push({ color: C.gray, hollow: true, labels: false, w: 2, dash: true, r: 4.5, pts: ks.map(k => [k, D.hv(-k)]).filter(([, v]) => v !== 0) });
+  hs.push({ color: C.green, pts: ks.map(k => [k, D.hv(n - k)]) });
+  const tt = n === 0 ? "h(−k): lật h quanh k = 0" : `h(${fi(n)}−k): lật h rồi dịch sang ${n > 0 ? "phải" : "trái"} ${Math.abs(n)} nhịp (vòng xám: trước khi dịch)`;
+  $("c2-h").innerHTML = plot({ kmin: D.kmin, kmax: D.kmax, ...hr, height: 170, hl: ov, axis: "k", title: tt, titleColor: C.green, series: hs });
+  const prods = [];
+  for (let m = D.ys; m <= D.ye; m++) for (const k of ks) prods.push(D.xv(k) * D.hv(m - k));
+  const pr = yr(prods.length ? prods : [1]);
+  $("c2-p").innerHTML = plot({ kmin: D.kmin, kmax: D.kmax, ...pr, height: 170, hl: ov, axis: "k", title: "Nhân từng cặp chồng nhau: x(k)·h(n−k)", series: [{ color: C.ink, pts: ov.map(k => [k, D.xv(k) * D.hv(n - k)]) }] });
+  const yR = yr(D.y);
+  $("c2-y").innerHTML = plot({ kmin: D.nmin, kmax: D.nmax, ...yR, height: 180, hl: [n], hlColor: C.redT,
+    title: `Cộng lại → y(${fi(n)}) = ${fmt(D.yv(n))}  (chấm xám: chưa tính)`, titleColor: C.green,
+    series: [{ color: C.gray, hollow: true, labels: false, w: 2, pts: range(n + 1, D.ye).map(m => [m, D.yv(m)]) }, { color: C.green, pts: range(D.ys, n).map(m => [m, D.yv(m)]) }] });
+  $("c2-calc").innerHTML = ov.length
+    ? `y(${fi(n)}) = <span class="idx">${ov.map(k => `x(${fi(k)})·h(${fi(n - k)})`).join(" + ")}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ${ov.map(k => `${fmtP(D.xv(k))}·${fmtP(D.hv(n - k))}`).join(" + ")} = <span class="res">${fmt(D.yv(n))}</span>`
+    : `y(${fi(n)}): không có cặp nào chồng nhau → <span class="res">0</span>`;
+  $("c2-prev").disabled = n <= D.ys; $("c2-next").disabled = n >= D.ye;
+}
+
+function renderAll(skipText) { renderInputs(skipText); renderEditPlots(); renderOutput(); }
+
+["x", "h"].forEach(w => {
+  $(w + "-vals").addEventListener("input", e => {
+    const r = parseList(e.target.value);
+    if (r.err) { e.target.classList.add("bad"); $(w + "-err").textContent = r.err; return; }
+    e.target.classList.remove("bad"); $(w + "-err").textContent = "";
+    S[w] = r.vals; renderAll(w);
+  });
+  $(w + "-vals").addEventListener("blur", e => { if (!e.target.classList.contains("bad")) e.target.value = fmtList(S[w]); });
+  $(w + "-n0").addEventListener("input", e => {
+    const v = parseInt(e.target.value, 10);
+    if (Number.isNaN(v) || v < -6 || v > 6) { e.target.classList.add("bad"); $(w + "-err").textContent = "Điểm bắt đầu phải là số nguyên từ −6 đến 6."; return; }
+    e.target.classList.remove("bad"); $(w + "-err").textContent = "";
+    S[w + "s"] = v; renderAll(w);
+  });
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.add) { const w = b.dataset.add; if (S[w].length >= MAXLEN) { $(w + "-err").textContent = `Tối đa ${MAXLEN} mẫu.`; return; } S[w] = [...S[w], 0]; $(w + "-err").textContent = ""; renderAll(); }
+  if (b.dataset.del) { const w = b.dataset.del; if (S[w].length <= 1) { $(w + "-err").textContent = "Cần ít nhất một mẫu."; return; } S[w] = S[w].slice(0, -1); $(w + "-err").textContent = ""; renderAll(); }
+  if (b.dataset.zero) { const w = b.dataset.zero; S[w] = S[w].map(() => 0); renderAll(); }
+  if (b.dataset.preset) { const p = PRESETS[+b.dataset.preset]; stopPlay(); Object.assign(S, { x: [...p.x], xs: p.xs, h: [...p.h], hs: p.hs }); S.n = p.xs + p.hs; ["x", "h"].forEach(w => { $(w + "-vals").classList.remove("bad"); $(w + "-n0").classList.remove("bad"); $(w + "-err").textContent = ""; }); renderAll(); }
+});
+
+function pointToVal(w, ev) {
+  const box = $(w + "-plot"), svg = box.querySelector("svg"), g = box.geom;
+  const rect = svg.getBoundingClientRect();
+  const yPx = (ev.clientY - rect.top) * (g.H / rect.height);
+  let v = g.ymax - (yPx - g.T) / (g.H - g.T - g.B) * (g.ymax - g.ymin);
+  v = Math.round(v * 2) / 2;
+  return Math.max(-VMAX, Math.min(VMAX, Math.max(g.ymin + 1, Math.min(g.ymax - 1, v))));
+}
+["x", "h"].forEach(w => {
+  const box = $(w + "-plot");
+  box.addEventListener("pointerdown", ev => {
+    const t = ev.target.closest("[data-k]"); if (!t) return;
+    ev.preventDefault();
+    drag = { w, k: +t.dataset.k, id: ev.pointerId };
+    box.setPointerCapture(ev.pointerId);
+    setVal(ev);
+  });
+  box.addEventListener("pointermove", ev => { if (drag && drag.w === w && drag.id === ev.pointerId) setVal(ev); });
+  const end = ev => { if (drag && drag.w === w) { drag = null; renderEditPlots(); } };
+  box.addEventListener("pointerup", end); box.addEventListener("pointercancel", end);
+  function setVal(ev) {
+    const v = pointToVal(w, ev), i = drag.k - S[w + "s"];
+    if (S[w][i] === v) return;
+    S[w] = S[w].map((a, j) => (j === i ? v : a));
+    $(w + "-vals").value = fmtList(S[w]); $(w + "-vals").classList.remove("bad"); $(w + "-err").textContent = "";
+    renderEditPlots(); renderOutput();
+  }
+});
+
+function selectTab(i) {
+  S.tab = i;
+  $("tab-c1").setAttribute("aria-selected", i === 1); $("tab-c2").setAttribute("aria-selected", i === 2);
+  $("p-c1").hidden = i !== 1; $("p-c2").hidden = i !== 2;
+  if (i !== 2) stopPlay();
+}
+$("tab-c1").addEventListener("click", () => selectTab(1));
+$("tab-c2").addEventListener("click", () => selectTab(2));
+let timer = null;
+function stopPlay() { if (timer) { clearInterval(timer); timer = null; } $("c2-play").textContent = "Chạy tự động"; }
+$("c2-prev").addEventListener("click", () => { stopPlay(); S.n--; renderStep(); });
+$("c2-next").addEventListener("click", () => { stopPlay(); S.n++; renderStep(); });
+$("c2-rng").addEventListener("input", e => { stopPlay(); S.n = +e.target.value; renderStep(); });
+$("c2-play").addEventListener("click", () => {
+  if (timer) { stopPlay(); return; }
+  const D = derived(); if (S.n >= D.ye) S.n = D.ys;
+  renderStep(); $("c2-play").textContent = "Dừng";
+  timer = setInterval(() => { const D2 = derived(); if (S.n >= D2.ye) { stopPlay(); return; } S.n++; renderStep(); }, 1300);
+});
+
+renderAll();
+
+/* ================= Phương trình sai phân ================= */
+const DEP = [
+  { name: "Cái hang (dội 0,5)", b: [1, 0, 0], a: [0.5, 0] },
+  { name: "Hang vang dài (dội 0,9)", b: [1, 0, 0], a: [0.9, 0] },
+  { name: "Hang gây hú (dội 1,1)", b: [1, 0, 0], a: [1.1, 0] },
+  { name: "Lọc mượt cảm biến", b: [0.1, 0, 0], a: [0.9, 0] },
+  { name: "Trung bình 2 mẫu (FIR)", b: [0.5, 0.5, 0], a: [0, 0] },
+  { name: "Phát hiện thay đổi (FIR)", b: [1, -1, 0], a: [0, 0] },
+  { name: "Dội đảo dấu", b: [1, 0, 0], a: [-0.7, 0] },
+  { name: "Dao động tắt dần", b: [1, 0, 0], a: [1.6, -0.8] },
+];
+const DINP = [["impulse", "Xung δ(n)"], ["step", "Hét đều (bậc thang)"], ["rect", "Hét vài nhịp rồi ngừng"], ["noisy", "Bậc thang có nhiễu"], ["sine", "Hình sin"], ["custom", "Tự nhập"]];
+const DS = { b: [1, 0, 0], a: [0.5, 0], inp: "step", N: 30, P: 5, custom: [1, 2, 3], pin: null, pinLabel: "", jn: 100 };
+const PK = [["b", 0, "b₀", "× x(n)"], ["b", 1, "b₁", "× x(n−1)"], ["b", 2, "b₂", "× x(n−2)"], ["a", 0, "α₁", "× y(n−1)"], ["a", 1, "α₂", "× y(n−2)"]];
+
+$("de-presets").insertAdjacentHTML("beforeend", DEP.map((p, i) => `<button class="chip" data-de="${i}">${p.name}</button>`).join(""));
+$("de-inputs").innerHTML = DINP.map(([k, l]) => `<button type="button" data-inp="${k}" aria-pressed="false">${l}</button>`).join("");
+$("de-params").innerHTML = PK.map(([g, i, lab, sub]) => `<div class="param ${g === "a" ? "fb" : ""}"><label for="de-r-${g}${i}">${lab} <small>${sub}</small></label><input type="range" id="de-r-${g}${i}" min="-2" max="2" step="0.05" aria-label="${lab}"><input type="number" id="de-n-${g}${i}" min="-5" max="5" step="0.05" aria-label="${lab} (nhập số)"></div>`).join("");
+
+function deRun(x, b, a) {
+  const y = new Array(x.length);
+  for (let n = 0; n < x.length; n++) {
+    let v = 0;
+    for (let i = 0; i < 3; i++) if (n - i >= 0) v += b[i] * x[n - i];
+    for (let j = 1; j <= 2; j++) if (n - j >= 0) v += a[j - 1] * y[n - j];
+    y[n] = v;
+  }
+  return y;
+}
+function deInput(N) {
+  const x = [];
+  let seed = 7;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
+  for (let n = 0; n < N; n++) {
+    if (DS.inp === "impulse") x.push(n === 0 ? 1 : 0);
+    else if (DS.inp === "step") x.push(1);
+    else if (DS.inp === "rect") x.push(n < DS.P ? 1 : 0);
+    else if (DS.inp === "noisy") x.push(r4(1 + 0.6 * rnd()));
+    else if (DS.inp === "sine") x.push(r4(Math.sin(2 * Math.PI * n / Math.max(2, DS.P))));
+    else x.push(n < DS.custom.length ? DS.custom[n] : 0);
+  }
+  return x;
+}
+function deRoots(a1, a2) {
+  if (a2 === 0) return a1 === 0 ? [] : [{ re: a1, im: 0 }];
+  const d = a1 * a1 + 4 * a2;
+  if (d >= 0) { const s = Math.sqrt(d); return [{ re: (a1 + s) / 2, im: 0 }, { re: (a1 - s) / 2, im: 0 }]; }
+  return [{ re: a1 / 2, im: Math.sqrt(-d) / 2 }, { re: a1 / 2, im: -Math.sqrt(-d) / 2 }];
+}
+const fmt2 = v => fmt(Math.round(v * 1000) / 1000);
+function big(v) {
+  if (!Number.isFinite(v)) return "∞";
+  if (Math.abs(v) < 1e5) return fmt2(v);
+  const [m, e] = Math.abs(v).toExponential(1).split("e+");
+  return (v < 0 ? "−" : "") + m.replace(".", ",") + "·10" + e.split("").map(c => SUP[c]).join("");
+}
+
+function deEquation() {
+  const xt = [], yt = [];
+  ["x(n)", "x(n−1)", "x(n−2)"].forEach((s, i) => { if (DS.b[i] !== 0) xt.push(`${fmtP(DS.b[i])}·${s}`); });
+  ["y(n−1)", "y(n−2)"].forEach((s, j) => { if (DS.a[j] !== 0) yt.push(`${fmtP(DS.a[j])}·${s}`); });
+  const parts = xt.map(t => `<span class="xr">${t}</span>`).concat(yt.map(t => `<span class="yg">${t}</span>`));
+  $("de-eq").innerHTML = "y(n) = " + (parts.length ? parts.join(" + ") : "0");
+  const lhs = ["y(n)"].concat(DS.a.map((v, j) => (v !== 0 ? `${-v < 0 ? "− " + fmt(Math.abs(v)) : "+ " + fmt(Math.abs(v))}·y(n−${j + 1})` : null)).filter(Boolean)).join(" ");
+  $("de-eq2").textContent = `Dạng trên slide: ${lhs} = ${xt.length ? xt.join(" + ") : "0"}`;
+}
+
+function deSync() {
+  PK.forEach(([g, i]) => { $(`de-r-${g}${i}`).value = DS[g][i]; $(`de-n-${g}${i}`).value = DS[g][i]; });
+  document.querySelectorAll("#de-inputs [data-inp]").forEach(b => b.setAttribute("aria-pressed", b.dataset.inp === DS.inp));
+  $("de-N").value = DS.N; $("de-P").value = DS.P;
+  const needP = DS.inp === "rect" || DS.inp === "sine";
+  $("de-pwrap").hidden = !needP; $("de-plabel").textContent = DS.inp === "rect" ? "Số nhịp hét" : "Chu kỳ (mẫu)";
+  $("de-cwrap").hidden = DS.inp !== "custom";
+  if (DS.inp === "custom" && document.activeElement !== $("de-custom")) $("de-custom").value = fmtList(DS.custom);
+}
+
+function renderDE() {
+  deEquation();
+  const N = DS.N, x = deInput(N), y = deRun(x, DS.b, DS.a);
+  const ns = range(0, N - 1), lab = N <= 16;
+  const sm = N > 30 ? { r: 3.5, w: 2 } : {};
+  const xR = yr(x);
+  $("mini-dx").innerHTML = plot({ W: 1000, kmin: -1, kmax: N, ...xR, height: 170, title: `x(n): ${(DINP.find(d => d[0] === DS.inp) || ["", ""])[1]}`, titleColor: C.red, series: [{ color: C.red, labels: lab, ...sm, pts: ns.map(n => [n, x[n]]) }] });
+  $("de-xplot").innerHTML = plot({ W: 380, kmin: -1, kmax: N, ...xR, height: 180, title: "x(n)", titleColor: C.red, series: [{ color: C.red, labels: lab, ...sm, pts: ns.map(n => [n, x[n]]) }] });
+
+  const finite = y.every(Number.isFinite);
+  const pinVals = DS.pin ? DS.pin.slice(0, N).filter(Number.isFinite) : [];
+  const yR = yr(finite ? y.concat(pinVals) : [1]);
+  const series = [];
+  if (DS.pin) series.push({ color: C.gray, hollow: true, labels: false, w: 2, r: 4, pts: DS.pin.slice(0, N).map((v, n) => [n, v]).filter(([, v]) => Number.isFinite(v)) });
+  series.push({ color: C.green, labels: lab, ...sm, pts: ns.map(n => [n, y[n]]).filter(([, v]) => Number.isFinite(v)) });
+  $("de-yplot").innerHTML = plot({ kmin: -1, kmax: N, ...yR, height: 240, title: DS.pin ? `y(n) hiện tại (xanh)  ·  đường đã ghim (xám): ${DS.pinLabel}` : "y(n)", titleColor: C.green, series });
+
+  const fir = DS.a[0] === 0 && DS.a[1] === 0;
+  const roots = deRoots(DS.a[0], DS.a[1]);
+  const rmax = roots.reduce((m, r) => Math.max(m, Math.hypot(r.re, r.im)), 0);
+  const stable = rmax < 1 - 1e-9;
+  const rootTxt = !roots.length ? "không có (không hồi tiếp)" : roots[0].im !== 0
+    ? `λ = ${fmt2(roots[0].re)} ± ${fmt2(Math.abs(roots[0].im))}j  (|λ| = ${fmt2(rmax)})`
+    : roots.map(r => `λ = ${fmt2(r.re)}`).join(";  ");
+  const bs = DS.b[0] + DS.b[1] + DS.b[2], den = 1 - DS.a[0] - DS.a[1];
+  const K = stable && Math.abs(den) > 1e-12 ? bs / den : null;
+
+  const L = 4000;
+  const hLong = deRun(Array.from({ length: L }, (_, n) => (n === 0 ? 1 : 0)), DS.b, DS.a);
+  const sLong = deRun(new Array(L).fill(1), DS.b, DS.a);
+  let settle = null, ring = null;
+  if (stable) {
+    const tol = Math.max(Math.abs(K) * 0.01, 1e-6);
+    let last = -1; for (let n = 0; n < L; n++) if (Math.abs(sLong[n] - K) > tol) last = n;
+    settle = last + 1;
+    const hm = Math.max(...hLong.map(Math.abs));
+    let lr = 0; for (let n = 0; n < L; n++) if (Math.abs(hLong[n]) > 0.01 * hm) lr = n;
+    ring = lr + 1;
+  }
+  const hLen = fir ? (DS.b[2] !== 0 ? 3 : DS.b[1] !== 0 ? 2 : DS.b[0] !== 0 ? 1 : 0) : null;
+  const facts = [
+    { t: "Loại hệ", v: fir ? "FIR, không hồi tiếp" : "IIR, có hồi tiếp", s: fir ? `h(n) dài ${hLen} mẫu` : "h(n) dài vô hạn", ok: true },
+    { t: "Nghiệm λ (bước B1)", v: rootTxt, s: fir ? "FIR luôn ổn định" : stable ? "|λ| < 1 → ổn định, vọng tắt dần" : rmax === 1 ? "|λ| = 1 → biên ổn định, không tắt" : "|λ| > 1 → MẤT ỔN ĐỊNH, đầu ra tăng mãi", ok: fir || stable },
+    { t: "Hét đều mãi, cuối cùng ra", v: K !== null ? fmt2(K) : "tăng mãi / không dừng", s: K !== null ? `= (${fmt2(bs)}) ÷ (1 − ${fmtP(r4(DS.a[0]))} − ${fmtP(r4(DS.a[1]))})` : "không có mức xác lập", ok: K !== null },
+    { t: "Thời gian", v: stable ? `ổn định sau ≈ ${settle} nhịp` : "—", s: stable ? `ngừng hét thì tắt (dưới 1%) sau ≈ ${ring} nhịp` : "hệ không ổn định", ok: stable },
+  ];
+  $("de-facts").innerHTML = facts.map(f => `<div class="fact ${f.ok ? "" : "bad"}"><small>${f.t}</small><b class="small">${f.v}</b><small>${f.s}</small></div>`).join("");
+
+  const hN = deRun(ns.map(n => (n === 0 ? 1 : 0)), DS.b, DS.a);
+  const hFin = hN.every(Number.isFinite);
+  const hR = yr(hFin ? hN : [1]);
+  $("de-hplot").innerHTML = plot({ kmin: -1, kmax: N, ...hR, height: 190, title: "h(n) = đầu ra khi x(n) = δ(n)", titleColor: C.green, series: [{ color: C.green, labels: lab, ...sm, pts: ns.map(n => [n, hN[n]]).filter(([, v]) => Number.isFinite(v)) }] });
+  $("de-hnote").innerHTML = `h(n) = {${hN.slice(0, 6).map(big).join("; ")}${N > 6 ? "; …" : ""}}`;
+
+  const rows = Math.min(8, N);
+  let t = `<thead><tr><th>n</th><th>x(n)</th><th>Phép tính</th><th>y(n)</th></tr></thead><tbody>`;
+  for (let n = 0; n < rows; n++) {
+    const terms = [];
+    for (let i = 0; i < 3; i++) if (DS.b[i] !== 0) terms.push(`${fmtP(DS.b[i])}·${n - i >= 0 ? fmtP(r4(x[n - i])) : "0"}`);
+    for (let j = 1; j <= 2; j++) if (DS.a[j - 1] !== 0) terms.push(`${fmtP(DS.a[j - 1])}·${n - j >= 0 ? (Number.isFinite(y[n - j]) ? fmtP(r4(y[n - j])) : "∞") : "0"}`);
+    t += `<tr><td>${n}</td><td>${fmt(r4(x[n]))}</td><td style="text-align:left;font-family:var(--f-mono)">${terms.join(" + ") || "0"}</td><td><b>${big(y[n])}</b></td></tr>`;
+  }
+  $("de-steps").innerHTML = t + "</tbody>";
+
+  const jumpOk = DS.b[1] === 0 && DS.b[2] === 0 && DS.a[1] === 0 && DS.a[0] !== 1 && DS.a[0] !== 0 && DS.b[0] !== 0;
+  if (jumpOk) {
+    const a = DS.a[0], b0 = DS.b[0], Kj = b0 / (1 - a);
+    const jn = Math.max(0, Math.min(100000, DS.jn | 0));
+    const fv = Kj * (1 - Math.pow(a, jn + 1));
+    let it = 0; for (let n = 0; n <= jn; n++) it = b0 + a * it;
+    $("de-jump").innerHTML = `<p class="eq">y(n) = ${fmt2(Kj)} · (1 − (${fmt2(a)})ⁿ⁺¹)</p>
+      <div class="row" style="margin-top:10px"><div class="field"><label for="de-jn">Muốn biết y tại n =</label><input id="de-jn" class="n0" type="number" min="0" max="100000" step="1" value="${jn}" style="width:120px"></div></div>
+      <p style="margin-top:10px">Thay thẳng vào công thức: <span class="big-ok">y(${jn}) = ${big(fv)}</span>, chỉ <b>1 lần tính</b>.</p>
+      <p>Lặp phương trình từ n = 0: cũng ra <b>${big(it)}</b>, nhưng phải chạy <b>${jn + 1} lần</b>.</p>
+      <p class="hint">${Math.abs(a) < 1 ? `Vì |α₁| &lt; 1 nên (${fmt2(a)})ⁿ⁺¹ → 0 và y tiến về ${fmt2(Kj)}.` : `Vì |α₁| ≥ 1 nên (${fmt2(a)})ⁿ⁺¹ không tắt: đầu ra không dừng ở mức nào.`}</p>`;
+    $("de-jn").addEventListener("input", e => { const v = parseInt(e.target.value, 10); if (!Number.isNaN(v)) { DS.jn = v; const p = e.target.selectionStart; renderDE(); const el = $("de-jn"); el.focus(); try { el.setSelectionRange(p, p); } catch (_) {} } });
+  } else {
+    $("de-jump").innerHTML = `<p class="hint">Công thức nhảy cóc ở đây hiển thị cho hệ bậc 1 dạng <b>y(n) = b₀·x(n) + α₁·y(n−1)</b>, như cái hang (b₁ = b₂ = α₂ = 0, α₁ ≠ 0 và α₁ ≠ 1). Bấm “Cái hang”, “Hang vang dài” hoặc “Lọc mượt cảm biến” để thử.</p>`;
+  }
+
+  if (finite && hFin) {
+    const yc = ns.map(n => { let s = 0; for (let k = 0; k <= n; k++) s += x[k] * hN[n - k]; return s; });
+    const md = Math.max(...ns.map(n => Math.abs(yc[n] - y[n])));
+    const nz = DS.b.filter(v => v !== 0).length + DS.a.filter(v => v !== 0).length;
+    const nn = Math.min(3, N - 1);
+    $("de-check").innerHTML = `<p>Tính lại y(n) bằng <b>tích chập x(n) * h(n)</b>, dùng h(n) của chính hệ này:</p>
+      <p style="margin-top:8px">Sai lệch lớn nhất giữa hai cách = <span class="big-ok">${md < 1e-6 ? "0" : big(md)}</span> → <b>hai cách cho cùng một kết quả</b>.</p>
+      <p style="margin-top:8px">Ví dụ y(${nn}): tích chập cộng ${nn + 1} số hạng x(k)·h(${nn}−k); phương trình sai phân chỉ dùng ${nz} hệ số.</p>
+      <p style="margin-top:8px">Tại n = ${N - 1}: tích chập phải cộng <b>${N} số hạng</b>, phương trình sai phân vẫn chỉ <b>${nz} phép nhân</b>.</p>`;
+  } else {
+    $("de-check").innerHTML = `<p class="big-bad">Hệ mất ổn định: giá trị tăng quá lớn, không so sánh được.</p>`;
+  }
+  const inpName = (DINP.find(d => d[0] === DS.inp) || ["", ""])[1];
+  const inpExtra = DS.inp === "rect" ? `, ${DS.P} nhịp` : DS.inp === "sine" ? `, chu kỳ ${DS.P} mẫu` : DS.inp === "custom" ? `: {${fmtList(DS.custom)}}` : "";
+  $("sum-de").innerHTML = `<div><span class="k">Hệ</span><span class="eq">${$("de-eq").innerHTML}</span></div>
+    <div><span class="k">Đầu vào</span><b>${inpName}${inpExtra}</b> <span class="hint">· hiển thị ${DS.N} mẫu</span></div>`;
+  deSync();
+}
+
+function deSet(g, i, v) { if (!Number.isFinite(v)) return; DS[g] = DS[g].map((a, j) => (j === i ? r4(Math.max(-5, Math.min(5, v))) : a)); renderDE(); }
+PK.forEach(([g, i]) => {
+  $(`de-r-${g}${i}`).addEventListener("input", e => deSet(g, i, Number(e.target.value)));
+  $(`de-n-${g}${i}`).addEventListener("change", e => deSet(g, i, Number(String(e.target.value).replace(",", "."))));
+});
+$("de-presets").addEventListener("click", e => { const b = e.target.closest("[data-de]"); if (!b) return; const p = DEP[+b.dataset.de]; DS.b = [...p.b]; DS.a = [...p.a]; renderDE(); });
+$("de-inputs").addEventListener("click", e => { const b = e.target.closest("[data-inp]"); if (!b) return; DS.inp = b.dataset.inp; $("de-err").textContent = ""; renderDE(); });
+$("de-N").addEventListener("change", e => { const v = parseInt(e.target.value, 10); if (Number.isNaN(v) || v < 8 || v > 80) { $("de-err").textContent = "Số mẫu hiển thị phải từ 8 đến 80."; return; } $("de-err").textContent = ""; DS.N = v; renderDE(); });
+$("de-P").addEventListener("change", e => { const v = parseInt(e.target.value, 10); if (Number.isNaN(v) || v < 1 || v > 60) { $("de-err").textContent = "Tham số phải là số nguyên từ 1 đến 60."; return; } $("de-err").textContent = ""; DS.P = v; renderDE(); });
+$("de-custom").addEventListener("input", e => { const r = parseList(e.target.value); if (r.err) { e.target.classList.add("bad"); $("de-err").textContent = r.err; return; } e.target.classList.remove("bad"); $("de-err").textContent = ""; DS.custom = r.vals; renderDE(); });
+$("de-pin").addEventListener("click", () => {
+  DS.pin = deRun(deInput(80), DS.b, DS.a);
+  DS.pinLabel = $("de-eq").textContent;
+  $("de-unpin").disabled = false; $("de-pinnote").textContent = "Đã ghim. Đổi hệ số để so sánh với đường xám.";
+  renderDE();
+});
+$("de-unpin").addEventListener("click", () => { DS.pin = null; $("de-unpin").disabled = true; $("de-pinnote").textContent = "Ghim kết quả hiện tại, rồi đổi hệ số để thấy đường mới khác đường cũ (màu xám) thế nào."; renderDE(); });
+
+const MODES = { conv: ["Đầu vào · Tích chập", "tichchap"], de: ["Đầu vào · Phương trình sai phân", "ptsp"], ex: ["Bài tập tính chất hệ", "baitap"] };
+function selectMode(m) {
+  Object.keys(MODES).forEach(k => { $("mt-" + k).setAttribute("aria-selected", k === m); $("mode-" + k).hidden = k !== m; $("side-" + k).hidden = k !== m; });
+  $("side-title").textContent = MODES[m][0];
+  $("side").scrollTop = 0;
+  if (m !== "conv") stopPlay();
+  try { history.replaceState(null, "", "#" + MODES[m][1]); } catch (_) {}
+}
+Object.keys(MODES).forEach(k => $("mt-" + k).addEventListener("click", () => { selectMode(k); window.scrollTo(0, 0); }));
+/* ===== Thanh bên ẩn/hiện ===== */
+const narrow = () => window.matchMedia("(max-width: 900px)").matches;
+function setSide(open, save) {
+  $("app").classList.toggle("closed", !open);
+  $("side-toggle").setAttribute("aria-expanded", open);
+  $("side-label").textContent = open ? "Ẩn đầu vào" : "Hiện đầu vào";
+  if (save && !narrow()) { try { localStorage.setItem("mp-side", open ? "1" : "0"); } catch (_) {} }
+}
+$("side-toggle").addEventListener("click", () => setSide($("app").classList.contains("closed"), true));
+$("side-close").addEventListener("click", () => setSide(false, true));
+$("scrim").addEventListener("click", () => setSide(false, false));
+document.addEventListener("click", e => { if (e.target.closest("[data-open-side]")) setSide(true, true); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && narrow() && !$("app").classList.contains("closed")) setSide(false, false); });
+(() => { let saved = null; try { saved = localStorage.getItem("mp-side"); } catch (_) {} setSide(narrow() ? false : saved !== "0", false); })();
+$("scrim").hidden = false;
+const setTopH = () => document.documentElement.style.setProperty("--topH", $("top").offsetHeight + "px");
+setTopH(); window.addEventListener("resize", setTopH);
+try { new ResizeObserver(setTopH).observe($("top")); } catch (_) {}
+renderDE();
+{ const h0 = (location.hash || "").slice(1); const m0 = Object.keys(MODES).find(k => MODES[k][1] === h0); if (m0) selectMode(m0); }
+</script>
+<script>
+"use strict";
+/* ================= TAB 3: BÀI TẬP TÍNH CHẤT HỆ ================= */
+const XS = (arr, s = 0) => n => { const i = n - s; return i >= 0 && i < arr.length ? arr[i] : 0; };
+const shiftF = (f, k) => n => f(n - k);
+function recurCave(x) { const ys = new Map(); let p = 0; for (let n = -60; n <= 80; n++) { p = x(n) + 0.5 * p; ys.set(n, p); } return n => ys.get(n) || 0; }
+const convF = (h, hs) => x => n => { let s = 0; for (let i = 0; i < h.length; i++) s += h[i] * x(n - hs - i); return s; };
+const SYS = {
+  cave: { eq: "y(n) = x(n) + 0,5·y(n−1)", T: recurCave, lti: true },
+  gain2: { eq: "y(n) = 2·x(n)", T: x => n => 2 * x(n), lti: true },
+  plus1: { eq: "y(n) = x(n) + 1", T: x => n => x(n) + 1 },
+  sq: { eq: "y(n) = x²(n)", T: x => n => x(n) * x(n) },
+  nx: { eq: "y(n) = n·x(n)", T: x => n => n * x(n) },
+  clip: { eq: "y(n) = x(n), bị cắt ở ±2", T: x => n => Math.max(-2, Math.min(2, x(n))) },
+  ma: { eq: "y(n) = x(n) + 0,5·x(n−1)", T: x => n => x(n) + 0.5 * x(n - 1), lti: true },
+  x2n: { eq: "y(n) = x(2n)", T: x => n => x(2 * n) },
+  xneg: { eq: "y(n) = x(−n)", T: x => n => x(-n) },
+  h121: { eq: "y(n) = x(n) + 2·x(n−1) + x(n−2)", T: convF([1, 2, 1], 0), lti: true },
+  h111: { eq: "y(n) = x(n+1) + x(n) + x(n−1)", T: convF([1, 1, 1], -1), lti: true },
+  xnext: { eq: "y(n) = x(n+1)", T: x => n => x(n + 1), lti: true },
+};
+const r6 = v => Math.round(v * 1e6) / 1e6;
+const ptsOf = (ns, f) => ns.map(n => [n, r4(f(n))]);
+function PL(ns, series, o = {}) {
+  const vals = series.flatMap(s => s.pts.map(p => p[1])).filter(Number.isFinite);
+  const R = yr(vals.length ? vals : [1]);
+  const nz = series.reduce((m, s) => Math.max(m, s.pts.filter(p => Math.abs(p[1]) > 1e-9).length), 0);
+  const maxLen = Math.max(0, ...series.flatMap(s => s.pts.filter(p => Math.abs(p[1]) > 1e-9).map(p => fmt(p[1]).length)));
+  if (nz > 10 || ns.length > 18 || (maxLen > 4 && nz > 4)) series.forEach(s => { if (s.labels === undefined) s.labels = false; });
+  return `<div class="plot">${plot({ kmin: ns[0], kmax: ns[ns.length - 1], ...R, height: o.h || 180, title: o.title || "", titleColor: o.tc || C.ink, axis: o.axis || "n", hl: o.hl, hlColor: o.hlc, W: o.W, series })}</div>`;
+}
+const S1 = (ns, f, color, extra = {}) => ({ color, pts: ptsOf(ns, f), ...extra });
+function cmpPlot(ns, L, R, title) {
+  return PL(ns, [{ color: C.green, hollow: true, r: 9, w: 2, labels: false, pts: ptsOf(ns, R) }, { color: C.ink, r: 4.4, w: 2.6, pts: ptsOf(ns, L) }], { title, h: 220 });
+}
+function winCols(ns, fs) {
+  const nz = ns.filter(n => fs.some(f => Math.abs(f(n)) > 1e-9));
+  if (!nz.length) return ns.filter(n => n >= -1 && n <= 3);
+  const lo = Math.max(ns[0], Math.min(nz[0] - 1, 0)), hi = Math.min(ns[ns.length - 1], nz[nz.length - 1] + 1);
+  return range(lo, hi).slice(0, 18);
+}
+function cmpTable(ns, rows, L, R, labL, labR) {
+  const cols = winCols(ns, rows.map(r => r.f).concat([L, R]));
+  const cell = v => `<td class="${Math.abs(v) < 1e-9 ? "z" : ""}">${fmt(r4(v))}</td>`;
+  let t = `<thead><tr><th>n</th>${cols.map(n => `<th>${fi(n)}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach(r => { t += `<tr><td style="color:${r.c || C.ink};font-weight:700">${r.lab}</td>${cols.map(n => cell(r.f(n))).join("")}</tr>`; });
+  t += `<tr><td style="font-weight:800">${labL}</td>${cols.map(n => `<td style="font-weight:800">${fmt(r4(L(n)))}</td>`).join("")}</tr>`;
+  t += `<tr><td style="font-weight:800;color:var(--green-ink)">${labR}</td>${cols.map(n => `<td style="font-weight:800;color:var(--green-ink)">${fmt(r4(R(n)))}</td>`).join("")}</tr>`;
+  t += `<tr><td>So sánh</td>${cols.map(n => (Math.abs(L(n) - R(n)) < 1e-9 ? `<td class="okc">✓</td>` : `<td class="noc">✗</td>`)).join("")}</tr></tbody>`;
+  return `<div class="tbl-wrap"><table class="cmp-tbl">${t}</table></div>`;
+}
+function verdict(ns, L, R, okT, noT) {
+  const bad = ns.filter(n => Math.abs(L(n) - R(n)) > 1e-9);
+  return bad.length ? `<div class="ex-verdict no">✗ ${noT} Hai đường khác nhau tại n = ${bad.slice(0, 6).map(fi).join("; ")}${bad.length > 6 ? "; …" : ""}.</div>` : `<div class="ex-verdict ok">✓ ${okT}</div>`;
+}
+const legendCmp = (l, r) => `<div class="ex-legend"><span><i class="ink"></i>${l}</span><span><i class="ring"></i>${r}</span><span>Chấm đen nằm đúng giữa vòng xanh: hai vế bằng nhau.</span></div>`;
+const cv = (a, b) => { const y = new Array(a.length + b.length - 1).fill(0); a.forEach((u, i) => b.forEach((w, j) => { y[i + j] += u * w; })); return y.map(r6); };
+const addArr = (a, b) => range(0, Math.max(a.length, b.length) - 1).map(i => r6((a[i] || 0) + (b[i] || 0)));
+const ARW = id => `<defs><marker id="${id}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+const LN = (x1, y1, x2, y2, col = C.ink, mk = "") => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="1.6" ${mk ? `marker-end="url(#${mk})"` : ""}/>`;
+const TX = (x, y, s, o = {}) => `<text x="${x}" y="${y}" font-size="${o.fs || 13}" font-weight="${o.fw || 600}" fill="${o.c || C.ink}" text-anchor="${o.a || "start"}" ${o.mono ? 'font-family="JetBrains Mono, Consolas, monospace"' : ""}>${s}</text>`;
+
+/* ----- Các demo ----- */
+const DEMO = {
+  lin(S) {
+    const T = SYS[S.sys].T, x1 = XS(S.x1), x2 = XS(S.x2), a = S.a, b = S.b, ns = range(-2, 10);
+    const y1 = T(x1), y2 = T(x2), comb = n => a * x1(n) + b * x2(n), L = T(comb), R = n => a * y1(n) + b * y2(n);
+    const ab = `${fmt(a)}·x₁ + ${fmtP(b)}·x₂`;
+    return `<p class="hint">Hệ đang xét: <b style="font-family:var(--f-mono)">${SYS[S.sys].eq}</b>. Hai đầu vào thử x₁, x₂ và hai hằng số a = ${fmt(a)}, b = ${fmt(b)}.</p>
+      <div class="ex-grid2">${PL(ns, [S1(ns, x1, C.red)], { title: "x₁(n)", tc: C.red })}${PL(ns, [S1(ns, x2, C.green)], { title: "x₂(n)", tc: C.green })}</div>
+      <div class="ex-grid2">${PL(ns, [S1(ns, y1, C.red)], { title: "y₁(n) = T[x₁(n)]", tc: C.red })}${PL(ns, [S1(ns, y2, C.green)], { title: "y₂(n) = T[x₂(n)]", tc: C.green })}</div>
+      ${legendCmp(`Vế trái: đưa ${ab} vào hệ`, `Vế phải: ${fmt(a)}·y₁ + ${fmtP(b)}·y₂`)}
+      ${cmpPlot(ns, L, R, "So sánh hai vế")}
+      ${cmpTable(ns, [{ lab: `${ab}`, f: comb }], L, R, "Vế trái", "Vế phải")}
+      ${verdict(ns, L, R, "Hai vế bằng nhau ở mọi n (với số liệu đang thử). Muốn kết luận tuyến tính phải chứng minh cho mọi x₁, x₂, a, b, xem lời giải.", "Không thỏa nguyên lý xếp chồng: chỉ một phản ví dụ là đủ kết luận KHÔNG tuyến tính.")}`;
+  },
+  ti(S) {
+    const T = SYS[S.sys].T, x = XS(S.x), k = S.k, wide = ["x2n", "xneg"].includes(S.sys), ns = wide ? range(-8, 8) : range(-2, 11);
+    const y = T(x), xs = shiftF(x, k), A = T(xs), B = shiftF(y, k);
+    return `<p class="hint">Hệ đang xét: <b style="font-family:var(--f-mono)">${SYS[S.sys].eq}</b>, dịch k = ${k} nhịp.</p>
+      <div class="paths"><div><span class="lab">Đường 1</span><span>x(n)</span><em>→</em><span class="shift">dịch k</span><em>→</em><span>x(n−${k})</span><em>→</em><span class="sys">T</span><em>→</em><span>T[x(n−${k})]</span></div>
+      <div><span class="lab">Đường 2</span><span>x(n)</span><em>→</em><span class="sys">T</span><em>→</em><span>y(n)</span><em>→</em><span class="shift">dịch k</span><em>→</em><span>y(n−${k})</span></div></div>
+      <div class="ex-grid2">${PL(ns, [S1(ns, x, C.red)], { title: "x(n)", tc: C.red })}${PL(ns, [S1(ns, xs, C.red)], { title: `x(n−${k}): đầu vào dịch ${k} nhịp`, tc: C.red })}</div>
+      ${PL(ns, [S1(ns, y, C.mute)], { title: "y(n) = T[x(n)]", tc: C.mute })}
+      ${legendCmp(`Đường 1: T[x(n−${k})]`, `Đường 2: y(n−${k})`)}
+      ${cmpPlot(ns, A, B, "So sánh hai đường")}
+      ${cmpTable(ns, [{ lab: `x(n−${k})`, f: xs, c: C.red }], A, B, "Đường 1", "Đường 2")}
+      ${verdict(ns, A, B, `Dịch đầu vào ${k} nhịp thì đầu ra cũng chỉ dịch đúng ${k} nhịp (với số liệu đang thử).`, "Dịch đầu vào không cho ra đầu ra dịch tương ứng: KHÔNG bất biến.")}`;
+  },
+  causal(S) {
+    const sys = SYS[S.sys], T = sys.T, n0 = S.n0, ns = range(-6, 8);
+    const zero = T(() => 0);
+    const dep = (nn, m) => Math.abs(T(XS([1], m))(nn) - zero(nn)) > 1e-12;
+    const ms = ns.filter(m => dep(n0, m));
+    const fut = ns.some(nn => ns.some(m => m > nn && dep(nn, m)));
+    const past = ms.filter(m => m <= n0), futm = ms.filter(m => m > n0);
+    let h = `<p class="hint">Hệ đang xét: <b style="font-family:var(--f-mono)">${sys.eq}</b>. Đổi n₀ ở thanh bên để xét thời điểm khác.</p>
+      <div class="ex-legend"><span><i class="grn"></i>mẫu hiện tại hoặc quá khứ (m ≤ n₀)</span><span><i class="red"></i>mẫu tương lai (m &gt; n₀)</span></div>
+      ${PL(ns, [{ color: C.green, labels: false, pts: past.map(m => [m, 1]) }, { color: C.red, labels: false, pts: futm.map(m => [m, 1]) }], { title: `Để tính y(${fi(n0)}), hệ cần đọc x(m) tại các m được tô`, hl: [n0], hlc: C.line, axis: "m", h: 170 })}
+      <p>Tại n₀ = ${fi(n0)}: y(${fi(n0)}) dùng x(m) với m = ${ms.length ? (ms.length > 8 ? `${fi(ms[0])} … ${fi(ms[ms.length - 1])}` : ms.map(fi).join("; ")) : "(không mẫu nào)"}${futm.length ? `. Trong đó <b style="color:var(--red)">m = ${futm.map(fi).join("; ")} nằm ở tương lai</b>.` : ". Không có mẫu tương lai."}</p>`;
+    if (sys.lti) {
+      const hh = T(XS([1], 0));
+      h += `${PL(ns, [S1(ns, hh, C.green)], { title: "Đáp ứng xung h(n) = T[δ(n)]  (nền đỏ: vùng n < 0)", tc: C.green, hl: ns.filter(n => n < 0), hlc: C.redT })}`;
+    }
+    h += fut ? `<div class="ex-verdict no">✗ Có thời điểm đầu ra cần mẫu vào ở tương lai: hệ KHÔNG nhân quả.</div>` : `<div class="ex-verdict ok">✓ Ở mọi thời điểm, đầu ra chỉ dùng mẫu hiện tại và quá khứ: hệ nhân quả.</div>`;
+    return h;
+  },
+  stab(S) {
+    const a = S.a, ns = range(-1, 24), h = n => (n >= 0 ? Math.pow(a, n) : 0);
+    let s = 0; const SN = new Map(); ns.forEach(n => { s += Math.abs(h(n)); SN.set(n, s); });
+    const ok = Math.abs(a) < 1;
+    return `<p class="hint">h(n) = (${fmt(a)})ⁿ·u(n). Đồ thị dưới là tổng cộng dồn S<sub>N</sub> = |h(0)| + |h(1)| + … + |h(N)|.</p>
+      ${PL(ns, [S1(ns, h, C.green)], { title: "h(n)", tc: C.green })}
+      ${PL(ns, [S1(ns, n => (n >= 0 ? SN.get(n) : 0), C.ink, { labels: false })], { title: `Tổng cộng dồn S_N${ok ? `: tiến tới ${fmt(r4(1 / (1 - Math.abs(a))))}` : ": tăng mãi"}` })}
+      ${ok ? `<div class="ex-verdict ok">✓ |a| = ${fmt(Math.abs(a))} &lt; 1: S = 1/(1 − ${fmt(Math.abs(a))}) = ${fmt(r4(1 / (1 - Math.abs(a))))} hữu hạn → ỔN ĐỊNH.</div>` : `<div class="ex-verdict no">✗ |a| = ${fmt(Math.abs(a))} ≥ 1: S tăng mãi (S₂₄ = ${fmt(r4(SN.get(24)))}) → KHÔNG ổn định.</div>`}`;
+  },
+  conv(S) {
+    const ser = S.mode === "series", heq = ser ? cv(S.h1, S.h2) : addArr(S.h1, S.h2);
+    const yA = ser ? cv(cv(S.x, S.h1), S.h2) : addArr(cv(S.x, S.h1), cv(S.x, S.h2)), yB = cv(S.x, heq);
+    const hiN = Math.max(yA.length, yB.length, 4) + 1, ns = range(-1, hiN);
+    const fA = XS(yA), fB = XS(yB);
+    const W = 680, H = 120;
+    let blk = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ khối">${ARW("ab")}<rect width="${W}" height="${H}" fill="#FFFFFE"/>`;
+    const box = (x, y, w, t, c = C.ink) => `<rect x="${x}" y="${y}" width="${w}" height="34" rx="6" fill="#FFFFFE" stroke="${c}" stroke-width="1.6"/>${TX(x + w / 2, y + 22, t, { a: "middle", fw: 700 })}`;
+    if (ser) {
+      blk += TX(8, 64, "x(n)") + LN(44, 60, 78, 60, C.mute, "ab") + box(80, 43, 70, "h₁(n)", C.red) + LN(150, 60, 184, 60, C.mute, "ab") + box(186, 43, 70, "h₂(n)", C.green) + LN(256, 60, 290, 60, C.mute, "ab") + TX(294, 64, "y(n)");
+      blk += TX(352, 64, "≡", { fs: 22, fw: 700, a: "middle" });
+      blk += TX(384, 64, "x(n)") + LN(420, 60, 454, 60, C.mute, "ab") + box(456, 43, 120, "h₁(n) * h₂(n)") + LN(576, 60, 612, 60, C.mute, "ab") + TX(616, 64, "y(n)");
+    } else {
+      blk += TX(8, 64, "x(n)") + LN(44, 60, 70, 60, C.mute) + LN(70, 22, 70, 98, C.mute) + LN(70, 22, 98, 22, C.mute, "ab") + LN(70, 98, 98, 98, C.mute, "ab") + box(100, 5, 70, "h₁(n)", C.red) + box(100, 81, 70, "h₂(n)", C.green);
+      blk += LN(170, 22, 230, 50, C.mute, "ab") + LN(170, 98, 230, 70, C.mute, "ab") + `<circle cx="244" cy="60" r="15" fill="#FFFFFE" stroke="${C.ink}" stroke-width="1.6"/>` + TX(244, 65, "+", { a: "middle", fs: 17, fw: 700 }) + LN(259, 60, 296, 60, C.mute, "ab") + TX(300, 64, "y(n)");
+      blk += TX(360, 64, "≡", { fs: 22, fw: 700, a: "middle" });
+      blk += TX(390, 64, "x(n)") + LN(426, 60, 458, 60, C.mute, "ab") + box(460, 43, 120, "h₁(n) + h₂(n)") + LN(580, 60, 614, 60, C.mute, "ab") + TX(618, 64, "y(n)");
+    }
+    blk += "</svg>";
+    const hns = range(-1, Math.max(S.h1.length, S.h2.length, heq.length) + 1);
+    return `<div class="blk plot">${blk}</div>
+      <div class="ex-grid2">${PL(hns, [S1(hns, XS(S.h1), C.red)], { title: "h₁(n)", tc: C.red })}${PL(hns, [S1(hns, XS(S.h2), C.green)], { title: "h₂(n)", tc: C.green })}</div>
+      ${PL(hns, [S1(hns, XS(heq), C.ink)], { title: `h(n) tương đương = ${ser ? "h₁ * h₂" : "h₁ + h₂"} = {${fmtList(heq)}}` })}
+      <p class="hint">Thử một đầu vào x(n) = {${fmtList(S.x)}}: tính đầu ra theo hai cách.</p>
+      ${legendCmp(ser ? "Đi lần lượt qua h₁ rồi h₂" : "Qua h₁ và h₂ riêng rồi cộng", "Qua một khối h(n) tương đương")}
+      ${cmpPlot(ns, fA, fB, "Đầu ra theo hai cách")}
+      ${verdict(ns, fA, fB, "Hai cách cho cùng đầu ra: có thể thay cả cụm bằng một khối h(n).", "Hai cách khác nhau.")}`;
+  },
+  rec(S) {
+    if (S.mode === "cmp") {
+      const ns = range(-1, 14), N = 16, d = range(0, N - 1).map(n => (n === 0 ? 1 : 0));
+      const hA = deRun(d, [1, 1, 1], [0, 0]), hB = deRun(d, [1, 0, 0], [0.5, 0]);
+      return `<div class="ex-grid2"><div class="stack"><p><b>(a)</b> <span style="font-family:var(--f-mono)">y(n) = x(n) + x(n−1) + x(n−2)</span></p>${PL(ns, [S1(ns, XS(hA), C.red)], { title: "h(n) của (a)", tc: C.red })}<div class="ex-verdict neu">Không đệ quy: h(n) dừng sau 3 mẫu (FIR).</div></div>
+        <div class="stack"><p><b>(b)</b> <span style="font-family:var(--f-mono)">y(n) = x(n) + 0,5·y(n−1)</span></p>${PL(ns, [S1(ns, XS(hB), C.green)], { title: "h(n) của (b)", tc: C.green })}<div class="ex-verdict neu">Đệ quy: h(n) nhỏ dần nhưng kéo dài mãi (IIR).</div></div></div>`;
+    }
+    if (S.mode === "iter") {
+      const N = 10, x = range(0, N - 1).map(n => S.x[n] || 0), y = deRun(x, [1, 0, 0], [0.5, 0]), ns = range(-1, N - 1);
+      let t = `<thead><tr><th>n</th><th>x(n)</th><th>y(n−1)</th><th style="text-align:left">y(n) = x(n) + 0,5·y(n−1)</th></tr></thead><tbody>`;
+      for (let n = 0; n < 7; n++) t += `<tr><td>${n}</td><td>${fmt(x[n])}</td><td>${fmt(r4(n ? y[n - 1] : 0))}${n ? "" : " (điều kiện đầu)"}</td><td style="text-align:left;font-family:var(--f-mono)">${fmt(x[n])} + 0,5·${fmtP(r4(n ? y[n - 1] : 0))} = <b>${fmt(r4(y[n]))}</b></td></tr>`;
+      return `${PL(ns, [S1(ns, XS(x), C.red)], { title: "x(n): tiếng hét", tc: C.red })}${PL(ns, [S1(ns, XS(y), C.green)], { title: "y(n): tiếng nghe được", tc: C.green })}<div class="tbl-wrap"><table>${t}</tbody></table></div>`;
+    }
+    const N = 13, x = new Array(N).fill(1), y = deRun(x, [1, 0, 0], [0.5, 0]), ns = range(-1, N - 1);
+    const F = n => (n >= 0 ? 2 - Math.pow(0.5, n) : 0);
+    let t = `<thead><tr><th>n</th>${range(0, 7).map(n => `<th>${n}</th>`).join("")}</tr></thead><tbody><tr><td>Tính lần lượt</td>${range(0, 7).map(n => `<td>${fmt(r4(y[n]))}</td>`).join("")}</tr><tr><td style="color:var(--green-ink)">Công thức 2 − 0,5ⁿ</td>${range(0, 7).map(n => `<td style="color:var(--green-ink)">${fmt(r4(F(n)))}</td>`).join("")}</tr></tbody>`;
+    return `${legendCmp("Tính lần lượt bằng phương trình", "Thay vào công thức y(n) = 2 − (0,5)ⁿ")}${cmpPlot(ns, XS(y), F, "Hai cách cho cùng kết quả")}<div class="tbl-wrap"><table>${t}</table></div>`;
+  },
+  elem(S) {
+    const x1 = XS(S.x1), x2 = XS(S.x2), a = S.a, ns = range(-1, Math.max(S.x1.length, S.x2.length) + 1);
+    const sym = (kind) => {
+      let s = `<svg viewBox="0 0 210 96" role="img" aria-label="Ký hiệu phần tử">${ARW("ae" + kind)}<rect width="210" height="96" fill="#FFFFFE"/>`;
+      if (kind === "add" || kind === "mul") {
+        s += TX(4, 40, "x₁(n)", { c: C.red }) + LN(44, 36, 104, 36, C.mute, "ae" + kind) + TX(70, 90, "x₂(n)", { c: C.green }) + `<path d="M112 84 L120 84 L120 56" fill="none" stroke="${C.mute}" stroke-width="1.6" marker-end="url(#ae${kind})"/>`;
+        s += `<circle cx="120" cy="36" r="16" fill="#FFFFFE" stroke="${C.ink}" stroke-width="1.8"/>` + TX(120, 42, kind === "add" ? "+" : "×", { a: "middle", fs: 18, fw: 700 }) + LN(136, 36, 172, 36, C.mute, "ae" + kind) + TX(176, 40, "y(n)");
+      } else if (kind === "gain") {
+        s += TX(4, 44, "x₁(n)", { c: C.red }) + LN(44, 40, 86, 40, C.mute) + `<polygon points="88,24 88,56 122,40" fill="#FFFFFE" stroke="${C.ink}" stroke-width="1.8"/>` + TX(100, 76, `a = ${fmt(a)}`, { a: "middle" }) + LN(122, 40, 168, 40, C.mute, "ae" + kind) + TX(172, 44, "y(n)");
+      } else {
+        s += TX(4, 44, "x₁(n)", { c: C.red }) + LN(44, 40, 80, 40, C.mute, "ae" + kind) + `<rect x="82" y="22" width="44" height="36" rx="5" fill="#FFFFFE" stroke="${C.ink}" stroke-width="1.8"/>` + TX(104, 46, "D", { a: "middle", fs: 16, fw: 700 }) + LN(126, 40, 162, 40, C.mute, "ae" + kind) + TX(166, 44, "y(n)") + TX(104, 82, "= z⁻¹", { a: "middle", c: C.mute });
+      }
+      return s + "</svg>";
+    };
+    const row = (kind, name, mem, f, title) => `<div class="elrow"><div class="sym">${sym(kind)}<p class="hint" style="padding:0 6px 4px"><b style="color:var(--ink)">${name}</b> · ${mem}</p></div>${PL(ns, [S1(ns, f, C.ink)], { title })}</div>`;
+    return `<div class="ex-grid2">${PL(ns, [S1(ns, x1, C.red)], { title: "x₁(n)", tc: C.red })}${PL(ns, [S1(ns, x2, C.green)], { title: "x₂(n)", tc: C.green })}</div>
+      ${row("add", "Phần tử cộng", "không nhớ", n => x1(n) + x2(n), "y(n) = x₁(n) + x₂(n)")}
+      ${row("mul", "Phần tử nhân", "không nhớ", n => x1(n) * x2(n), "y(n) = x₁(n) · x₂(n)  (nhân từng mẫu)")}
+      ${row("gain", "Nhân với hằng số", "không nhớ", n => a * x1(n), `y(n) = ${fmt(a)} · x₁(n)`)}
+      ${row("delay", "Trễ đơn vị", "CÓ nhớ", n => x1(n - 1), "y(n) = x₁(n − 1)")}`;
+  },
+  df1(S) {
+    const b = [S.b0, S.b1, S.b2], a = [S.a1, S.a2];
+    const M = b[2] ? 2 : b[1] ? 1 : 0, N = a[1] ? 2 : a[0] ? 1 : 0, R = Math.max(M, N);
+    const W = 680, Y = r => 46 + r * 78, H = Y(R) + 46;
+    const tapX = 104, mulX = 186, AX = 330, AY = Y(0), AR = 17, fbX = 556, fmX = 444;
+    const toAdder = (x, y, col) => { const dx = AX - x, dy = AY - y, d = Math.hypot(dx, dy); return LN(x, y, AX - dx / d * (AR + 3), AY - dy / d * (AR + 3), col, "df"); };
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ trực tiếp 1">${ARW("df")}<rect width="${W}" height="${H}" fill="#FFFFFE"/>`;
+    s += TX(8, Y(0) + 5, "x(n)", { c: C.red, fw: 700 }) + LN(46, Y(0), tapX, Y(0), C.ink);
+    for (let r = 0; r <= M; r++) {
+      if (r > 0) {
+        const mid = (Y(r - 1) + Y(r)) / 2;
+        s += LN(tapX, Y(r - 1), tapX, mid - 14, C.ink, "df") + `<rect x="${tapX - 22}" y="${mid - 13}" width="44" height="26" rx="4" fill="#FFFFFE" stroke="${C.ink}" stroke-width="1.6"/>` + TX(tapX, mid + 5, "z⁻¹", { a: "middle", fw: 700 }) + LN(tapX, mid + 13, tapX, Y(r), C.ink);
+        s += TX(tapX - 10, Y(r) + 18, `x(n−${r})`, { a: "end", fs: 12, c: C.red });
+      }
+      s += `<circle cx="${tapX}" cy="${Y(r)}" r="3" fill="${C.ink}"/>`;
+      if (b[r]) {
+        s += LN(tapX, Y(r), mulX - 2, Y(r), C.ink, "df") + `<polygon points="${mulX},${Y(r) - 13} ${mulX},${Y(r) + 13} ${mulX + 28},${Y(r)}" fill="#FFFFFE" stroke="${C.red}" stroke-width="1.8"/>` + TX(mulX + 10, Y(r) - 19, `b${["₀", "₁", "₂"][r]} = ${fmt(b[r])}`, { a: "middle", fs: 12.5, c: C.red });
+        s += toAdder(mulX + 28, Y(r), C.ink);
+      }
+    }
+    s += `<circle cx="${AX}" cy="${AY}" r="${AR}" fill="#FFFFFE" stroke="${C.ink}" stroke-width="1.8"/>` + TX(AX, AY + 6, "+", { a: "middle", fs: 19, fw: 700 });
+    s += LN(AX + AR, AY, W - 52, AY, C.ink, "df") + TX(W - 48, AY + 5, "y(n)", { c: C.green, fw: 700 });
+    if (N) s += `<circle cx="${fbX}" cy="${Y(0)}" r="3" fill="${C.green}"/>`;
+    for (let k = 1; k <= N; k++) {
+      const mid = (Y(k - 1) + Y(k)) / 2;
+      s += LN(fbX, Y(k - 1), fbX, mid - 14, C.green, "df") + `<rect x="${fbX - 22}" y="${mid - 13}" width="44" height="26" rx="4" fill="#FFFFFE" stroke="${C.green}" stroke-width="1.6"/>` + TX(fbX, mid + 5, "z⁻¹", { a: "middle", fw: 700 }) + LN(fbX, mid + 13, fbX, Y(k), C.green);
+      s += `<circle cx="${fbX}" cy="${Y(k)}" r="3" fill="${C.green}"/>` + TX(fbX + 10, Y(k) + 18, `y(n−${k})`, { fs: 12, c: C.green });
+      if (a[k - 1]) {
+        s += LN(fbX, Y(k), fmX + 30, Y(k), C.green, "df") + `<polygon points="${fmX + 28},${Y(k) - 13} ${fmX + 28},${Y(k) + 13} ${fmX},${Y(k)}" fill="#FFFFFE" stroke="${C.green}" stroke-width="1.8"/>` + TX(fmX + 16, Y(k) - 19, `−a${["₁", "₂"][k - 1]} = ${fmt(r4(-a[k - 1]))}`, { a: "middle", fs: 12.5, c: C.green });
+        s += toAdder(fmX, Y(k), C.green);
+      }
+    }
+    s += "</svg>";
+    const nb = b.filter(v => v).length, na = a.filter(v => v).length, nin = nb + na;
+    const term = (c, s0, first) => (c === 0 ? "" : `${first ? (c < 0 ? "−" : "") : c < 0 ? " − " : " + "}${Math.abs(c) === 1 ? "" : fmt(Math.abs(c)) + "·"}${s0}`);
+    const xs = ["x(n)", "x(n−1)", "x(n−2)"];
+    let rhs = ""; b.forEach((c, i) => { rhs += term(c, xs[i], rhs === ""); });
+    let lhs = "y(n)"; a.forEach((c, i) => { lhs += term(c, `y(n−${i + 1})`, false); });
+    let expl = rhs; a.forEach((c, i) => { expl += term(r4(-c), `y(n−${i + 1})`, expl === ""); });
+    const eqs = `<p class="eqline">${lhs} = ${rhs || "0"}</p><p class="eqline">y(n) = ${expl || "0"}</p>`;
+    return `<div class="df1">${s}</div>
+      ${S.showEq === false ? `<p class="hint">Phương trình của sơ đồ này nằm trong phần lời giải.</p>` : `<div class="stack"><p class="hint">Phương trình tương ứng (dạng slide và dạng tính y(n)):</p>${eqs}</div>`}
+      <div class="facts"><div class="fact"><small>Bộ trễ z⁻¹</small><b>${M + N}</b><small>${M} nhánh x + ${N} nhánh y</small></div><div class="fact"><small>Bộ nhân hằng số</small><b>${nin}</b><small>mỗi hệ số khác 0</small></div><div class="fact"><small>Bộ cộng</small><b>1</b><small>${nin} đầu vào (= ${Math.max(nin - 1, 0)} bộ cộng 2 đầu vào)</small></div><div class="fact ${N ? "" : "ok"}"><small>Loại hệ</small><b class="small">${N ? "Đệ quy (IIR)" : "Không đệ quy (FIR)"}</b><small>${N ? "có nhánh hồi tiếp màu xanh" : "không có nhánh hồi tiếp"}</small></div></div>`;
+  },
+};
+
+/* ----- Máy giải phương trình sai phân 4 bước ----- */
+DEMO.solve4 = function (S) {
+  const a1 = S.a1, a2 = S.a2, b0 = S.b0, b = S.b, ym1 = S.ym1, ym2 = S.ym2;
+  const P = v => `(${fmt(r4(v))})ⁿ`;
+  const term = (c, s, first) => { if (Math.abs(c) < 1e-12) return ""; const a = Math.abs(c), one = Math.abs(a - 1) < 1e-12 && s; return `${first ? (c < 0 ? "−" : "") : c < 0 ? " − " : " + "}${one ? "" : fmt(r4(a)) + (s ? "·" : "")}${s}`; };
+  const join = arr => { let o = ""; arr.forEach(([c, s]) => { o += term(c, s, o === ""); }); return o || "0"; };
+  let lhs = "y(n)" + term(a1, "y(n−1)", false) + term(a2, "y(n−2)", false);
+  const xdesc = Math.abs(b - 1) < 1e-12 ? "x(n) = u(n) (hét đều, bằng 1 với n ≥ 0)" : `x(n) = ${P(b)}·u(n)`;
+  const head = `<p class="hint">Dạng phương trình: y(n) + a₁·y(n−1) + a₂·y(n−2) = b₀·x(n), đầu vào x(n) = bⁿ·u(n) (b = 1 là hét đều). Đổi hệ số ở thanh bên, lời giải 4 bước tự tính lại.</p>
+    <p class="eqline">${lhs} = ${term(b0, "x(n)", true)}</p><p class="hint">${xdesc}; điều kiện đầu y(−1) = ${fmt(ym1)}${a2 ? `, y(−2) = ${fmt(ym2)}` : ""}</p>`;
+  if (Math.abs(b) < 1e-9) return head + `<div class="ex-verdict no">Cơ số b phải khác 0.</div>`;
+  const N = a2 !== 0 ? 2 : a1 !== 0 ? 1 : 0;
+  if (N === 0) return head + `<div class="ex-verdict neu">Không có y(n−1), y(n−2): hệ không đệ quy, y(n) = b₀·x(n), không cần giải.</div>`;
+  const x = n => (n >= 0 ? Math.pow(b, n) : 0);
+  const it = []; { let p1 = ym1, p2 = ym2; for (let n = 0; n <= 20; n++) { const v = b0 * x(n) - a1 * p1 - a2 * p2; it.push(v); p2 = p1; p1 = v; } }
+  // B1
+  let basis, b1txt, y0txt, roots, cn;
+  if (N === 1) {
+    const l = -a1; roots = [Math.abs(l)]; basis = [n => Math.pow(l, n)]; cn = ["C"];
+    b1txt = `Phương trình đặc trưng: λ${term(a1, "", false) || ""} = 0 → <b>λ = ${fmt(r4(l))}</b>`;
+    y0txt = `y₀(n) = C·${P(l)}`;
+  } else {
+    const D = a1 * a1 - 4 * a2; cn = ["C₁", "C₂"];
+    const ch = `λ²${term(a1, "λ", false)}${term(a2, "", false)} = 0`;
+    if (D > 1e-12) {
+      const l1 = (-a1 + Math.sqrt(D)) / 2, l2 = (-a1 - Math.sqrt(D)) / 2; roots = [Math.abs(l1), Math.abs(l2)];
+      basis = [n => Math.pow(l1, n), n => Math.pow(l2, n)];
+      b1txt = `Phương trình đặc trưng: ${ch}. Δ = ${fmt(r4(D))} &gt; 0 → hai nghiệm thực <b>λ₁ = ${fmt(r4(l1))}; λ₂ = ${fmt(r4(l2))}</b>`;
+      y0txt = `y₀(n) = C₁·${P(l1)} + C₂·${P(l2)}`;
+    } else if (D >= -1e-12) {
+      const l = -a1 / 2; roots = [Math.abs(l)];
+      basis = [n => Math.pow(l, n), n => n * Math.pow(l, n)];
+      b1txt = `Phương trình đặc trưng: ${ch}. Δ = 0 → nghiệm kép <b>λ = ${fmt(r4(l))}</b>`;
+      y0txt = `y₀(n) = (C₁ + C₂·n)·${P(l)}`;
+    } else {
+      const re = -a1 / 2, im = Math.sqrt(-D) / 2, r = Math.sqrt(a2), th = Math.atan2(im, re); roots = [r];
+      basis = [n => Math.pow(r, n) * Math.cos(th * n), n => Math.pow(r, n) * Math.sin(th * n)];
+      b1txt = `Phương trình đặc trưng: ${ch}. Δ = ${fmt(r4(D))} &lt; 0 → nghiệm phức <b>λ = ${fmt(r4(re))} ± ${fmt(r4(im))}j</b>, mô-đun r = ${fmt(r4(r))}, góc θ = ${fmt(r4(th))} rad`;
+      y0txt = `y₀(n) = ${P(r)}·[C₁·cos(${fmt(r4(th))}n) + C₂·sin(${fmt(r4(th))}n)]`;
+    }
+  }
+  // B2
+  const Db = 1 + a1 / b + a2 / (b * b);
+  let K, yp, b2txt, yptxt;
+  const isStep = Math.abs(b - 1) < 1e-12;
+  if (Math.abs(Db) > 1e-9) {
+    K = b0 / Db; yp = n => K * Math.pow(b, n);
+    b2txt = isStep ? `Đầu vào là hằng số → đoán y_p = K. Thay vào: K·(1${term(a1, "", false)}${term(a2, "", false)}) = ${fmt(b0)} → K·${fmt(r4(Db))} = ${fmt(b0)} → <b>K = ${fmt(r4(K))}</b>`
+      : `Đầu vào ${P(b)}, cơ số ${fmt(r4(b))} không trùng nghiệm λ → đoán y_p = K·${P(b)}. Thay vào rồi chia cho ${P(b)}: K·(1 + a₁/b + a₂/b²) = b₀ → K·${fmt(r4(Db))} = ${fmt(b0)} → <b>K = ${fmt(r4(K))}</b>`;
+    yptxt = isStep ? fmt(r4(K)) : `${fmt(r4(K))}·${P(b)}`;
+  } else {
+    const den = -a1 / b - 2 * a2 / (b * b);
+    if (Math.abs(den) < 1e-9) return head + `<div class="ex-verdict no">Đầu vào trùng nghiệm kép của phương trình đặc trưng (phải đoán K·n²·bⁿ): trường hợp này máy giải chưa hỗ trợ.</div>`;
+    K = b0 / den; yp = n => K * n * Math.pow(b, n);
+    b2txt = `Cơ số b = ${fmt(r4(b))} <b>trùng nghiệm λ</b>, nên đoán K·${P(b)} sẽ cho 0 = ${fmt(b0)} (vô lý). Phải đoán y_p = K·n·${P(b)}. Thay vào, các số hạng chứa n triệt tiêu: K·(−a₁/b − 2a₂/b²) = b₀ → K·${fmt(r4(den))} = ${fmt(b0)} → <b>K = ${fmt(r4(K))}</b>`;
+    yptxt = `${fmt(r4(K))}·n·${P(b)}`;
+  }
+  // B4
+  let C;
+  if (N === 1) C = [(it[0] - yp(0)) / basis[0](0)];
+  else {
+    const m11 = basis[0](0), m12 = basis[1](0), m21 = basis[0](1), m22 = basis[1](1), r1 = it[0] - yp(0), r2 = it[1] - yp(1), det = m11 * m22 - m12 * m21;
+    C = [(r1 * m22 - m12 * r2) / det, (m11 * r2 - m21 * r1) / det];
+  }
+  const F = n => basis.reduce((s, f, i) => s + C[i] * f(n), 0) + yp(n);
+  const y0n = (nn) => nn === 0 ? `y(0) = ${term(b0, "x(0)", true)}${term(-a1, "y(−1)", false)}${term(-a2, "y(−2)", false)} = <b>${fmt(r4(it[0]))}</b>` : `y(1) = ${term(b0, "x(1)", true)}${term(-a1, "y(0)", false)}${term(-a2, "y(−1)", false)} = <b>${fmt(r4(it[1]))}</b>`;
+  const b4txt = `Tính từ phương trình và điều kiện đầu: ${y0n(0)}${N === 2 ? "; " + y0n(1) : ""}. Thay ${N === 2 ? "n = 0 và n = 1" : "n = 0"} vào công thức rồi giải: ${C.map((c, i) => `<b>${cn[i]} = ${fmt(r4(c))}</b>`).join("; ")}`;
+  let ftxt;
+  const Kpart = Math.abs(b - 1) < 1e-12 && Math.abs(Db) > 1e-9 ? [K, ""] : [K, Math.abs(Db) > 1e-9 ? P(b) : `n·${P(b)}`];
+  if (N === 1) ftxt = join([[C[0], P(-a1)], Kpart]);
+  else {
+    const D = a1 * a1 - 4 * a2;
+    if (D > 1e-12) { const l1 = (-a1 + Math.sqrt(D)) / 2, l2 = (-a1 - Math.sqrt(D)) / 2; ftxt = join([[C[0], P(l1)], [C[1], P(l2)], Kpart]); }
+    else if (D >= -1e-12) { const l = -a1 / 2; ftxt = `(${join([[C[0], ""], [C[1], "n"]])})·${P(l)}` + term(Kpart[0], Kpart[1], false); }
+    else { const r = Math.sqrt(a2), th = Math.atan2(Math.sqrt(-D) / 2, -a1 / 2); ftxt = `${P(r)}·[${join([[C[0], `cos(${fmt(r4(th))}n)`], [C[1], `sin(${fmt(r4(th))}n)`]])}]` + term(Kpart[0], Kpart[1], false); }
+  }
+  const rmax = Math.max(...roots), stable = rmax < 1 - 1e-12;
+  const ns = range(0, 15);
+  const fIt = n => (n >= 0 && n < it.length ? it[n] : 0);
+  let t = `<thead><tr><th>n</th>${range(0, 7).map(n => `<th>${n}</th>`).join("")}</tr></thead><tbody><tr><td>Tính lần lượt</td>${range(0, 7).map(n => `<td>${fmt(r4(it[n]))}</td>`).join("")}</tr><tr><td style="color:var(--green-ink)">Công thức</td>${range(0, 7).map(n => `<td style="color:var(--green-ink)">${fmt(r4(F(n)))}</td>`).join("")}</tr></tbody>`;
+  const maxErr = Math.max(...ns.map(n => Math.abs(F(n) - it[n]) / Math.max(1, Math.abs(it[n]))));
+  return head + `<ol class="ex-steps" style="margin-top:4px">
+      <li><div><b>B1 · Nghiệm thuần nhất.</b> Cho vế phải bằng 0, thay y = λⁿ. ${b1txt}. <p class="eqline">${y0txt}</p></div></li>
+      <li><div><b>B2 · Nghiệm riêng.</b> ${b2txt}. <p class="eqline">y_p(n) = ${yptxt}</p></div></li>
+      <li><div><b>B3 · Nghiệm tổng quát.</b> y(n) = y₀(n) + y_p(n), còn ${N} hằng số chưa biết.</div></li>
+      <li><div><b>B4 · Tìm hằng số.</b> ${b4txt}.</div></li>
+    </ol>
+    <div class="ex-ans ok" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="badge">Đáp số</span><b style="font-family:var(--f-mono);font-size:18px;overflow-x:auto;max-width:100%">y(n) = ${ftxt},  n ≥ 0</b></div>
+    <div class="ex-verdict ${stable ? "ok" : "no"}">${stable ? `Mọi |λ| &lt; 1 (lớn nhất ${fmt(r4(rmax))}): phần y₀ tắt dần, hệ ổn định, đầu ra bám theo y_p.` : `Có |λ| ≥ 1 (lớn nhất ${fmt(r4(rmax))}): phần y₀ không tắt, hệ không ổn định.`}</div>
+    ${legendCmp("Tính lần lượt bằng phương trình", "Thay n vào công thức vừa giải")}
+    ${cmpPlot(ns, fIt, F, "Kiểm tra công thức với cách tính lần lượt")}
+    <div class="tbl-wrap"><table>${t}</table></div>
+    ${maxErr < 1e-6 ? `<div class="ex-verdict ok">✓ Công thức khớp với tính lần lượt ở mọi n từ 0 đến 15.</div>` : `<div class="ex-verdict no">✗ Công thức lệch với tính lần lượt (sai số lớn nhất ${fmt(r4(maxErr))}).</div>`}`;
+};
+
+/* ----- Nội dung các nhóm và bài tập ----- */
+const EQ = s => `<p class="eqline">${s}</p>`;
+const G = {
+  lin: { name: "Hệ tuyến tính và nguyên lý xếp chồng", sec: "2.1", method: { t: "Cách kiểm tra một hệ có tuyến tính không", s: ["Lấy hai đầu vào bất kỳ x₁(n), x₂(n) và hai hằng số a, b. Gọi y₁ = T[x₁], y₂ = T[x₂].", "<b>Vế trái:</b> đưa cả tổng vào hệ: T[a·x₁(n) + b·x₂(n)].", "<b>Vế phải:</b> đưa riêng từng tín hiệu vào hệ rồi cộng: a·y₁(n) + b·y₂(n).", "Hai vế bằng nhau với mọi x₁, x₂, a, b → <b>tuyến tính</b>. Chỉ cần một phản ví dụ khác nhau → <b>không tuyến tính</b>."], tip: "Mẹo nhanh: cho x(n) = 0 mà y(n) ≠ 0 thì chắc chắn không tuyến tính. Thấy x², √x, |x|, hằng số cộng thêm… là dấu hiệu phi tuyến." } },
+  bb: { name: "Hệ bất biến theo thời gian", sec: "2.1", method: { t: "Cách kiểm tra một hệ có bất biến không", s: ["Gọi y(n) = T[x(n)].", "<b>Đường 1:</b> dịch đầu vào trước rồi đưa vào hệ: T[x(n−k)]. Chỉ thay chỗ <i>đối số của x</i>, các chữ n đứng riêng giữ nguyên.", "<b>Đường 2:</b> lấy đầu ra rồi dịch: y(n−k), tức thay <i>mọi</i> chữ n bằng n−k.", "Hai đường bằng nhau với mọi k → <b>bất biến</b>; khác nhau → <b>không bất biến</b>."], tip: "Dấu hiệu không bất biến: có n đứng riêng nhân hay cộng vào (n·x(n)), hoặc đối số của x bị co giãn, lật (x(2n), x(−n))." } },
+  lti: { name: "Hệ LTI và tính chất tích chập", sec: "2.1", method: { t: "Ba tính chất dùng để rút gọn sơ đồ", s: ["<b>Giao hoán:</b> x * h = h * x, nên đổi thứ tự hai khối nối tiếp không đổi kết quả.", "<b>Kết hợp (nối tiếp):</b> x * h₁ * h₂ = x * (h₁ * h₂): thay hai khối bằng một khối h = h₁ * h₂.", "<b>Phân phối (song song):</b> x * h₁ + x * h₂ = x * (h₁ + h₂): thay bằng một khối h = h₁ + h₂."], tip: "Nhớ nhanh: nối tiếp → tích chập các h; song song → cộng các h." } },
+  nq: { name: "Hệ nhân quả", sec: "2.1", method: { t: "Cách kiểm tra một hệ có nhân quả không", s: ["<b>Hệ bất kỳ:</b> nhìn công thức, đầu ra y(n) chỉ được dùng x(m) với m ≤ n (hiện tại, quá khứ).", "Thấy x(n+1), x(n+2)… (mẫu tương lai), hoặc có thời điểm n mà đối số của x lớn hơn n → <b>không nhân quả</b>.", "<b>Hệ LTI:</b> dùng định lý trong slide: nhân quả ⇔ h(n) = 0 với mọi n &lt; 0."], tip: "Định lý h(n) chỉ áp dụng cho hệ tuyến tính bất biến. Hệ không bất biến thì xét trực tiếp công thức." } },
+  od: { name: "Hệ ổn định", sec: "2.1", method: { t: "Cách kiểm tra hệ LTI có ổn định không", s: ["Tìm đáp ứng xung h(n).", "Tính S = Σ|h(n)| (cộng trị tuyệt đối của mọi mẫu).", "S hữu hạn → <b>ổn định</b>; S = ∞ → <b>không ổn định</b>."], tip: "Cấp số nhân: 1 + |a| + |a|² + … = 1/(1 − |a|) khi |a| &lt; 1, và bằng ∞ khi |a| ≥ 1. Hệ FIR (h hữu hạn, giá trị hữu hạn) luôn ổn định." } },
+  dq: { name: "Phương trình sai phân và hệ đệ quy", sec: "2.2", method: { t: "Nhận biết và tính hệ đệ quy", s: ["Viết về dạng y(n) = (các số hạng x) + (các số hạng y quá khứ).", "Vế phải có y(n−1), y(n−2)… → <b>đệ quy</b> (có hồi tiếp, h(n) thường dài vô hạn: IIR). Chỉ có x → <b>không đệ quy</b> (FIR).", "Tính lần lượt từ n = 0, dùng điều kiện đầu y(−1), y(−2)…; muốn có công thức “nhảy cóc” thì giải theo 4 bước (nhóm bài tiếp theo)."], tip: "Đệ quy = dùng lại kết quả của chính mình ở nhịp trước, giống tiếng vọng trong hang." } },
+  giai: { name: "Giải phương trình sai phân 4 bước", sec: "2.2", method: { t: "Quy trình 4 bước (slide 2.2) và cách làm từng bước", s: ["<b>B1 – Nghiệm thuần nhất y₀:</b> cho vế phải bằng 0, thay y = λⁿ được phương trình đặc trưng. Hai nghiệm thực: C₁λ₁ⁿ + C₂λ₂ⁿ. Nghiệm kép: (C₁ + C₂n)λⁿ. Nghiệm phức r·e^(±jθ): rⁿ(C₁cos nθ + C₂sin nθ).", "<b>B2 – Nghiệm riêng y_p:</b> đoán cùng dạng đầu vào. Hằng số → K. bⁿ → K·bⁿ; nếu b trùng một λ → K·n·bⁿ. cos, sin → A·cos + B·sin. Thay vào phương trình để tìm hệ số.", "<b>B3 – Nghiệm tổng quát:</b> y(n) = y₀(n) + y_p(n).", "<b>B4 – Tìm hằng số C:</b> dùng phương trình và điều kiện đầu y(−1), y(−2) để tính lần lượt y(0), y(1); thay vào công thức rồi giải ra C."], tip: "Lỗi hay gặp: sai dấu khi lập phương trình đặc trưng; đoán y_p trùng nghiệm λ (ra 0 = 1); thay thẳng y(−1) vào công thức (công thức chỉ đúng với n ≥ 0). Luôn tính lần lượt 1–2 giá trị để tự kiểm tra." } },
+  pt: { name: "Các phần tử thực hiện hệ thống", sec: "2.2", method: { t: "Bốn “linh kiện” lắp nên mọi hệ thống số", s: ["<b>Phần tử cộng</b> (vòng tròn +): cộng các tín hiệu cùng thời điểm. Không nhớ.", "<b>Phần tử nhân</b> (vòng tròn ×): nhân các tín hiệu với nhau, từng mẫu một. Không nhớ.", "<b>Phần tử nhân hằng số</b> (tam giác a): y(n) = a·x(n). Không nhớ.", "<b>Phần tử trễ đơn vị</b> (khối D hay z⁻¹): y(n) = x(n−1), giữ mẫu lại 1 nhịp. <b>Có nhớ.</b>"], tip: "Chú ý: slide viết phần tử nhân là y(n) = x₁(n) * x₂(n). Dấu * ở đây là nhân thường từng mẫu, KHÔNG phải tích chập." } },
+  sd: { name: "Sơ đồ trực tiếp 1", sec: "2.2", method: { t: "Quy tắc vẽ sơ đồ trực tiếp 1", s: ["Viết lại: y(n) = b₀x(n) + b₁x(n−1) + … − a₁y(n−1) − a₂y(n−2) − …", "<b>Nhánh trái:</b> x(n) đi qua chuỗi bộ trễ z⁻¹ để có x(n−1), x(n−2)…; mỗi hệ số b<sub>r</sub> khác 0 là một bộ nhân.", "<b>Nhánh phải (hồi tiếp):</b> y(n) đi qua chuỗi bộ trễ để có y(n−1), y(n−2)…; mỗi hệ số −a<sub>k</sub> khác 0 là một bộ nhân.", "Mọi bộ nhân đổ về <b>một bộ cộng</b>; đầu ra bộ cộng là y(n)."], tip: "Đếm nhanh: số bộ trễ = M + N (bậc cao nhất của x và của y); số bộ nhân = số hệ số khác 0." } },
+};
+const EXS = [
+  { id: "lin0", g: "lin", concept: true, title: "Nguyên lý xếp chồng là gì?", q: `<p>Trong hang động: hét tiếng A thì nghe được tiếng vọng y₁(n); hét tiếng B thì nghe được y₂(n). Nếu hét cả hai cùng lúc, tiếng A to gấp a lần và tiếng B to gấp b lần, thì nghe được gì?</p>${EQ("Cái hang: y(n) = x(n) + 0,5·y(n−1)")}`,
+    demo: { type: "lin", sys: "cave", x1: [2], x2: [0, 0, 1, 1], a: 1, b: 1 },
+    steps: ["Cái hang là một hệ thống T: đầu vào là tiếng hét x(n), đầu ra là tiếng nghe được y(n) = T[x(n)].", "Hang không biết ta hét một hay hai tiếng. Mỗi tiếng tự dội lại theo cách của nó, rồi các tiếng vọng chồng lên nhau trong không khí.", `Vì vậy nghe được đúng bằng tổng các tiếng vọng riêng: ${EQ("T[a·x₁(n) + b·x₂(n)] = a·y₁(n) + b·y₂(n)")}`, "Câu trên chính là <b>nguyên lý xếp chồng</b>: đáp ứng của một tổng bằng tổng các đáp ứng riêng lẻ. Hệ thỏa nguyên lý này gọi là <b>hệ tuyến tính</b>.", "Trên đồ thị: chấm đen (hét cùng lúc) nằm đúng trong vòng xanh (cộng hai tiếng vọng riêng) ở mọi n. Anh đổi a, b, x₁, x₂ ở thanh bên: chấm vẫn luôn trùng vòng."],
+    ans: ["ok", "Cái hang là hệ tuyến tính."],
+    mean: `<p><b>Vì sao quan trọng:</b> mọi tín hiệu đều là tổng của các xung δ(n − k) nhân với x(k). Nhờ xếp chồng, chỉ cần biết hệ phản ứng với một xung (tức h(n)) là suy ra phản ứng với mọi tín hiệu.</p><p>Đó chính là bước đầu tiên trong slide 2.1 để đi tới công thức tích chập y(n) = Σ x(k)·h(n − k).</p>` },
+  { id: "lin1", g: "lin", title: "Hệ y(n) = 2·x(n) có tuyến tính không?", q: `<p>Xét bộ khuếch đại ${EQ("y(n) = 2·x(n)")}`,
+    demo: { type: "lin", sys: "gain2", x1: [1, 2, 1], x2: [0, 1, -1, 2], a: 2, b: -1 },
+    steps: [`<b>Vế trái:</b> đưa a·x₁(n) + b·x₂(n) vào hệ, tức nhân 2 với cả tổng: ${EQ("T[a·x₁ + b·x₂] = 2·[a·x₁(n) + b·x₂(n)] = 2a·x₁(n) + 2b·x₂(n)")}`, `<b>Vế phải:</b> y₁(n) = 2x₁(n), y₂(n) = 2x₂(n), nên ${EQ("a·y₁(n) + b·y₂(n) = 2a·x₁(n) + 2b·x₂(n)")}`, "Hai vế giống hệt nhau với mọi x₁, x₂, a, b."],
+    ans: ["ok", "Tuyến tính."], mean: `<p>Bộ khuếch đại lý tưởng, núm âm lượng: hét to gấp đôi thì loa phát to gấp đôi, hai người cùng nói thì loa phát cả hai giọng.</p>` },
+  { id: "lin2", g: "lin", title: "Hệ y(n) = x(n) + 1 có tuyến tính không?", q: `<p>Xét hệ ${EQ("y(n) = x(n) + 1")}<p>Gợi ý: đồ thị y theo x là một đường thẳng. Liệu đường thẳng có luôn là “tuyến tính”?</p>`,
+    demo: { type: "lin", sys: "plus1", x1: [1, 2, 1], x2: [0, 1, -1, 2], a: 1, b: 1 },
+    steps: [`<b>Vế trái:</b> ${EQ("T[a·x₁ + b·x₂] = a·x₁(n) + b·x₂(n) + 1")}`, `<b>Vế phải:</b> ${EQ("a·[x₁(n) + 1] + b·[x₂(n) + 1] = a·x₁(n) + b·x₂(n) + a + b")}`, "So sánh: vế trái cộng thêm 1, vế phải cộng thêm a + b. Với a = b = 1: vế trái thừa 1, vế phải thừa 2 → khác nhau.", "Mẹo nhanh: cho x(n) = 0 (không hét) thì y(n) = 1 ≠ 0. Hệ tuyến tính luôn có tính chất “vào 0 thì ra 0”."],
+    ans: ["no", "Không tuyến tính (dù đồ thị là đường thẳng)."], mean: `<p>Giống một cảm biến bị lệch không (offset): nhiệt kế luôn chỉ thừa 1 độ. Trong xử lý tín hiệu, “tuyến tính” nghĩa là thỏa xếp chồng, chặt hơn “đồ thị thẳng”. Muốn dùng các công cụ tuyến tính, phải trừ offset đi trước.</p>` },
+  { id: "lin3", g: "lin", title: "Hệ y(n) = x²(n) có tuyến tính không?", q: `<p>Xét hệ bình phương ${EQ("y(n) = x²(n)")}`,
+    demo: { type: "lin", sys: "sq", x1: [1, 2, 1], x2: [0, 1, -1, 2], a: 2, b: 1 },
+    steps: [`<b>Vế trái:</b> ${EQ("[a·x₁(n) + b·x₂(n)]² = a²·x₁² + 2ab·x₁·x₂ + b²·x₂²")}`, `<b>Vế phải:</b> ${EQ("a·x₁²(n) + b·x₂²(n)")}`, "Khác nhau: vế trái có thêm số hạng chéo 2ab·x₁·x₂, và a² ≠ a.", "Phản ví dụ cụ thể: x₁ = δ(n), a = 2, b = 0. Vế trái tại n = 0: (2·1)² = 4. Vế phải: 2·1² = 2. Khác nhau."],
+    ans: ["no", "Không tuyến tính."], mean: `<p>Phép bình phương xuất hiện khi tính năng lượng, công suất (Buổi 1). Hệ có x² làm méo tín hiệu và sinh ra các thành phần tần số mới.</p>` },
+  { id: "lin4", g: "lin", title: "Hệ y(n) = n·x(n) có tuyến tính không?", q: `<p>Hệ số nhân thay đổi theo thời gian: ${EQ("y(n) = n·x(n)")}`,
+    demo: { type: "lin", sys: "nx", x1: [1, 1, 1], x2: [0, 2, -1], a: 2, b: 1 },
+    steps: [`<b>Vế trái:</b> ${EQ("T[a·x₁ + b·x₂] = n·[a·x₁(n) + b·x₂(n)] = a·n·x₁(n) + b·n·x₂(n)")}`, `<b>Vế phải:</b> ${EQ("a·y₁(n) + b·y₂(n) = a·n·x₁(n) + b·n·x₂(n)")}`, "Hai vế bằng nhau. Số n thay đổi theo thời gian, nhưng tại mỗi thời điểm nó vẫn chỉ là một hệ số nhân, nên xếp chồng vẫn đúng.", "Ở nhóm “Hệ bất biến” anh sẽ thấy hệ này KHÔNG bất biến."],
+    ans: ["ok", "Tuyến tính."], mean: `<p>Tuyến tính và bất biến là <b>hai tính chất độc lập</b>: một hệ có thể có tính này mà không có tính kia. Hệ LTI phải có cả hai.</p>` },
+  { id: "lin5", g: "lin", title: "Loa nhỏ bị rè khi phát quá to có tuyến tính không?", q: `<p>Loa chỉ phát được biên độ tối đa ±2; vượt quá thì bị cắt (méo, rè):</p>${EQ("y(n) = x(n) nếu |x(n)| ≤ 2;  y(n) = 2 nếu x(n) > 2;  y(n) = −2 nếu x(n) < −2")}`,
+    demo: { type: "lin", sys: "clip", x1: [1, 2, 1], x2: [0, 1, 1], a: 2, b: 1 },
+    steps: ["Với tín hiệu nhỏ (không vượt ±2), loa cho y = x nên trông như tuyến tính. Nhưng tính tuyến tính phải đúng với <b>mọi</b> đầu vào.", `Thử x₁ = δ(n), a = 3, b = 0. Vế trái: đưa 3·δ(n) vào loa, giá trị 3 bị cắt còn 2: ${EQ("T[3·δ(n)] = 2 tại n = 0")}`, `Vế phải: ${EQ("3·T[δ(n)] = 3·1 = 3 tại n = 0")}`, "2 ≠ 3 → không thỏa nguyên lý xếp chồng."],
+    ans: ["no", "Không tuyến tính."], mean: `<p>Lý do khi thu âm phải chỉnh mức vào vừa phải: vượt ngưỡng của micro, ADC hay loa thì tín hiệu bị cắt, mọi phép tính tuyến tính phía sau (lọc, tích chập) cho kết quả sai.</p>` },
+
+  { id: "bb0", g: "bb", concept: true, title: "Hệ bất biến là gì?", q: `<p>Hét vào hang lúc 8 giờ hay lúc 9 giờ, tiếng vọng nghe được có khác nhau không?</p>`,
+    demo: { type: "ti", sys: "cave", x: [1, 1], k: 3 },
+    steps: ["Cái hang không thay đổi theo thời gian: vách đá hôm nay hay ngày mai vẫn thế. Hét muộn k nhịp thì tiếng vọng cũng đến muộn đúng k nhịp, hình dạng giữ nguyên.", `Viết bằng ký hiệu: ${EQ("nếu T[x(n)] = y(n) thì T[x(n − k)] = y(n − k)")}`, "Hệ như vậy gọi là <b>bất biến theo thời gian</b>. Trên đồ thị: dịch rồi đưa vào hang (chấm đen) trùng với đưa vào hang rồi dịch (vòng xanh).", "Hệ vừa tuyến tính vừa bất biến gọi là <b>hệ LTI</b>: được đặc trưng hoàn toàn bởi h(n), đầu ra tính bằng tích chập."],
+    ans: ["ok", "Cái hang là hệ bất biến."], mean: `<p>Nhờ bất biến mới có T[δ(n − k)] = h(n − k). Đây chính là bước trong slide 2.1 để từ Σ x(k)·T[δ(n − k)] đi tới Σ x(k)·h(n − k).</p>` },
+  { id: "bb1", g: "bb", title: "Hệ y(n) = x(n) + 0,5·x(n−1) có bất biến không?", q: `<p>Xét hệ ${EQ("y(n) = x(n) + 0,5·x(n−1)")}`,
+    demo: { type: "ti", sys: "ma", x: [1, 2, 1], k: 2 },
+    steps: [`<b>Đường 1</b> (dịch đầu vào trước): thay x(·) bằng x(· − k): ${EQ("T[x(n−k)] = x(n−k) + 0,5·x(n−1−k)")}`, `<b>Đường 2</b> (dịch đầu ra): thay n bằng n − k trong y(n): ${EQ("y(n−k) = x(n−k) + 0,5·x(n−k−1)")}`, "Hai biểu thức giống hệt nhau với mọi k."],
+    ans: ["ok", "Bất biến."], mean: `<p>Mọi hệ cho bằng <b>phương trình sai phân hệ số hằng</b> đều bất biến, vì các hệ số không phụ thuộc n. Đây là lý do tên gọi có chữ “hệ số hằng”.</p>` },
+  { id: "bb2", g: "bb", title: "Hệ y(n) = n·x(n) có bất biến không?", q: `<p>Xét lại hệ ${EQ("y(n) = n·x(n)")}<p>(ở nhóm trước, hệ này tuyến tính).</p>`,
+    demo: { type: "ti", sys: "nx", x: [0, 1, 1], k: 2 },
+    steps: [`<b>Đường 1:</b> đưa x(n−k) vào hệ. Hệ nhân đầu vào với n, chữ n đứng riêng giữ nguyên: ${EQ("T[x(n−k)] = n·x(n−k)")}`, `<b>Đường 2:</b> thay mọi n bằng n − k: ${EQ("y(n−k) = (n−k)·x(n−k)")}`, "n·x(n−k) ≠ (n−k)·x(n−k) khi k ≠ 0.", "Ví dụ số: x = δ(n), k = 2. Đường 1: n·δ(n−2) = 2 tại n = 2. Đường 2: y(n) = n·δ(n) = 0 với mọi n, dịch vẫn bằng 0. Khác nhau."],
+    ans: ["no", "Không bất biến (dù tuyến tính)."], mean: `<p>Giống một bộ khuếch đại có độ lợi tăng dần theo thời gian: cùng một tiếng hét nhưng hét muộn thì được khuếch đại khác. Hệ này không có h(n) dùng chung cho mọi thời điểm, nên không tính bằng tích chập được.</p>` },
+  { id: "bb3", g: "bb", title: "Hệ y(n) = x(2n) có bất biến không?", q: `<p>Hệ bỏ bớt mẫu, chỉ giữ các mẫu chẵn: ${EQ("y(n) = x(2n)")}`,
+    demo: { type: "ti", sys: "x2n", x: [1, 2, 3, 4], k: 1 },
+    steps: [`<b>Đường 1:</b> đặt v(n) = x(n − k) rồi đưa v vào hệ: ${EQ("T[v(n)] = v(2n) = x(2n − k)")}`, `<b>Đường 2:</b> ${EQ("y(n − k) = x(2(n − k)) = x(2n − 2k)")}`, "x(2n − k) ≠ x(2n − 2k) khi k ≠ 0. Ví dụ k = 1: đường 1 lấy các mẫu lẻ của x, đường 2 vẫn lấy các mẫu chẵn."],
+    ans: ["no", "Không bất biến."], mean: `<p>Đây là phép <b>giảm tốc độ lấy mẫu</b> (decimation): dùng khi nén dữ liệu, đổi tốc độ phát âm thanh. Dịch đầu vào 1 nhịp làm đổi hẳn các mẫu được giữ lại.</p>` },
+  { id: "bb4", g: "bb", title: "Hệ y(n) = x(−n) có bất biến không?", q: `<p>Hệ lật thời gian: ${EQ("y(n) = x(−n)")}`,
+    demo: { type: "ti", sys: "xneg", x: [1, 2, 3], k: 2 },
+    steps: [`<b>Đường 1:</b> v(n) = x(n − k), đưa vào hệ: ${EQ("T[v(n)] = v(−n) = x(−n − k)")}`, `<b>Đường 2:</b> ${EQ("y(n − k) = x(−(n − k)) = x(−n + k)")}`, "Khác nhau khi k ≠ 0. Trên đồ thị: dịch đầu vào sang phải thì đầu ra lại dời sang trái."],
+    ans: ["no", "Không bất biến."], mean: `<p>Phát ngược một đoạn ghi âm. Phép lật này cũng là bước “lật” khi tính tích chập theo cách 2 (h(k) → h(−k)).</p>` },
+
+  { id: "lti1", g: "lti", title: "Hai hệ mắc nối tiếp: tìm h(n) tương đương", q: `<p>Hai hệ LTI mắc nối tiếp, bắt đầu tại n = 0: h₁(n) = {1; 1} và h₂(n) = {1; −1}.</p><p>a) Tìm đáp ứng xung tương đương h(n) của cả cụm. b) Đổi thứ tự hai khối thì kết quả có đổi không?</p>`,
+    demo: { type: "conv", mode: "series", h1: [1, 1], h2: [1, -1], x: [1, 2, 3] },
+    steps: ["Tín hiệu qua h₁ rồi qua h₂: y = (x * h₁) * h₂. Theo tính chất <b>kết hợp</b>: y = x * (h₁ * h₂). Vậy h = h₁ * h₂.", `Tính h₁ * h₂ bằng cộng chồng: ${EQ("1·h₂(n)   = {1; −1;  · }")}${EQ("1·h₂(n−1) = { · ;  1; −1}")}Cộng theo cột: ${EQ("h(n) = {1; 0; −1}")}`, "Kiểm tra: độ dài 2 + 2 − 1 = 3 ✓; tổng Σh = 0 = (Σh₁)·(Σh₂) = 2·0 ✓.", "b) Theo tính chất <b>giao hoán</b>: h₁ * h₂ = h₂ * h₁, nên đổi thứ tự hai khối không đổi kết quả."],
+    ans: ["neu", "h(n) = {1; 0; −1}; đổi thứ tự không ảnh hưởng."], mean: `<p>{1; 1} là bộ làm mượt, {1; −1} là bộ phát hiện thay đổi. Ghép nối tiếp được bộ {1; 0; −1}: so sánh mẫu hiện tại với mẫu cách 2 nhịp. Trong mạch thực, ghép nhiều tầng lọc nối tiếp là chuyện thường gặp.</p>` },
+  { id: "lti2", g: "lti", title: "Hai hệ mắc song song: tìm h(n) tương đương", q: `<p>Hai hệ LTI mắc song song (cùng đầu vào, cộng đầu ra): h₁(n) = {1; 1}, h₂(n) = {1; −1}, bắt đầu tại n = 0. Tìm h(n).</p>`,
+    demo: { type: "conv", mode: "parallel", h1: [1, 1], h2: [1, -1], x: [1, 2, 3] },
+    steps: [`Đầu ra là tổng hai nhánh: ${EQ("y = x * h₁ + x * h₂ = x * (h₁ + h₂)")}(tính chất <b>phân phối</b>).`, `Cộng từng mẫu: ${EQ("h(n) = {1 + 1; 1 + (−1)} = {2; 0}")}`, "Vậy cả cụm chỉ là y(n) = 2·x(n): một bộ khuếch đại 2 lần."],
+    ans: ["neu", "h(n) = {2; 0}, tức y(n) = 2·x(n)."], mean: `<p>Nhớ nhanh: <b>song song → cộng các h; nối tiếp → tích chập các h</b>. Dùng để rút gọn sơ đồ khối phức tạp về một khối duy nhất.</p>` },
+
+  { id: "nq0", g: "nq", concept: true, title: "Hệ nhân quả là gì?", q: `<p>Có thể nghe thấy tiếng vọng trước khi hét không?</p>${EQ("Cái hang: y(n) = x(n) + 0,5·y(n−1)")}`,
+    demo: { type: "causal", sys: "cave", n0: 3 },
+    steps: ["Không. Hệ thống thật không biết trước tương lai: đầu ra tại thời điểm n chỉ phụ thuộc đầu vào tại n và trước n. Hệ như vậy gọi là <b>hệ nhân quả</b> (có “nhân” rồi mới có “quả”).", "Trên đồ thị: để tính y(3), hang chỉ dùng các mẫu x(m) với m ≤ 3 (màu xanh). Không có mẫu đỏ nào.", "Với hệ LTI có cách kiểm tra nhanh (định lý trong slide): xung δ(n) xuất hiện tại n = 0, nên đáp ứng h(n) không được xuất hiện trước 0, tức h(n) = 0 với mọi n &lt; 0.", "Hang có h(n) = (0,5)ⁿ·u(n), bằng 0 khi n &lt; 0 (vùng nền đỏ trống) → nhân quả."],
+    ans: ["ok", "Cái hang là hệ nhân quả."], mean: `<p>Mọi hệ xử lý <b>thời gian thực</b> (điện thoại đang gọi, bộ điều khiển) phải nhân quả. Hệ không nhân quả chỉ dùng được khi đã có sẵn toàn bộ dữ liệu (xử lý ảnh, file ghi âm).</p>` },
+  { id: "nq1", g: "nq", title: "h(n) = {1; 2; 1} bắt đầu tại n = 0: có nhân quả không?", q: `<p>Hệ LTI có h(n) = {1; 2; 1}, mẫu đầu tiên tại n = 0. Tương đương ${EQ("y(n) = x(n) + 2·x(n−1) + x(n−2)")}`,
+    demo: { type: "causal", sys: "h121", n0: 3 },
+    steps: ["Theo định lý: xét h(n) với n &lt; 0. Dãy bắt đầu tại n = 0 nên h(−1) = h(−2) = … = 0.", "Điều kiện h(n) = 0 với mọi n &lt; 0 thỏa mãn → nhân quả.", "Kiểm tra lại bằng công thức: y(n) chỉ dùng x(n), x(n−1), x(n−2): hiện tại và quá khứ ✓."],
+    ans: ["ok", "Nhân quả."], mean: `<p>Bộ làm mượt có trọng số: mẫu hiện tại quan trọng gấp đôi hai mẫu trước. Chạy được thời gian thực.</p>` },
+  { id: "nq2", g: "nq", title: "h(n) = {1; 1; 1} bắt đầu tại n = −1: có nhân quả không?", q: `<p>Hệ LTI có h(−1) = h(0) = h(1) = 1, còn lại bằng 0. Tương đương ${EQ("y(n) = x(n+1) + x(n) + x(n−1)")}`,
+    demo: { type: "causal", sys: "h111", n0: 3 },
+    steps: ["Xét h(n) với n &lt; 0: h(−1) = 1 ≠ 0 → vi phạm điều kiện nhân quả.", "Nhìn công thức: y(n) dùng x(n+1), là mẫu của nhịp sau (tương lai). Trên đồ thị: để tính y(3) cần x(4), cột đỏ.", "Kết luận: không nhân quả.", "Muốn chạy thời gian thực: chấp nhận ra chậm 1 nhịp, dùng h(n − 1) = {1; 1; 1} bắt đầu tại n = 0. Khi đó y(n) = x(n) + x(n−1) + x(n−2), nhân quả."],
+    ans: ["no", "Không nhân quả."], mean: `<p>Bộ trung bình đối xứng “nhìn cả trước lẫn sau” cho kết quả cân đối, hay dùng khi làm mượt ảnh hoặc dữ liệu đã ghi. Muốn dùng thời gian thực thì phải trễ đi.</p>` },
+  { id: "nq3", g: "nq", title: "Hệ y(n) = x(−n) có nhân quả không?", q: `<p>Xét hệ lật thời gian ${EQ("y(n) = x(−n)")}<p>Hệ này không bất biến, nên không dùng được định lý h(n).</p>`,
+    demo: { type: "causal", sys: "xneg", n0: -2 },
+    steps: ["Xét trực tiếp công thức tại từng thời điểm.", "Tại n = −2: y(−2) = x(2). Đầu ra ở thời điểm −2 cần đầu vào ở thời điểm 2, tức 4 nhịp trong tương lai.", "Chỉ cần một thời điểm vi phạm là đủ kết luận không nhân quả (với n &gt; 0 thì hệ lại dùng quá khứ, nhưng không cứu được).", "Anh đổi n₀ ở thanh bên: mọi n₀ âm đều cần mẫu tương lai."],
+    ans: ["no", "Không nhân quả."], mean: `<p>Phát ngược một bài hát chỉ làm được khi đã ghi xong cả bài. Đó đúng là ý nghĩa của “không nhân quả”.</p>` },
+
+  { id: "od1", g: "od", title: "h(n) = (0,5)ⁿ·u(n): hệ có ổn định không?", q: `<p>Cái hang có h(n) = (0,5)ⁿ·u(n). Kiểm tra tính ổn định.</p>`,
+    demo: { type: "stab", a: 0.5 },
+    steps: [`Tính tổng trị tuyệt đối: ${EQ("S = Σ|h(n)| = 1 + 0,5 + 0,25 + 0,125 + …")}`, `Đây là cấp số nhân công bội 0,5 &lt; 1: ${EQ("S = 1 / (1 − 0,5) = 2")}`, "S = 2 hữu hạn → ổn định. Đồ thị tổng cộng dồn tiến dần tới 2 rồi đứng yên.", "Anh kéo a ở thanh bên lên 0,9 rồi 1,1 để thấy S chuyển từ hữu hạn sang vô hạn."],
+    ans: ["ok", "Ổn định (S = 2)."], mean: `<p>Ổn định nghĩa là: đầu vào bị chặn (hét không to quá mức) thì đầu ra cũng bị chặn. Tiếng vọng nhỏ dần nên hang ổn định.</p>` },
+  { id: "od2", g: "od", title: "h(n) = u(n): hệ có ổn định không?", q: `<p>Hệ LTI có h(n) = u(n), tương đương bộ cộng dồn ${EQ("y(n) = x(n) + y(n−1)")}`,
+    demo: { type: "stab", a: 1 },
+    steps: [`${EQ("S = Σ|h(n)| = 1 + 1 + 1 + … = ∞")}`, "S vô hạn → không ổn định.", "Kiểm tra bằng ví dụ: đưa vào x(n) = u(n) (bị chặn, luôn bằng 1). Đầu ra y(n) = n + 1 tăng mãi, không bị chặn."],
+    ans: ["no", "Không ổn định."], mean: `<p>Như két tiết kiệm ngày nào cũng bỏ vào 1 đồng: số tiền tăng mãi không giới hạn. Mạch tích phân (bộ cộng dồn) cần có cơ chế xả, nếu không sẽ tràn số.</p>` },
+  { id: "od3", g: "od", title: "h(n) = (1,1)ⁿ·u(n): hệ có ổn định không?", q: `<p>Hang có vách đá dội lại mạnh hơn tiếng gốc: h(n) = (1,1)ⁿ·u(n).</p>`,
+    demo: { type: "stab", a: 1.1 },
+    steps: ["Công bội |a| = 1,1 ≥ 1, các số hạng không nhỏ dần mà còn lớn dần.", `${EQ("S = 1 + 1,1 + 1,21 + 1,331 + … = ∞")}`, "Không ổn định: chỉ một tiếng vỗ tay cũng làm đầu ra tăng mãi."],
+    ans: ["no", "Không ổn định."], mean: `<p>Hiện tượng micro bị hú: tiếng từ loa quay lại micro, được khuếch đại với hệ số lớn hơn 1, vòng sau to hơn vòng trước.</p>` },
+
+  { id: "dq0", g: "dq", concept: true, title: "Hệ đệ quy là gì?", q: `<p>So sánh hai hệ:</p>${EQ("(a) y(n) = x(n) + x(n−1) + x(n−2)")}${EQ("(b) y(n) = x(n) + 0,5·y(n−1)")}`,
+    demo: { type: "rec", mode: "cmp" },
+    steps: ["<b>Đệ quy</b> nghĩa là đầu ra dùng lại đầu ra của chính nó ở nhịp trước. Hệ (b) có y(n−1) ở vế phải nên là đệ quy, giống tiếng vọng trong hang.", "Hệ (a) chỉ dùng x (tiếng hét hiện tại và các tiếng hét trước): <b>không đệ quy</b>.", "Hệ quả trên đồ thị: (a) có h(n) dừng sau 3 mẫu (<b>FIR</b>: đáp ứng xung hữu hạn); (b) có h(n) = (0,5)ⁿ kéo dài mãi (<b>IIR</b>: vô hạn).", "Hệ đệ quy phải tính lần lượt từ đầu và cần điều kiện đầu y(−1) (thường bằng 0: hang lúc đầu im lặng)."],
+    ans: ["neu", "(a) không đệ quy, FIR; (b) đệ quy, IIR."], mean: `<p>Hệ đệ quy rất tiết kiệm: chỉ cần nhớ 1 giá trị y cũ và 2 phép tính mỗi nhịp mà vẫn có đáp ứng kéo dài vô hạn. Muốn có đáp ứng tương tự bằng tích chập thì phải lưu một dãy h(n) rất dài.</p>` },
+  { id: "dq1", g: "dq", title: "Phân loại: hệ nào đệ quy?", q: `<p>Cho bốn hệ:</p>${EQ("(a) y(n) = x(n) + x(n−1) + x(n−2)")}${EQ("(b) y(n) = x(n) + 0,5·y(n−1)")}${EQ("(c) y(n) − 0,9·y(n−1) = 0,1·x(n)")}${EQ("(d) y(n) = x(n) − x(n−1)")}<p>Hệ nào đệ quy? Đáp ứng xung hữu hạn hay vô hạn?</p>`,
+    demo: { type: "rec", mode: "cmp" },
+    steps: ["(a) Vế phải chỉ có x → không đệ quy. h(n) = {1; 1; 1}: hữu hạn (FIR).", "(b) Có y(n−1) → đệ quy. h(n) = (0,5)ⁿ·u(n): vô hạn (IIR).", "(c) Chuyển vế: y(n) = 0,1·x(n) + 0,9·y(n−1). Có y(n−1) → đệ quy, h(n) = 0,1·(0,9)ⁿ·u(n) (IIR). Đây là bộ lọc làm mượt số đo cảm biến.", "(d) Chỉ có x → không đệ quy. h(n) = {1; −1} (FIR), bộ phát hiện thay đổi.", "Lưu ý: phải chuyển phương trình về dạng y(n) = … rồi mới nhìn vế phải."],
+    ans: ["neu", "Đệ quy: (b), (c). Không đệ quy: (a), (d)."], mean: `<p>Với hệ không đệ quy, các hệ số của x chính là h(n). Với hệ đệ quy, h(n) “ẩn” trong hệ số hồi tiếp và phải tính ra (đưa δ(n) vào).</p>` },
+  { id: "dq2", g: "dq", title: "Tính lần lượt đầu ra của hệ đệ quy", q: `<p>Cho ${EQ("y(n) = x(n) + 0,5·y(n−1),  y(−1) = 0")}<p>Đầu vào x(n) = {1; 1} (hét 2 nhịp rồi ngừng). Tính y(0) đến y(5).</p>`,
+    demo: { type: "rec", mode: "iter", x: [1, 1] },
+    steps: [`${EQ("y(0) = x(0) + 0,5·y(−1) = 1 + 0 = 1")}`, `${EQ("y(1) = x(1) + 0,5·y(0) = 1 + 0,5 = 1,5")}`, `${EQ("y(2) = x(2) + 0,5·y(1) = 0 + 0,75 = 0,75")}`, `${EQ("y(3) = 0,375;  y(4) = 0,1875;  y(5) = 0,09375")}Từ n = 2 trở đi không còn tiếng hét, chỉ còn tiếng vọng giảm một nửa mỗi nhịp.`, "Kiểm tra bằng tích chập: h(n) = (0,5)ⁿ·u(n), x = δ(n) + δ(n−1) nên y(n) = h(n) + h(n−1). Ví dụ y(2) = 0,25 + 0,5 = 0,75 ✓."],
+    ans: ["neu", "y = {1; 1,5; 0,75; 0,375; 0,1875; 0,09375; …}"], mean: `<p>Bảng tính lần lượt chính là cách chip DSP chạy: mỗi nhịp lấy mẫu vào mới cộng với kết quả nhịp trước đã nhân 0,5.</p>` },
+  { id: "dq3", g: "giai", title: "Ví dụ 1: hét đều vào hang (bậc 1, đầu vào hằng số)", q: `<p>Giải ${EQ("y(n) − 0,5·y(n−1) = x(n)")}với x(n) = u(n) (hét đều mãi), điều kiện đầu y(−1) = 0.</p>`,
+    demo: { type: "solve4", a1: -0.5, a2: 0, b0: 1, b: 1, ym1: 0, ym2: 0 },
+    steps: [`<b>B1 – nghiệm thuần nhất:</b> giải y(n) − 0,5·y(n−1) = 0. Thử y = λⁿ: λⁿ − 0,5·λⁿ⁻¹ = 0 ⇒ λ = 0,5. ${EQ("y₀(n) = C·(0,5)ⁿ")}`, `<b>B2 – nghiệm riêng:</b> vế phải là hằng số (u(n) = 1 với n ≥ 0), đoán y_p = K: ${EQ("K − 0,5·K = 1  ⇒  K = 2")}`, `<b>B3 – nghiệm tổng quát:</b> ${EQ("y(n) = y₀(n) + y_p(n) = C·(0,5)ⁿ + 2")}`, `<b>B4 – dùng điều kiện đầu:</b> y(0) = x(0) + 0,5·y(−1) = 1. Thay n = 0: C + 2 = 1 ⇒ C = −1. ${EQ("y(n) = 2 − (0,5)ⁿ,  n ≥ 0")}`, "Kiểm tra: y(1) = 2 − 0,5 = 1,5, trùng với tính lần lượt 1 + 0,5·1 = 1,5. Đồ thị: chấm đen (tính lần lượt) nằm đúng trong vòng xanh (công thức)."],
+    ans: ["neu", "y(n) = 2 − (0,5)ⁿ với n ≥ 0."], mean: `<p>Công thức cho phép “nhảy cóc”: biết ngay y(1000) ≈ 2 mà không phải tính 1000 bước. Phần (0,5)ⁿ là <b>quá độ</b>, tắt dần; phần 2 là <b>xác lập</b>: hét đều thì nghe to gấp đôi. B1 còn cho biết hệ ổn định: |λ| = 0,5 &lt; 1.</p>` },
+  { id: "g2", g: "giai", title: "Ví dụ 2: tiếng hét nhỏ dần (đầu vào dạng bⁿ)", q: `<p>Giải ${EQ("y(n) − 0,5·y(n−1) = (0,25)ⁿ·u(n)")}với điều kiện đầu y(−1) = 0. Tiếng hét giảm 4 lần mỗi nhịp, còn hang dội lại một nửa.</p>`,
+    demo: { type: "solve4", a1: -0.5, a2: 0, b0: 1, b: 0.25, ym1: 0, ym2: 0 },
+    steps: [`<b>B1:</b> giống ví dụ 1: λ − 0,5 = 0 ⇒ λ = 0,5. ${EQ("y₀(n) = C·(0,5)ⁿ")}`, `<b>B2:</b> đầu vào (0,25)ⁿ, mà 0,25 khác λ = 0,5, nên đoán cùng dạng y_p = K·(0,25)ⁿ. Thay vào: ${EQ("K·(0,25)ⁿ − 0,5·K·(0,25)ⁿ⁻¹ = (0,25)ⁿ")}Chia cả hai vế cho (0,25)ⁿ: ${EQ("K − 0,5·K/0,25 = 1  ⇒  K − 2K = 1  ⇒  K = −1")}`, `<b>B3:</b> ${EQ("y(n) = C·(0,5)ⁿ − (0,25)ⁿ")}`, `<b>B4:</b> y(0) = x(0) + 0,5·y(−1) = 1. Thay n = 0: C − 1 = 1 ⇒ C = 2. ${EQ("y(n) = 2·(0,5)ⁿ − (0,25)ⁿ,  n ≥ 0")}`, "Kiểm tra: tính lần lượt y(1) = 0,25 + 0,5·1 = 0,75; công thức 2·0,5 − 0,25 = 0,75. Khớp."],
+    ans: ["neu", "y(n) = 2·(0,5)ⁿ − (0,25)ⁿ với n ≥ 0."], mean: `<p>Tiếng hét tắt nhanh (0,25ⁿ), tiếng vọng của hang tắt chậm hơn (0,5ⁿ). Sau vài nhịp, cái nghe được chủ yếu là tiếng vọng: đó là phần y₀ của chính cái hang.</p><p><b>Quy tắc rút ra:</b> nghiệm riêng luôn đoán <b>cùng dạng với đầu vào</b>.</p>` },
+  { id: "g3", g: "giai", title: "Ví dụ 3: phương trình bậc 2, hai nghiệm thực", q: `<p>Giải ${EQ("y(n) − 0,75·y(n−1) + 0,125·y(n−2) = u(n)")}với y(−1) = y(−2) = 0.</p>`,
+    demo: { type: "solve4", a1: -0.75, a2: 0.125, b0: 1, b: 1, ym1: 0, ym2: 0 },
+    steps: [`<b>B1:</b> phương trình đặc trưng ${EQ("λ² − 0,75λ + 0,125 = 0")}Δ = 0,5625 − 0,5 = 0,0625, √Δ = 0,25 ⇒ λ = (0,75 ± 0,25)/2 ⇒ <b>λ₁ = 0,5; λ₂ = 0,25</b>. ${EQ("y₀(n) = C₁·(0,5)ⁿ + C₂·(0,25)ⁿ")}`, `<b>B2:</b> đầu vào hằng số, đoán y_p = K: ${EQ("K·(1 − 0,75 + 0,125) = 1  ⇒  K = 1/0,375 = 8/3")}`, `<b>B3:</b> ${EQ("y(n) = C₁·(0,5)ⁿ + C₂·(0,25)ⁿ + 8/3")}`, `<b>B4:</b> bậc 2 nên cần hai giá trị đầu, tính từ phương trình: y(0) = 1 + 0,75·0 − 0,125·0 = 1; y(1) = 1 + 0,75·1 − 0,125·0 = 1,75. Thay vào công thức: ${EQ("n = 0:  C₁ + C₂ + 8/3 = 1   ⇒  C₁ + C₂ = −5/3")}${EQ("n = 1:  0,5C₁ + 0,25C₂ + 8/3 = 1,75   ⇒  0,5C₁ + 0,25C₂ = −11/12")}Giải hệ: <b>C₁ = −2, C₂ = 1/3</b>.`, `Kết quả: ${EQ("y(n) = −2·(0,5)ⁿ + (1/3)·(0,25)ⁿ + 8/3,  n ≥ 0")}Kiểm tra: tính lần lượt y(2) = 1 + 0,75·1,75 − 0,125·1 = 2,1875; công thức −0,5 + 0,0208 + 2,6667 = 2,1875. Khớp.`],
+    ans: ["neu", "y(n) = −2·(0,5)ⁿ + (1/3)·(0,25)ⁿ + 8/3 với n ≥ 0."], mean: `<p>Hệ bậc 2 giống một cái hang có <b>hai vách</b> dội lại với tốc độ tắt khác nhau (0,5 và 0,25). Cả hai |λ| &lt; 1 nên hệ ổn định, đầu ra tiến về 8/3 ≈ 2,67.</p><p><b>Chỗ hay sai:</b> phải dùng y(0), y(1) tính từ phương trình, không thay y(−1), y(−2) vào công thức.</p>` },
+  { id: "g4", g: "giai", title: "Ví dụ 4: đầu vào trùng nghiệm λ (phải nhân thêm n)", q: `<p>Giải ${EQ("y(n) − 0,5·y(n−1) = (0,5)ⁿ·u(n)")}với y(−1) = 0. Tiếng hét giảm đúng bằng tốc độ tắt của hang.</p>`,
+    demo: { type: "solve4", a1: -0.5, a2: 0, b0: 1, b: 0.5, ym1: 0, ym2: 0 },
+    steps: [`<b>B1:</b> λ = 0,5. ${EQ("y₀(n) = C·(0,5)ⁿ")}`, `<b>B2:</b> nếu đoán y_p = K·(0,5)ⁿ thì thay vào được K − K = 1, tức 0 = 1: vô lý, vì (0,5)ⁿ đã là nghiệm thuần nhất. Quy tắc: <b>nhân thêm n</b>, đoán y_p = K·n·(0,5)ⁿ. Thay vào và chia cho (0,5)ⁿ: ${EQ("K·n − 0,5·K·(n−1)/0,5 = 1  ⇒  K·n − K·(n−1) = 1  ⇒  K = 1")}`, `<b>B3:</b> ${EQ("y(n) = C·(0,5)ⁿ + n·(0,5)ⁿ")}`, `<b>B4:</b> y(0) = 1 ⇒ C = 1. ${EQ("y(n) = (n + 1)·(0,5)ⁿ,  n ≥ 0")}Kiểm tra: y(1) = 0,5 + 0,5·1 = 1 = 2·0,5; y(2) = 0,25 + 0,5·1 = 0,75 = 3·0,25. Khớp.`],
+    ans: ["neu", "y(n) = (n + 1)·(0,5)ⁿ với n ≥ 0."], mean: `<p>Đầu vào “cộng hưởng” với chính tiếng vọng của hang nên xuất hiện thừa số n: đầu ra lúc đầu còn tăng (1; 1; 0,75…) rồi mới tắt. Đây là lỗi hay gặp nhất khi đoán nghiệm riêng.</p>` },
+  { id: "g5", g: "giai", title: "Ví dụ 5: nghiệm phức, đầu ra dao động tắt dần", q: `<p>Giải ${EQ("y(n) − y(n−1) + 0,5·y(n−2) = u(n)")}với y(−1) = y(−2) = 0.</p>`,
+    demo: { type: "solve4", a1: -1, a2: 0.5, b0: 1, b: 1, ym1: 0, ym2: 0 },
+    steps: [`<b>B1:</b> λ² − λ + 0,5 = 0, Δ = 1 − 2 = −1 &lt; 0 ⇒ nghiệm phức λ = 0,5 ± 0,5j. Viết dạng mô-đun, góc: r = √(0,5² + 0,5²) = √0,5 ≈ 0,7071; θ = π/4. ${EQ("y₀(n) = (0,7071)ⁿ·[C₁·cos(πn/4) + C₂·sin(πn/4)]")}`, `<b>B2:</b> đầu vào hằng số: K·(1 − 1 + 0,5) = 1 ⇒ K = 2.`, `<b>B3:</b> ${EQ("y(n) = (0,7071)ⁿ·[C₁·cos(πn/4) + C₂·sin(πn/4)] + 2")}`, `<b>B4:</b> y(0) = 1; y(1) = 1 + 1·1 − 0 = 2. n = 0: C₁ + 2 = 1 ⇒ C₁ = −1. n = 1: 0,7071·(0,7071·C₁ + 0,7071·C₂) + 2 = 2 ⇒ C₁ + C₂ = 0 ⇒ C₂ = 1. ${EQ("y(n) = 2 + (0,7071)ⁿ·[sin(πn/4) − cos(πn/4)],  n ≥ 0")}Kiểm tra: y(2) = 1 + 2 − 0,5·1 = 2,5; công thức 2 + 0,5·(1 − 0) = 2,5. Khớp.`],
+    ans: ["neu", "y(n) = 2 + (√0,5)ⁿ·[sin(πn/4) − cos(πn/4)] với n ≥ 0."], mean: `<p>Nghiệm phức nghĩa là đầu ra <b>dao động</b> quanh mức xác lập (ở đây là 2), biên độ dao động tắt theo rⁿ = (0,7071)ⁿ. Giống tiếng vọng “lên xuống” trong một hang có hình dạng đặc biệt. r &lt; 1 nên vẫn ổn định.</p>` },
+  { id: "g6", g: "giai", title: "Tự đặt đề: máy giải 4 bước", q: `<p>Nhập hệ số a₁, a₂, b₀, cơ số b của đầu vào và điều kiện đầu ở thanh bên. Phần mềm giải theo đúng 4 bước, ra công thức, rồi so với cách tính lần lượt.</p><p>Gợi ý thử: bộ lọc mượt y(n) − 0,9·y(n−1) = 0,1·x(n) (a₁ = −0,9, b₀ = 0,1); nghiệm kép a₁ = −1, a₂ = 0,25; hệ không ổn định a₁ = −1,2.</p>`,
+    demo: { type: "solve4", a1: -0.9, a2: 0, b0: 0.1, b: 1, ym1: 0, ym2: 0 },
+    steps: ["Đọc phương trình ở khung đồ thị, tự làm B1–B4 ra giấy trước.", "Sau đó so với lời giải tự động của máy và đồ thị kiểm tra: chấm đen (tính lần lượt) phải nằm trong vòng xanh (công thức).", "Thử đổi điều kiện đầu y(−1) khác 0: chỉ các hằng số C thay đổi, dạng của y₀ và y_p giữ nguyên."],
+    ans: ["neu", "Lời giải nằm trong khung “Máy giải 4 bước”."], mean: `<p>B1 phụ thuộc <b>hệ</b> (các hệ số a), B2 phụ thuộc <b>đầu vào</b>, B4 phụ thuộc <b>điều kiện đầu</b>. Đổi từng thứ một ở thanh bên để thấy bước nào thay đổi.</p>` },
+  { id: "pt0", g: "pt", concept: true, title: "Bốn phần tử thực hiện hệ thống", q: `<p>Một hệ thống số (mạch số, chương trình trên chip) được lắp từ những “linh kiện” nào? Mỗi linh kiện làm gì với dãy tín hiệu?</p>`,
+    demo: { type: "elem", x1: [1, 2, 3], x2: [2, 0, 1], a: 0.5 },
+    steps: ["<b>Phần tử cộng:</b> y(n) = x₁(n) + x₂(n) (có thể nhiều đầu vào: y = Σxᵢ). Trong hang: tiếng hét mới hòa với tiếng vọng.", "<b>Phần tử nhân:</b> y(n) = x₁(n)·x₂(n), nhân từng cặp mẫu cùng n. Slide viết x₁(n) * x₂(n) nhưng ở đây là nhân thường, không phải tích chập.", "<b>Phần tử nhân hằng số:</b> y(n) = a·x(n), ký hiệu tam giác. Trong hang: vách đá chỉ dội lại 0,5.", "<b>Phần tử trễ đơn vị D (z⁻¹):</b> y(n) = x(n−1). Trong hang: thời gian tiếng đi tới vách rồi quay về. Trên chip: một thanh ghi hay một biến nhớ.", "Ba phần tử đầu <b>không nhớ</b>: đầu ra chỉ phụ thuộc mẫu hiện tại. Phần tử trễ <b>có nhớ</b>: phải giữ mẫu cũ. Hệ có bộ trễ là hệ có nhớ."],
+    ans: ["neu", "Cộng, nhân, nhân hằng số (không nhớ); trễ đơn vị (có nhớ)."], mean: `<p>Mọi phương trình sai phân đều lắp được chỉ từ ba loại: bộ cộng, bộ nhân hằng số, bộ trễ. Mỗi dấu “+” là một bộ cộng, mỗi hệ số là một bộ nhân, mỗi “(n−1)” là một bộ trễ.</p>` },
+  { id: "pt1", g: "pt", title: "Tính đầu ra của từng phần tử", q: `<p>Cho x₁(n) = {1; 2; 3}, x₂(n) = {2; 0; 1} (bắt đầu tại n = 0) và a = 0,5. Tính đầu ra của: a) phần tử cộng; b) phần tử nhân; c) phần tử nhân hằng số (đầu vào x₁); d) phần tử trễ đơn vị (đầu vào x₁).</p>`,
+    demo: { type: "elem", x1: [1, 2, 3], x2: [2, 0, 1], a: 0.5 },
+    steps: [`a) Cộng từng cặp cùng n: ${EQ("{1+2; 2+0; 3+1} = {3; 2; 4}")}`, `b) Nhân từng cặp cùng n: ${EQ("{1·2; 2·0; 3·1} = {2; 0; 3}")}`, `c) Nhân mọi mẫu với 0,5: ${EQ("{0,5; 1; 1,5}")}`, `d) Trễ 1 nhịp: y(n) = x₁(n−1), cả dãy dời sang phải: ${EQ("y(n) = {0; 1; 2; 3}, tức y(0) = 0, y(1) = 1, y(2) = 2, y(3) = 3")}Dãy ra dài thêm 1 mẫu và bắt đầu khác 0 từ n = 1.`],
+    ans: ["neu", "{3; 2; 4}, {2; 0; 3}, {0,5; 1; 1,5}, {0; 1; 2; 3}."], mean: `<p>Chú ý phép nhân hai dãy (từng mẫu) khác hẳn tích chập: {1; 2; 3}·{2; 0; 1} = {2; 0; 3}, còn {1; 2; 3} * {2; 0; 1} = {2; 4; 7; 2; 3}.</p>` },
+  { id: "pt2", g: "pt", title: "Cần những phần tử nào để thực hiện hệ?", q: `<p>Cần bao nhiêu phần tử mỗi loại để thực hiện ${EQ("y(n) = 0,5·x(n) + 0,5·x(n−1)")}Vẽ sơ đồ.</p>`,
+    demo: { type: "df1", b0: 0.5, b1: 0.5, b2: 0, a1: 0, a2: 0 },
+    steps: ["Có x(n−1) → cần <b>1 bộ trễ</b> để giữ mẫu của nhịp trước.", "Có hai hệ số 0,5 → cần <b>2 bộ nhân hằng số</b>.", "Có một dấu “+” → cần <b>1 bộ cộng</b> (2 đầu vào).", "Vế phải không có y(n−k) → không có nhánh hồi tiếp: hệ không đệ quy (FIR). Sơ đồ chỉ có nhánh bên trái."],
+    ans: ["neu", "1 bộ trễ, 2 bộ nhân hằng số, 1 bộ cộng."], mean: `<p>Đây là bộ trung bình 2 mẫu. Trên vi điều khiển: một biến x_cu (bộ trễ), hai phép nhân, một phép cộng cho mỗi mẫu mới.</p>` },
+
+  { id: "sd1", g: "sd", title: "Vẽ sơ đồ trực tiếp 1 từ phương trình", q: `<p>Vẽ sơ đồ trực tiếp 1 cho hệ ${EQ("y(n) − 0,8·y(n−1) = x(n) + 0,5·x(n−1)")}`,
+    demo: { type: "df1", b0: 1, b1: 0.5, b2: 0, a1: -0.8, a2: 0 },
+    steps: [`So với dạng tổng quát Σa<sub>k</sub>·y(n−k) = Σb<sub>r</sub>·x(n−r) (a₀ = 1): ${EQ("b₀ = 1,  b₁ = 0,5,  a₁ = −0,8")}`, `Viết lại theo slide: ${EQ("y(n) = b₀·x(n) + b₁·x(n−1) − a₁·y(n−1) = x(n) + 0,5·x(n−1) + 0,8·y(n−1)")}`, "<b>Nhánh trái:</b> x(n) qua 1 bộ trễ được x(n−1); hai bộ nhân b₀ = 1 và b₁ = 0,5.", "<b>Nhánh phải:</b> y(n) qua 1 bộ trễ được y(n−1); bộ nhân −a₁ = 0,8 đưa ngược về bộ cộng (màu xanh).", "Tổng cộng: 2 bộ trễ, 3 bộ nhân (bộ nhân b₀ = 1 có thể bỏ, thay bằng dây nối), 1 bộ cộng. Có hồi tiếp nên hệ đệ quy."],
+    ans: ["neu", "2 bộ trễ, 3 bộ nhân, 1 bộ cộng; hệ đệ quy."], mean: `<p>Chú ý dấu: trên sơ đồ ghi hệ số <b>−a₁</b>. Phương trình có “−0,8·y(n−1)” ở vế trái thì chuyển sang vế phải thành “+0,8·y(n−1)”. Nhầm dấu ở đây làm hệ ổn định thành dao động.</p>` },
+  { id: "sd2", g: "sd", title: "Đọc sơ đồ, viết phương trình sai phân", q: `<p>Cho sơ đồ trực tiếp 1 ở dưới. Viết phương trình sai phân của hệ và cho biết hệ có đệ quy không.</p>`,
+    demo: { type: "df1", b0: 2, b1: 0, b2: 1, a1: -0.5, a2: 0.25, showEq: false },
+    steps: ["<b>Nhánh x:</b> bộ nhân 2 ở x(n), không có bộ nhân ở x(n−1) (b₁ = 0), bộ nhân 1 ở x(n−2). Phần x: 2·x(n) + x(n−2).", "<b>Nhánh y:</b> bộ nhân 0,5 ở y(n−1) và −0,25 ở y(n−2). Phần hồi tiếp: 0,5·y(n−1) − 0,25·y(n−2).", `Ghép lại: ${EQ("y(n) = 2·x(n) + x(n−2) + 0,5·y(n−1) − 0,25·y(n−2)")}Dạng slide: ${EQ("y(n) − 0,5·y(n−1) + 0,25·y(n−2) = 2·x(n) + x(n−2)")}`, "Có nhánh hồi tiếp (y(n−1), y(n−2)) → hệ đệ quy, bậc N = 2."],
+    ans: ["neu", "y(n) = 2x(n) + x(n−2) + 0,5y(n−1) − 0,25y(n−2); hệ đệ quy."], mean: `<p>Đọc sơ đồ là kỹ năng ngược lại của vẽ sơ đồ: mỗi bộ nhân trên nhánh x cho một số hạng b·x(n−r), mỗi bộ nhân trên nhánh y cho một số hạng (−a)·y(n−k).</p>` },
+];
+const CTRL = {
+  lin: [["x1", "x₁(n)", "list"], ["x2", "x₂(n)", "list"], ["a", "Hằng số a", "num"], ["b", "Hằng số b", "num"]],
+  ti: [["x", "x(n)", "list"], ["k", "Dịch k", "int", -5, 6]],
+  causal: [["n0", "Xét tại n₀", "int", -6, 8]],
+  stab: [["a", "Cơ số a", "num", -3, 3]],
+  solve4: [["a1", "a₁", "num", -3, 3], ["a2", "a₂", "num", -3, 3], ["b0", "b₀", "num", -10, 10], ["b", "Cơ số b của x(n) = bⁿ", "num", -2, 2], ["ym1", "y(−1)", "num", -10, 10], ["ym2", "y(−2)", "num", -10, 10]],
+  conv: [["h1", "h₁(n)", "list"], ["h2", "h₂(n)", "list"], ["x", "x(n) thử", "list"]],
+  rec: { iter: [["x", "x(n)", "list"]] },
+  elem: [["x1", "x₁(n)", "list"], ["x2", "x₂(n)", "list"], ["a", "Hằng số a", "num"]],
+  df1: [["b0", "b₀", "num"], ["b1", "b₁", "num"], ["b2", "b₂", "num"], ["a1", "a₁", "num"], ["a2", "a₂", "num"]],
+};
+const EXST = { cur: "lin0", teach: false, rev: 0, st: {} };
+try { const c = localStorage.getItem("mp-ex-cur"); if (EXS.some(e => e.id === c)) EXST.cur = c; EXST.teach = localStorage.getItem("mp-ex-teach") === "1"; } catch (_) {}
+const curEx = () => EXS.find(e => e.id === EXST.cur);
+const stOf = e => (EXST.st[e.id] ||= JSON.parse(JSON.stringify(e.demo)));
+function ctrlSpec(e) { const c = CTRL[e.demo.type]; return Array.isArray(c) ? c : c ? c[e.demo.mode] || [] : []; }
+
+function renderExList() {
+  let h = "", gi = 0, last = "";
+  const cnt = {};
+  EXS.forEach(e => {
+    if (e.g !== last) { gi++; last = e.g; cnt[e.g] = 0; h += `<p class="ex-gl">${gi}. ${G[e.g].name}</p>`; }
+    cnt[e.g]++;
+    e.no = `${gi}.${cnt[e.g]}`;
+    h += `<button type="button" class="ex-it" data-ex="${e.id}" aria-current="${e.id === EXST.cur}"><b>${e.no}</b><span>${e.title}${e.concept ? '<span class="tagc">KHÁI NIỆM</span>' : ""}</span></button>`;
+  });
+  $("ex-list").innerHTML = h;
+}
+function renderCtrl() {
+  const e = curEx(), S = stOf(e), spec = ctrlSpec(e);
+  $("ex-ctrl-card").hidden = !spec.length;
+  $("ex-err").textContent = "";
+  $("ex-ctrl").innerHTML = spec.map(([k, lab, ty, lo, hi]) => `<div class="xf"><label for="exc-${k}">${lab}${ty === "list" ? "<small>bắt đầu tại n = 0</small>" : ty === "int" ? `<small>số nguyên ${lo} … ${hi}</small>` : ""}</label><input id="exc-${k}" data-k="${k}" data-t="${ty}" ${ty === "list" ? 'autocomplete="off" spellcheck="false"' : 'inputmode="decimal"'} value="${ty === "list" ? fmtList(S[k]) : fmt(S[k])}"></div>`).join("");
+}
+function renderDemo() { const e = curEx(); $("ex-demo").innerHTML = DEMO[e.demo.type](stOf(e)); }
+function renderSteps() {
+  const e = curEx(), n = e.steps.length, show = EXST.teach ? EXST.rev : n;
+  $("ex-steps").innerHTML = e.steps.map((s, i) => `<li ${i < show ? "" : "hidden"}><div>${s}</div></li>`).join("");
+  const done = show >= n;
+  $("ex-ans").className = "ex-ans " + (done ? e.ans[0] : "");
+  $("ex-ans").innerHTML = done ? `<span class="badge">${e.ans[0] === "ok" ? "Có" : e.ans[0] === "no" ? "Không" : "Đáp số"}</span><b>${e.ans[1]}</b>` : "";
+  $("ex-reveal").hidden = !EXST.teach || done;
+  if (EXST.teach && show === 0) $("ex-steps").innerHTML = `<li class="hint" style="display:block">Lời giải đang ẩn. Bấm “Hiện bước tiếp theo” để giảng từng bước.</li>`;
+}
+function renderEx(scroll) {
+  const e = curEx(), i = EXS.indexOf(e), g = G[e.g];
+  renderExList();
+  $("ex-group").textContent = `${g.sec} · ${g.name}`;
+  $("ex-title").textContent = `Bài ${e.no}. ${e.title}`;
+  $("ex-q").innerHTML = e.q;
+  $("ex-method").innerHTML = `<h3>${g.method.t}</h3><ol>${g.method.s.map(s => `<li>${s}</li>`).join("")}</ol><p class="tip">${g.method.tip}</p>`;
+  $("ex-demo-title").textContent = e.demo.type === "solve4" ? "Máy giải 4 bước (tự giải theo số liệu ở thanh bên)" : e.demo.type === "df1" ? "Sơ đồ thực hiện" : e.demo.type === "elem" ? "Đầu ra của từng phần tử" : "Kiểm tra bằng đồ thị";
+  $("ex-mean").innerHTML = e.mean;
+  $("ex-pos").textContent = `${i + 1} / ${EXS.length}`;
+  $("ex-prev").disabled = i === 0; $("ex-next").disabled = i === EXS.length - 1;
+  renderCtrl(); renderDemo(); renderSteps();
+  if (scroll) window.scrollTo(0, 0);
+}
+function goEx(id) { EXST.cur = id; EXST.rev = 0; try { localStorage.setItem("mp-ex-cur", id); } catch (_) {} renderEx(true); if (narrow()) setSide(false, false); }
+$("ex-list").addEventListener("click", ev => { const b = ev.target.closest("[data-ex]"); if (b) goEx(b.dataset.ex); });
+$("ex-prev").addEventListener("click", () => { const i = EXS.indexOf(curEx()); if (i > 0) goEx(EXS[i - 1].id); });
+$("ex-next").addEventListener("click", () => { const i = EXS.indexOf(curEx()); if (i < EXS.length - 1) goEx(EXS[i + 1].id); });
+$("ex-next-step").addEventListener("click", () => { EXST.rev++; renderSteps(); });
+$("ex-all-steps").addEventListener("click", () => { EXST.rev = curEx().steps.length; renderSteps(); });
+$("ex-teach").checked = EXST.teach;
+$("ex-teach").addEventListener("change", ev => { EXST.teach = ev.target.checked; EXST.rev = 0; try { localStorage.setItem("mp-ex-teach", EXST.teach ? "1" : "0"); } catch (_) {} renderSteps(); });
+$("ex-reset").addEventListener("click", () => { const e = curEx(); delete EXST.st[e.id]; renderCtrl(); renderDemo(); });
+$("ex-ctrl").addEventListener("input", ev => {
+  const inp = ev.target.closest("input[data-k]"); if (!inp) return;
+  const e = curEx(), S = stOf(e), k = inp.dataset.k, ty = inp.dataset.t;
+  const spec = ctrlSpec(e).find(s => s[0] === k);
+  let v;
+  if (ty === "list") { const r = parseList(inp.value); if (r.err) { inp.classList.add("bad"); $("ex-err").textContent = r.err; return; } v = r.vals; if (e.demo.type === "conv" && v.length > 8) { inp.classList.add("bad"); $("ex-err").textContent = "Tối đa 8 mẫu cho mỗi dãy."; return; } }
+  else {
+    if (inp.value.trim() === "" || inp.value.trim() === "-") return;
+    v = Number(inp.value.replace(/−/g, "-").replace(",", "."));
+    const lo = spec[3] ?? -10, hi = spec[4] ?? 10;
+    if (!Number.isFinite(v) || v < lo || v > hi || (ty === "int" && !Number.isInteger(v))) { inp.classList.add("bad"); $("ex-err").textContent = `${spec[1]} phải là ${ty === "int" ? "số nguyên" : "số"} từ ${lo} đến ${hi}.`; return; }
+    v = r4(v);
+  }
+  inp.classList.remove("bad"); $("ex-err").textContent = ""; S[k] = v; renderDemo();
+});
+renderEx(false);
+let lastVW = vwNow();
+window.addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(() => { const v = vwNow(); if (Math.abs(v - lastVW) < 30) return; lastVW = v; try { renderAll(); renderDE(); renderDemo(); } catch (_) {} }, 200); });
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>

@@ -1,0 +1,29 @@
+{
+  "name": "Xử lý tín hiệu số – NGUYỄN SỸ HIỆP",
+  "short_name": "XLTHS",
+  "description": "Phần mềm học Xử lý tín hiệu số Buổi 1–2. Trường ĐH Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#FAFAF8",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

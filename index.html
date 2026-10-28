@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xử lý tín hiệu số – NGUYỄN SỸ HIỆP</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FAFAF8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="XLTHS">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<style>
+:root{--bg:#FAFAF8;--surface:#FFFFFE;--ink:#161616;--body:#3A3A37;--muted:#6B6B67;--line:#E2E2DE;--soft:#F1F1ED;--red:#C41E3A;--red-tint:#FBEBEE;--green:#1A7F4B;--green-tint:#E7F4EC;
+--f:"Be Vietnam Pro","Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f);-webkit-tap-highlight-color:rgba(196,30,58,.12)}
+.inst{background:#F4F4F0;border-bottom:1px solid var(--line);padding:8px max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left));padding-top:max(8px,env(safe-area-inset-top));display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:12.5px;letter-spacing:.01em}
+.inst::before{content:"";width:18px;height:3px;background:var(--red)}
+.inst b{font-weight:800}.inst span{color:var(--muted);font-weight:600}.inst span::before{content:"· "}
+main{max-width:880px;margin:0 auto;padding:28px 18px calc(40px + env(safe-area-inset-bottom))}
+.hero{border-left:6px solid var(--red);padding:4px 0 4px 18px;margin-bottom:28px}
+.kick{font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.15;font-weight:800;margin:6px 0 10px}
+.by{font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:600}
+.by b{color:var(--ink);font-size:17px;letter-spacing:.06em;font-weight:800;margin-left:6px}
+.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px}
+.app{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--red);border-radius:16px;padding:20px;color:inherit;text-decoration:none;min-height:44px;transition:border-color .15s,transform .15s}
+.app.g{border-top-color:var(--green)}
+.app:hover,.app:focus-visible{border-color:var(--red);transform:translateY(-2px)}
+.app .tag{font-size:12.5px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.app h2{font-size:21px;line-height:1.3;font-weight:800}
+.app p{color:var(--body);font-size:15px}
+.app .go{margin-top:auto;padding-top:6px;font-weight:700;color:var(--red)}
+.app.g .go{color:var(--green)}
+.status{display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:14px 16px;margin-bottom:24px;font-size:15px;background:var(--soft);border:1px solid var(--line);color:var(--body)}
+.status.ok{background:var(--green-tint);border-color:#BFE0CC;color:#145F39}
+.status .dot{flex:none;width:12px;height:12px;border-radius:50%;background:var(--muted);margin-top:6px}
+.status.ok .dot{background:var(--green)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.card h3{font-size:18px;font-weight:800;margin-bottom:10px}
+.card ol{padding-left:22px;color:var(--body)}
+.card li{margin:6px 0}
+.card li b{color:var(--ink)}
+.sym{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 6px;background:var(--soft);font-weight:700;color:var(--ink)}
+.note{color:var(--muted);font-size:14px;margin-top:18px}
+@media (max-width:620px){.inst::before{display:none}}
+</style>
+</head>
+<body>
+<div class="inst" role="note" aria-label="Đơn vị"><b>Trường Đại học Công nghệ Thông tin và Truyền thông</b><span>Đại học Thái Nguyên</span></div>
+<main>
+  <header class="hero">
+    <p class="kick">Xử lý tín hiệu số</p>
+    <h1>Phòng thí nghiệm tín hiệu và hệ thống</h1>
+    <p class="by">GIẢNG VIÊN<b>NGUYỄN SỸ HIỆP</b></p>
+  </header>
+
+  <div class="status" id="status" role="status"><span class="dot"></span><span id="status-t">Đang kiểm tra khả năng dùng offline…</span></div>
+
+  <nav class="apps" aria-label="Chọn phần mềm">
+    <a class="app" href="day-tin-hieu.html">
+      <span class="tag">Buổi 1</span>
+      <h2>Phòng thí nghiệm dãy tín hiệu</h2>
+      <p>Lấy mẫu, lượng tử hóa; các dãy δ, u, rect, aⁿ, sin; năng lượng, công suất; cộng, nhân, dịch, lật dãy.</p>
+      <span class="go">Mở phần mềm →</span>
+    </a>
+    <a class="app g" href="tich-chap.html">
+      <span class="tag">Buổi 2</span>
+      <h2>Mô phỏng tích chập và phương trình sai phân</h2>
+      <p>Tích chập từng bước, hệ đệ quy, đáp ứng xung h(n), giải phương trình sai phân và bài tập tính chất hệ.</p>
+      <span class="go">Mở phần mềm →</span>
+    </a>
+  </nav>
+
+  <section class="card">
+    <h3>Cài lên iPhone (Safari)</h3>
+    <ol>
+      <li>Mở trang này bằng <b>Safari</b> khi có mạng.</li>
+      <li>Bấm nút <b>Chia sẻ</b> <span class="sym">⬆︎</span> ở thanh dưới.</li>
+      <li>Chọn <b>Thêm vào MH chính</b> rồi bấm <b>Thêm</b>.</li>
+      <li>Mở biểu tượng <b>XLTHS</b> trên màn hình chính <b>một lần khi còn mạng</b>. Từ lần sau dùng được khi không có mạng.</li>
+    </ol>
+  </section>
+  <section class="card">
+    <h3>Cài lên Android (Chrome)</h3>
+    <ol>
+      <li>Mở trang này bằng <b>Chrome</b> khi có mạng.</li>
+      <li>Bấm <span class="sym">⋮</span> ở góc trên, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</li>
+      <li>Mở biểu tượng <b>XLTHS</b> một lần khi còn mạng. Sau đó dùng offline.</li>
+    </ol>
+  </section>
+  <section class="card">
+    <h3>Trên máy tính (Chrome, Edge)</h3>
+    <ol>
+      <li>Mở trang này một lần khi có mạng; lần sau mở lại vẫn chạy khi mất mạng.</li>
+      <li>Muốn có biểu tượng riêng: bấm biểu tượng <b>Cài đặt</b> ở cuối thanh địa chỉ.</li>
+    </ol>
+  </section>
+  <p class="note">Mẹo: nếu mở link trong Zalo hoặc Messenger, bấm <span class="sym">⋯</span> rồi chọn <b>Mở bằng trình duyệt</b> trước khi cài.</p>
+</main>
+<script>
+(function(){
+  var box=document.getElementById('status'), t=document.getElementById('status-t');
+  function set(ok,msg){box.classList.toggle('ok',ok);t.textContent=msg;}
+  if(!('serviceWorker' in navigator)){set(false,'Trình duyệt này không hỗ trợ chạy offline. Hãy dùng Safari (iPhone) hoặc Chrome.');return;}
+  if(location.protocol==='file:'){set(false,'Đang mở từ tệp trong máy. Để dùng offline trên điện thoại, hãy mở bằng đường link GitHub Pages.');return;}
+  function check(){
+    caches.keys().then(function(k){
+      if(!k.length) return false;
+      return caches.open(k[k.length-1]).then(function(c){return Promise.all(['tich-chap.html','day-tin-hieu.html','fonts/fonts.css'].map(function(u){return c.match(u);}));}).then(function(r){return r.every(Boolean);});
+    }).then(function(ok){
+      if(ok) set(true,'Đã lưu vào máy: dùng được khi không có mạng.');
+      else set(false,'Đang lưu phần mềm vào máy để dùng offline…');
+    }).catch(function(){});
+  }
+  addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(function(){return navigator.serviceWorker.ready;}).then(function(){setTimeout(check,300);}).catch(function(){set(false,'Chưa lưu được để dùng offline. Hãy tải lại trang khi có mạng.');});
+    check();
+  });
+})();
+</script>
+</body>
+</html>

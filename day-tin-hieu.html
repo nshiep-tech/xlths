@@ -1,0 +1,1006 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phòng thí nghiệm dãy tín hiệu</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FAFAF8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="XLTHS">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<style>.inst .home-link{margin-left:auto;display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-weight:700;text-decoration:none}.inst .home-link::before{content:none}@media (pointer:coarse){.inst .home-link{min-height:40px}}</style>
+<style>
+/* Bố cục: thanh trên (3 phần theo bài giảng) + thanh bên nhập liệu ẩn/hiện + vùng giữa hiển thị kết quả. Chỉ dùng nền sáng. */
+:root {
+  --bg: #FAFAF8; --surface: #FFFFFE; --side: #F4F4F0; --ink: #161616; --body: #3A3A37; --muted: #6B6B67;
+  --line: #E2E2DE; --soft: #F1F1ED; --red: #C41E3A; --red-tint: #FBEBEE; --red-ink: #9E1830;
+  --green: #1A7F4B; --green-ink: #145F39; --green-tint: #E7F4EC; --gray: #B9B9B3;
+  --f-body: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  --sw: 370px; --topH: 72px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.55; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+h1, h2, h3, p { margin: 0; }
+h2 { font-size: 20px; font-weight: 700; text-wrap: balance; }
+h3 { font-size: 16.5px; font-weight: 700; text-wrap: balance; }
+.eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); display: flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ""; width: 22px; height: 3px; background: currentColor; }
+.hint { font-size: 13.5px; color: var(--muted); }
+.err { color: var(--red); font-size: 13.5px; font-weight: 600; }
+.err:empty { display: none; }
+
+/* Thanh trên */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding-block: 10px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ttl h1 { font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-btn { font: inherit; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 12px; cursor: pointer; white-space: nowrap; }
+.side-btn:hover { border-color: var(--ink); }
+.side-btn[aria-expanded="true"] { background: var(--red-tint); border-color: var(--red); }
+.modes { display: flex; gap: 8px; }
+.mode-tab { font: inherit; font-size: 14.5px; font-weight: 700; border: 2px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 10px; padding: 7px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.mode-tab b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--soft); border: 1.5px solid var(--line); color: var(--ink); font-size: 12.5px; }
+.mode-tab:hover { border-color: var(--ink); color: var(--ink); }
+.mode-tab[aria-selected="true"] { background: var(--red-tint); border-color: var(--red); color: var(--ink); box-shadow: inset 0 -4px 0 var(--red); }
+.mode-tab[aria-selected="true"] b { background: var(--red); border-color: var(--red); color: #FFFFFE; }
+
+/* Khung chính */
+.app { display: grid; grid-template-columns: var(--sw) minmax(0, 1fr); align-items: start; }
+.app.closed { grid-template-columns: minmax(0, 1fr); }
+.app.closed .side { display: none; }
+.side { position: sticky; top: calc(var(--topH) + env(safe-area-inset-top, 0px)); height: calc(100vh - var(--topH)); height: calc(100dvh - var(--topH) - env(safe-area-inset-top, 0px)); overflow-y: auto; overscroll-behavior: contain; background: var(--side); border-right: 1px solid var(--line); padding: 14px 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.side-head h2 { font-size: 15.5px; font-weight: 800; }
+.icon-btn { font: inherit; font-size: 18px; font-weight: 700; width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; flex: none; }
+.icon-btn:hover { border-color: var(--ink); }
+.side-body { display: flex; flex-direction: column; gap: 14px; }
+.scrim { display: none; }
+main { min-width: 0; width: 100%; max-width: 1080px; margin: 0 auto; padding-block: 22px 64px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; container-type: inline-size; }
+.mode { display: flex; flex-direction: column; gap: 20px; }
+
+/* Thành phần */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.side .card { padding: 14px; gap: 10px; }
+.card.r { border-top: 4px solid var(--red); }
+.card.g { border-top: 4px solid var(--green); }
+.card.k { border-top: 4px solid var(--ink); }
+.group-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.chip:hover { border-color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: inherit; font-size: 13.5px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+.seg button:hover { border-color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #FFFFFE; }
+.fields { display: flex; flex-direction: column; gap: 10px; }
+.f { display: grid; grid-template-columns: 96px 1fr 76px; gap: 8px; align-items: center; }
+.f.nos { grid-template-columns: 96px 1fr; }
+.f label { font-size: 13.5px; font-weight: 700; line-height: 1.25; }
+.f label small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+.f input[type=range] { width: 100%; accent-color: var(--red); }
+.f input[type=number], .f input[type=text] { font: inherit; font-family: var(--f-mono); font-size: 14.5px; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: 8px; width: 100%; background: var(--surface); color: var(--ink); text-align: center; min-width: 0; }
+.f input[type=text] { text-align: left; }
+.f input.bad { border-color: var(--red); background: var(--red-tint); }
+.range2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 8px 12px; cursor: pointer; border: 1.5px solid var(--ink); background: var(--surface); color: var(--ink); white-space: nowrap; }
+.btn:hover { background: var(--soft); }
+button:focus-visible, input:focus-visible { outline: 3px solid #E58A9A; outline-offset: 2px; }
+.plot { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.plot svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--f-body); }
+.head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.head > div { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
+.bigeq { font-family: var(--f-mono); font-size: 21px; font-weight: 700; overflow-x: auto; white-space: nowrap; padding-bottom: 2px; }
+.bigeq .x1 { color: var(--red); } .bigeq .x2 { color: var(--green-ink); }
+.app:not(.closed) .open-side { display: none; }
+.lbl { font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.fact { background: var(--soft); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fact small { color: var(--muted); font-size: 12.5px; }
+.fact b { font-family: var(--f-mono); font-size: 17px; overflow-wrap: anywhere; }
+.fact .sub { font-family: var(--f-mono); font-size: 12.5px; color: var(--body); overflow-wrap: anywhere; }
+.note { background: var(--green-tint); border-radius: 12px; padding: 14px 18px; color: var(--ink); font-size: 15px; }
+.note ul { margin: 6px 0 0; padding-left: 20px; }
+.mean { font-size: 15px; color: var(--body); display: flex; flex-direction: column; gap: 8px; }
+.mean b { color: var(--ink); }
+pre.code { margin: 0; font-family: var(--f-mono); font-size: 13px; line-height: 1.6; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; white-space: pre; color: var(--ink); }
+.code-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Biểu thức toán dạng ngoặc nhọn */
+.pw { display: flex; align-items: stretch; gap: 8px; font-family: var(--f-mono); font-size: 17px; overflow-x: auto; padding: 4px 2px; }
+.pw .lhs { align-self: center; font-weight: 700; white-space: nowrap; }
+.pw .br { width: 14px; flex: none; }
+.pw .rows { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.pw .row { display: grid; grid-template-columns: minmax(70px, auto) auto; gap: 18px; white-space: nowrap; }
+.pw .row b { font-weight: 700; }
+.pw .row span { color: var(--body); font-family: var(--f-body); font-size: 15px; }
+.single { font-family: var(--f-mono); font-size: 17px; font-weight: 700; overflow-x: auto; white-space: nowrap; }
+
+/* Liệt kê có mũi tên gốc */
+.list { font-family: var(--f-mono); font-size: 16px; display: flex; flex-wrap: wrap; align-items: flex-start; row-gap: 6px; }
+.list .el { display: inline-flex; flex-direction: column; align-items: center; min-width: 22px; }
+.list .el b { font-weight: 600; }
+.list .el i { font-style: normal; color: var(--red); font-weight: 700; line-height: 1; height: 16px; font-size: 15px; }
+.list .el.o b { color: var(--red); }
+.list .sep { padding-right: 6px; }
+
+/* Bảng */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 14px; }
+th, td { padding: 6px 9px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); font-weight: 700; }
+thead th { background: var(--soft); font-family: var(--f-mono); }
+thead th:first-child { background: var(--soft); }
+td.z { color: var(--gray); }
+td.o, th.o { box-shadow: inset 2px 0 0 var(--red-tint), inset -2px 0 0 var(--red-tint); }
+tr.res td { background: var(--green-tint); color: var(--green-ink); font-weight: 800; }
+tr.res td:first-child { background: var(--green-tint); }
+tr.idx td { color: var(--muted); font-size: 12.5px; }
+td.r1 { color: var(--red); } td.r2 { color: var(--green-ink); }
+
+/* Sơ đồ chuỗi xử lý */
+.chain { overflow-x: auto; }
+.chain svg { display: block; min-width: 700px; width: 100%; height: auto; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pnl { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pnl-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.pnl-h h3 { font-size: 15.5px; }
+.tag { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 9px; border: 1px solid var(--line); color: var(--body); background: var(--surface); white-space: nowrap; }
+.tag.c { border-color: #B9DCC8; background: var(--green-tint); color: var(--green-ink); }
+.tag.d { border-color: #EFC3CB; background: var(--red-tint); color: var(--red-ink); }
+
+.author { display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 2px 18px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); text-align: center; }
+.author small, .byline small { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.author b { font-size: 15px; font-weight: 800; letter-spacing: 0.09em; color: var(--ink); white-space: nowrap; }
+.author b::after { content: ""; display: block; width: 28px; height: 3px; margin: 4px auto 0; background: var(--red); border-radius: 2px; }
+.byline { display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 0; }
+.by-k { font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); }
+.by-n { display: inline-flex; align-items: baseline; gap: 8px; }
+.by-n b { font-size: 15px; font-weight: 800; letter-spacing: 0.08em; color: var(--ink); white-space: nowrap; }
+@container (max-width: 860px) { .two { grid-template-columns: 1fr; } .facts { grid-template-columns: 1fr 1fr; } }
+@container (max-width: 700px) { .grid4 { grid-template-columns: 1fr; } }
+@media (max-width: 1060px) { .ttl, .author { display: none; } .top { justify-content: space-between; } .byline { display: flex; } }
+@media (max-width: 900px) {
+  .app, .app.closed { grid-template-columns: minmax(0, 1fr); }
+  .side { position: fixed; z-index: 40; top: 0; left: 0; bottom: 0; width: min(380px, 92vw); height: auto; padding-top: max(14px, env(safe-area-inset-top, 0px)); padding-bottom: max(48px, env(safe-area-inset-bottom, 0px)); box-shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(22, 22, 22, 0.12); }
+  .scrim { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(250, 250, 248, 0.72); }
+  .app.closed .scrim { display: none; }
+  main { padding-block: 16px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+}
+@media (max-width: 620px) {
+  .top { gap: 6px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
+  .side-btn span, .mode-tab .long { display: none; }
+  .mode-tab { font-size: 13px; padding: 6px 8px; gap: 5px; }
+  .mode-tab b { display: none; }
+  .modes { gap: 5px; min-width: 0; }
+  .bigeq { font-size: 17px; }
+}
+
+/* Dải tên trường ở đầu trang */
+.inst { background: #F4F4F0; border-bottom: 1px solid var(--line); padding-block: 7px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); line-height: 1.35; }
+.inst::before { content: ""; width: 18px; height: 3px; background: var(--red); flex: none; }
+.inst b { font-weight: 800; }
+.inst span { color: var(--muted); font-weight: 600; }
+.inst span::before { content: "· "; }
+@media (max-width: 560px) { .inst { font-size: 12.5px; letter-spacing: 0; text-transform: none; gap: 0 8px; } .inst::before { display: none; } .inst span::before { content: none; } }
+@media (max-width: 1240px) { .author { display: none; } .byline { display: flex; } }
+
+/* ===== Tối ưu cho điện thoại và màn hình cảm ứng (Safari, Chrome) ===== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, input, select, label, a { -webkit-tap-highlight-color: rgba(196, 30, 58, 0.12); touch-action: manipulation; }
+@media (pointer: coarse), (max-width: 620px) {
+  .btn, .chip, .seg button, .tab, .mode-tab, .side-btn, .ex-it { min-height: 44px; }
+  .icon-btn { min-width: 44px; min-height: 44px; }
+  input[type=range] { height: 34px; }
+}
+@media (max-width: 620px) {
+  input:not([type=range]):not([type=checkbox]), select, textarea { font-size: 16px !important; }
+  .hint { font-size: 14.5px; }
+  .chip { font-size: 14px; padding: 8px 14px; }
+  .seg button { font-size: 14px; padding: 8px 12px; }
+  .btn { font-size: 15px; }
+  table { font-size: 14.5px; }
+  .by-k { font-size: 12.5px; }
+  .byline small, .author small { font-size: 12px; }
+}
+</style>
+
+<div class="inst" role="note" aria-label="Đơn vị"><b>Trường Đại học Công nghệ Thông tin và Truyền thông</b><span>Đại học Thái Nguyên</span><a class="home-link" href="./">‹ Trang chủ</a></div>
+<noscript><style>#side,#scrim,.side,.scrim{display:none!important}</style></noscript>
+<noscript><div style="margin:12px;padding:14px 16px;border:2px solid #C41E3A;border-radius:12px;background:#FFF5F6;color:#161616;font:16px/1.5 Arial,sans-serif"><b style="color:#C41E3A">Trình xem này không chạy được phần mềm.</b><br>Zalo, Messenger và trình xem tệp chỉ hiện trang tĩnh, không chạy JavaScript. Hãy mở bằng <b>đường link</b> trong Safari hoặc Chrome, hoặc dùng ứng dụng đã thêm vào Màn hình chính.</div></noscript>
+
+<header class="top" id="top">
+  <button class="side-btn" id="side-toggle" type="button" aria-controls="side" aria-expanded="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg>
+    <span id="side-label">Ẩn đầu vào</span>
+  </button>
+  <div class="ttl">
+    <p class="eyebrow">Xử lý tín hiệu số · Buổi 1</p>
+    <h1>Phòng thí nghiệm dãy tín hiệu</h1>
+  </div>
+  <div class="author" aria-label="Giảng viên Nguyễn Sỹ Hiệp">
+    <small>Giảng viên</small>
+    <b>NGUYỄN SỸ HIỆP</b>
+  </div>
+  <nav class="modes" role="tablist" aria-label="Chọn phần">
+    <button class="mode-tab" role="tab" id="mt-ad" aria-controls="mode-ad" aria-selected="true"><b>1</b> Tương tự <span class="long">→ số</span></button>
+    <button class="mode-tab" role="tab" id="mt-seq" aria-controls="mode-seq" aria-selected="false"><b>2</b> Các dãy<span class="long"> cơ bản</span></button>
+    <button class="mode-tab" role="tab" id="mt-op" aria-controls="mode-op" aria-selected="false"><b>3</b> Phép toán</button>
+  </nav>
+</header>
+
+<div class="app" id="app">
+  <aside class="side" id="side" aria-label="Bảng nhập đầu vào">
+    <div class="side-head">
+      <h2 id="side-title">Đầu vào</h2>
+      <button class="icon-btn" id="side-close" type="button" aria-label="Ẩn bảng nhập">«</button>
+    </div>
+
+    <!-- Tab 1 -->
+    <div id="side-ad" class="side-body">
+      <div class="card r">
+        <h3>Tín hiệu tương tự xₐ(t)</h3>
+        <div class="seg" id="ad-sig" role="group" aria-label="Chọn tín hiệu tương tự"></div>
+      </div>
+      <div class="card">
+        <h3>Lấy mẫu</h3>
+        <div class="f"><label for="ad-ts-r">Chu kỳ Tₛ<small>khoảng cách 2 mẫu</small></label><input type="range" id="ad-ts-r" min="0.1" max="2" step="0.05" aria-label="Chu kỳ lấy mẫu"><input type="number" id="ad-ts" min="0.1" max="2" step="0.05" aria-label="Chu kỳ lấy mẫu (nhập số)"></div>
+        <p class="hint">Tₛ nhỏ: mẫu dày, giữ được nhiều chi tiết. Tₛ lớn: mẫu thưa, các đoạn biến đổi nhanh bị bỏ sót.</p>
+      </div>
+      <div class="card">
+        <h3>Lượng tử hóa</h3>
+        <div class="f"><label for="ad-b-r">Số bit<small>số mức = 2<sup>bit</sup></small></label><input type="range" id="ad-b-r" min="1" max="8" step="1" aria-label="Số bit"><input type="number" id="ad-b" min="1" max="8" step="1" aria-label="Số bit (nhập số)"></div>
+        <p class="hint">Bài giảng: 8 bit cho 2⁸ = 256 mức. Ít bit thì bậc thang thô, sai số lớn.</p>
+      </div>
+      <p class="err" id="ad-err" aria-live="polite"></p>
+    </div>
+
+    <!-- Tab 2 -->
+    <div id="side-seq" class="side-body" hidden>
+      <div class="card">
+        <p class="group-label">Ví dụ trong bài giảng</p>
+        <div class="chips" id="s2-ex"></div>
+        <p class="group-label" style="margin-top:4px">Bài tập thực hành 1.3.2</p>
+        <div class="chips" id="s2-bt"></div>
+      </div>
+      <div class="card r">
+        <h3>Chọn dãy x(n)</h3>
+        <div id="s2-ui"></div>
+      </div>
+      <div class="card">
+        <h3>Khoảng hiển thị</h3>
+        <div class="range2">
+          <div class="f nos" style="grid-template-columns:44px 1fr"><label for="s2-n1">n₁</label><input type="number" id="s2-n1" step="1" min="-30" max="30"></div>
+          <div class="f nos" style="grid-template-columns:44px 1fr"><label for="s2-n2">n₂</label><input type="number" id="s2-n2" step="1" min="-30" max="40"></div>
+        </div>
+        <p class="err" id="s2-err" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- Tab 3 -->
+    <div id="side-op" class="side-body" hidden>
+      <div class="card">
+        <p class="group-label">Ví dụ trong bài giảng</p>
+        <div class="chips" id="s3-ex"></div>
+        <p class="group-label" style="margin-top:4px">Bài tập 5 (mục 1.3.2) và mở rộng</p>
+        <div class="chips" id="s3-bt"></div>
+      </div>
+      <div class="card k">
+        <h3>Phép toán</h3>
+        <div class="seg" id="s3-ops" role="group" aria-label="Chọn phép toán"></div>
+        <div class="f" id="s3-cw"><label for="s3-c-r">Hằng số c</label><input type="range" id="s3-c-r" min="-3" max="5" step="0.5" aria-label="Hằng số c"><input type="number" id="s3-c" min="-10" max="10" step="0.5" aria-label="Hằng số c (nhập số)"></div>
+        <div class="f" id="s3-n0w"><label for="s3-n0-r">Dịch n₀<small>n₀ &gt; 0: trễ</small></label><input type="range" id="s3-n0-r" min="-8" max="8" step="1" aria-label="Số nhịp dịch"><input type="number" id="s3-n0" min="-15" max="15" step="1" aria-label="Số nhịp dịch (nhập số)"></div>
+      </div>
+      <div class="card r">
+        <h3 style="color:var(--red)">Dãy x₁(n)</h3>
+        <div id="s3-ui1"></div>
+      </div>
+      <div class="card g" id="s3-x2card">
+        <h3 style="color:var(--green)">Dãy x₂(n)</h3>
+        <div id="s3-ui2"></div>
+      </div>
+      <div class="card">
+        <h3>Khoảng hiển thị</h3>
+        <div class="range2">
+          <div class="f nos" style="grid-template-columns:44px 1fr"><label for="s3-n1">n₁</label><input type="number" id="s3-n1" step="1" min="-30" max="30"></div>
+          <div class="f nos" style="grid-template-columns:44px 1fr"><label for="s3-n2">n₂</label><input type="number" id="s3-n2" step="1" min="-30" max="40"></div>
+        </div>
+        <p class="err" id="s3-err" aria-live="polite"></p>
+      </div>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main id="main">
+    <div class="byline">
+      <span class="by-k">Xử lý tín hiệu số · Buổi 1</span>
+      <span class="by-n"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b></span>
+    </div>
+    <!-- ===== Tab 1 ===== -->
+    <div id="mode-ad" class="mode" role="tabpanel" aria-labelledby="mt-ad">
+      <section class="card">
+        <div class="head">
+          <div>
+            <p class="lbl">1.1 · Hệ thống xử lý tín hiệu số</p>
+            <h2>Từ tín hiệu tương tự đến dãy số x(n)</h2>
+          </div>
+          <button class="btn open-side" type="button" data-open-side>Chỉnh Tₛ và số bit</button>
+        </div>
+        <div class="chain" id="ad-chain"></div>
+        <p class="hint">Hai bước biến tín hiệu thành số: <b>lấy mẫu</b> (S&amp;H, rời rạc hóa trục thời gian) và <b>lượng tử hóa</b> (ADC, rời rạc hóa biên độ). Bốn hình dưới đây là bốn loại tín hiệu trong sơ đồ phân loại của bài giảng.</p>
+      </section>
+
+      <div class="grid4">
+        <div class="card pnl"><div class="pnl-h"><h3>a. Tín hiệu tương tự</h3><span class="tag">biến liên tục</span><span class="tag">biên độ liên tục</span></div><div class="plot" id="ad-pa"></div></div>
+        <div class="card pnl"><div class="pnl-h"><h3>b. Tín hiệu lượng tử hóa</h3><span class="tag">biến liên tục</span><span class="tag d">biên độ rời rạc</span></div><div class="plot" id="ad-pb"></div></div>
+        <div class="card pnl"><div class="pnl-h"><h3>c. Tín hiệu lấy mẫu</h3><span class="tag c">biến rời rạc</span><span class="tag">biên độ liên tục</span></div><div class="plot" id="ad-pc"></div></div>
+        <div class="card pnl"><div class="pnl-h"><h3>d. Tín hiệu số</h3><span class="tag c">biến rời rạc</span><span class="tag d">biên độ rời rạc</span></div><div class="plot" id="ad-pd"></div></div>
+      </div>
+
+      <section class="card k">
+        <h3>Chuẩn hóa Tₛ = 1: x(nTₛ) → x(n)</h3>
+        <p class="hint">Bỏ đơn vị thời gian, chỉ giữ số thứ tự mẫu n. Từ đây tín hiệu chỉ còn là một <b>dãy số</b>, đúng như cách bài giảng viết x(n).</p>
+        <div class="plot" id="ad-pn"></div>
+        <div class="list" id="ad-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>Bên trong bộ ADC: từng mẫu được đổi thành mã nhị phân</h3>
+        <div class="facts" id="ad-facts"></div>
+        <div class="tbl-wrap"><table id="ad-table"></table></div>
+      </section>
+
+      <div class="note"><b>Gợi ý quan sát:</b>
+        <ul>
+          <li>Kéo Tₛ lên 1,5 với tín hiệu “Tiếng nói”: các gợn nhanh biến mất khỏi hình c và d. Lấy mẫu quá thưa làm mất thông tin.</li>
+          <li>Giảm còn 1–2 bit: hình b và d thành bậc thang thô, cột “sai số” lớn lên. Tăng lên 8 bit: gần như trùng tín hiệu gốc.</li>
+          <li>Sai số lượng tử không bao giờ vượt quá nửa bước Δ/2.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== Tab 2 ===== -->
+    <div id="mode-seq" class="mode" role="tabpanel" aria-labelledby="mt-seq" hidden>
+      <section class="card k">
+        <div class="head">
+          <div>
+            <p class="lbl" id="s2-kind">1.2.2 · Dãy xung đơn vị</p>
+            <p class="bigeq" id="s2-name"></p>
+          </div>
+          <button class="btn open-side" type="button" data-open-side>Đổi dãy</button>
+        </div>
+        <div>
+          <p class="lbl">a. Biểu diễn bằng biểu thức toán học</p>
+          <div id="s2-math" style="margin-top:6px"></div>
+        </div>
+        <div>
+          <p class="lbl">b. Biểu diễn bằng đồ thị</p>
+          <div class="plot" id="s2-plot" style="margin-top:6px"></div>
+        </div>
+        <div>
+          <p class="lbl">c. Biểu diễn bằng liệt kê các phần tử <span style="text-transform:none;letter-spacing:0;font-weight:500">(mũi tên ↑ đánh dấu gốc n = 0)</span></p>
+          <div class="list" id="s2-list" style="margin-top:8px"></div>
+        </div>
+      </section>
+
+      <div class="facts" id="s2-facts"></div>
+
+      <div class="two">
+        <section class="card g">
+          <h3>Ý nghĩa và ứng dụng</h3>
+          <div class="mean" id="s2-mean"></div>
+        </section>
+        <section class="card">
+          <div class="code-head"><h3>Mã MATLAB tương ứng</h3><button class="btn" type="button" data-copy="s2-code">Sao chép</button></div>
+          <pre class="code" id="s2-code"></pre>
+        </section>
+      </div>
+
+      <div class="note"><b>Thử nhanh:</b>
+        <ul>
+          <li>Kéo “dịch k” sang 3: cả dãy dời sang phải 3 nhịp. x(n−k) với k &gt; 0 là trễ, k &lt; 0 là sớm.</li>
+          <li>Chọn dãy mũ, kéo a từ 0,5 lên 1,2: tiếng vọng tắt dần chuyển thành tăng mãi. Năng lượng từ hữu hạn thành vô hạn.</li>
+          <li>So sánh rectₙ(n) với u(n) − u(n−N) ở tab Phép toán: hai cách cho cùng một dãy.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== Tab 3 ===== -->
+    <div id="mode-op" class="mode" role="tabpanel" aria-labelledby="mt-op" hidden>
+      <section class="card k">
+        <div class="head">
+          <div>
+            <p class="lbl" id="s3-kind">1.2.3 d · Phép cộng hai dãy</p>
+            <p class="bigeq" id="s3-eq"></p>
+            <p class="hint" id="s3-rule"></p>
+          </div>
+          <button class="btn open-side" type="button" data-open-side>Đổi dãy, phép toán</button>
+        </div>
+        <div class="plot" id="s3-p1"></div>
+        <div class="plot" id="s3-p2"></div>
+        <div class="plot" id="s3-p3"></div>
+      </section>
+
+      <section class="card">
+        <h3>Tính từng mẫu (theo từng cột n)</h3>
+        <div class="tbl-wrap"><table id="s3-table"></table></div>
+        <div class="list" id="s3-list"></div>
+      </section>
+
+      <div class="facts" id="s3-facts"></div>
+
+      <div class="two">
+        <section class="card g">
+          <h3>Ý nghĩa và ứng dụng</h3>
+          <div class="mean" id="s3-mean"></div>
+        </section>
+        <section class="card">
+          <div class="code-head"><h3>Mã MATLAB tương ứng</h3><button class="btn" type="button" data-copy="s3-code">Sao chép</button></div>
+          <pre class="code" id="s3-code"></pre>
+        </section>
+      </div>
+    </div>
+
+    <footer class="hint">Quy ước: số thập phân viết bằng dấu phẩy (0,5); khi nhập có thể gõ 0,5 hoặc 0.5. Các mẫu cách nhau bằng dấu cách hoặc dấu chấm phẩy. Nội dung theo Bài giảng Xử lý tín hiệu số, Buổi 1.</footer>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ---------- Tiện ích số ---------- */
+const C = { red: "#C41E3A", green: "#1A7F4B", ink: "#161616", mute: "#6B6B67", gray: "#B9B9B3", line: "#E2E2DE", soft: "#F1F1ED", redT: "#FBEBEE", greenT: "#E7F4EC", axis: "#9A9A96", surf: "#FFFFFE" };
+const $ = id => document.getElementById(id);
+const r4 = v => Math.round(v * 10000) / 10000;
+const SUPM = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻", "−": "⁻", "+": "⁺", "n": "ⁿ" };
+const SUBM = { "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉", "-": "₋" };
+const sup = s => String(s).split("").map(c => SUPM[c] || c).join("");
+const sub = s => String(s).split("").map(c => SUBM[c] || c).join("");
+function fmt(v) {
+  if (!Number.isFinite(v)) return v > 0 ? "∞" : v < 0 ? "−∞" : "?";
+  if (Math.abs(v) >= 1e5) { const e = Math.floor(Math.log10(Math.abs(v))); const m = Math.abs(v) / Math.pow(10, e); return (v < 0 ? "−" : "") + String(Math.round(m * 100) / 100).replace(".", ",") + "·10" + sup(e); }
+  v = r4(v); if (Object.is(v, -0)) v = 0;
+  return (v < 0 ? "−" : "") + String(Math.abs(v)).replace(".", ",");
+}
+const fmtP = v => (v < 0 ? "(" + fmt(v) + ")" : fmt(v));
+const fi = n => (n < 0 ? "−" + Math.abs(n) : String(n));
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+const mnum = v => String(r4(v));
+function parseList(str, max = 16) {
+  const t = String(str).replace(/;/g, " ").replace(/,\s+/g, " ").trim();
+  if (!t) return { err: "Hãy nhập ít nhất một giá trị." };
+  const parts = t.split(/\s+/);
+  if (parts.length > max) return { err: `Tối đa ${max} giá trị.` };
+  const vals = parts.map(p => Number(p.replace(/−/g, "-").replace(",", ".")));
+  const bad = parts.find((p, i) => Number.isNaN(vals[i]));
+  if (bad !== undefined) return { err: `“${bad}” không phải là số. Ví dụ hợp lệ: 1 0,5 −2` };
+  if (vals.some(v => Math.abs(v) > 100)) return { err: "Giá trị phải nằm trong khoảng −100 đến 100." };
+  return { vals: vals.map(r4) };
+}
+const fmtList = a => a.map(fmt).join("; ");
+const numIn = s => Number(String(s).replace(/−/g, "-").replace(",", "."));
+
+/* ---------- Vẽ đồ thị SVG ---------- */
+function yr(vals, opt = {}) {
+  const fin = vals.filter(Number.isFinite);
+  const mx = Math.max(0, ...fin), mn = Math.min(0, ...fin);
+  let ymax = mx > 0 ? mx * 1.28 : 0, ymin = mn < 0 ? mn * 1.38 : 0;
+  if (ymax === 0 && ymin === 0) ymax = 1;
+  if (ymax === 0) ymax = Math.abs(ymin) * 0.3;
+  if (ymin === 0) ymin = -ymax * 0.06;
+  const ticks = [0]; if (mx > 0) ticks.push(mx); if (mn < 0) ticks.push(mn);
+  return { ymin, ymax, ticks };
+}
+function wrapT(t, maxc) { const out = []; let cur = ""; String(t).split(" ").forEach(w => { const nx = cur ? cur + " " + w : w; if (nx.length > maxc && cur) { out.push(cur); cur = w; } else cur = nx; }); if (cur) out.push(cur); return out.length ? out : [""]; }
+const vwNow = () => document.documentElement.clientWidth || window.innerWidth;
+function chart(o) {
+  const vw = vwNow(); let W = o.W || 680;
+  if (vw < 620) W = Math.max(280, Math.min(W, vw - 70));
+  const narrow = W < 480, L = narrow ? 46 : (o.L || 54), R = 14, B = 30, tfs = narrow ? 13.5 : 14;
+  const tl = wrapT(o.title, Math.floor((W - (narrow ? 24 : L + 100)) / (tfs * 0.56)));
+  const exH = (tl.length - 1) * (tfs + 4), T = 34 + exH, H = (o.H || 210) + exH;
+  const pad = o.cont ? 0 : 0.6;
+  const x0 = o.xmin - pad, x1 = o.xmax + pad, { ymin, ymax } = o;
+  const sx = x => L + (x - x0) / (x1 - x0) * (W - L - R);
+  const sy = v => T + (ymax - Math.max(ymin, Math.min(ymax, v))) / (ymax - ymin) * (H - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.title.replace(/"/g, "")}"><rect width="${W}" height="${H}" fill="${C.surf}"/>`;
+  (o.hl || []).forEach(h => { const w = (sx(1) - sx(0)) * 0.84; s += `<rect x="${sx(h.x) - w / 2}" y="${T - 6}" width="${w}" height="${H - T - B + 10}" rx="5" fill="${h.color || C.redT}"/>`; });
+  (o.levels || []).forEach(l => { s += `<line x1="${L}" x2="${W - R}" y1="${sy(l)}" y2="${sy(l)}" stroke="#EBC9CF" stroke-width="1" stroke-dasharray="3 4"/>`; });
+  (o.ticks || [0]).forEach(t => {
+    s += `<line x1="${L}" x2="${W - R}" y1="${sy(t)}" y2="${sy(t)}" stroke="${t === 0 ? C.axis : C.line}" stroke-width="${t === 0 ? 1.4 : 1}" ${t === 0 ? "" : 'stroke-dasharray="4 4"'}/>`;
+    s += `<text x="${L - 8}" y="${sy(t) + 4}" text-anchor="end" font-size="12" fill="${C.mute}">${fmt(t)}</text>`;
+  });
+  if (o.xticks) o.xticks.forEach(t => { s += `<text x="${sx(t.v)}" y="${H - 9}" text-anchor="middle" font-size="12" fill="${C.mute}">${t.label}</text>`; });
+  else {
+    const ks = range(Math.ceil(o.xmin), Math.floor(o.xmax));
+    const every = Math.max(1, Math.ceil(ks.length / Math.max(6, Math.floor((W - L - R) / 30))));
+    ks.forEach(k => { if (k % every === 0) s += `<text x="${sx(k)}" y="${H - 9}" text-anchor="middle" font-size="12.5" fill="${k === 0 ? C.ink : C.mute}" font-weight="${k === 0 ? 700 : 400}">${fi(k)}</text>`; });
+  }
+  const tx = narrow ? 12 : L;
+  s += `<text x="${tx}" y="21" font-size="${tfs}" font-weight="700" fill="${o.titleColor || C.ink}">${tl.map((l, i) => `<tspan x="${tx}" dy="${i ? tfs + 4 : 0}">${l}</tspan>`).join("")}</text>`;
+  if (!narrow) s += `<text x="${W - R}" y="21" text-anchor="end" font-size="12" fill="${C.mute}">trục ${o.axis || "n"}</text>`;
+  o.series.forEach(se => {
+    if (se.type === "line") {
+      const d = se.pts.map(([x, v], i) => `${i ? "L" : "M"}${sx(x).toFixed(1)} ${sy(v).toFixed(1)}`).join(" ");
+      s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="${se.w || 2.2}" stroke-linejoin="round" ${se.dash ? 'stroke-dasharray="5 5"' : ""} opacity="${se.op || 1}"/>`;
+      return;
+    }
+    const many = se.pts.length > 26;
+    const nzp = se.pts.filter(([x, v]) => Math.abs(v) > 1e-9 && x >= o.xmin && x <= o.xmax && Number.isFinite(v));
+    const slot = (W - L - R) / (o.xmax - o.xmin + 1.2);
+    const showLab = se.labels !== false && !many && nzp.every(([, v]) => fmt(v).length * 7.4 < slot * 0.92);
+    se.pts.forEach(([x, v]) => {
+      if (x < o.xmin - 1e-9 || x > o.xmax + 1e-9 || !Number.isFinite(v)) return;
+      const X = sx(x), Y = sy(v), y0 = sy(0), col = se.color;
+      s += `<line x1="${X}" x2="${X}" y1="${y0}" y2="${Y}" stroke="${col}" stroke-width="${se.w || (many ? 2 : 3)}" stroke-linecap="round" ${se.dash ? 'stroke-dasharray="3 4"' : ""}/>`;
+      s += `<circle cx="${X}" cy="${Y}" r="${se.r || (many ? 3.4 : 5.2)}" fill="${se.hollow ? C.surf : col}" stroke="${col}" stroke-width="2"/>`;
+      if (showLab && Math.abs(v) > 1e-9) s += `<text x="${X}" y="${v >= 0 ? Y - 9 : Y + 19}" text-anchor="middle" font-size="12" font-weight="600" fill="${col}">${fmt(v)}</text>`;
+    });
+  });
+  return s + "</svg>";
+}
+
+/* ---------- Định nghĩa các dãy cơ bản ---------- */
+const TYPES = [
+  ["delta", "Xung đơn vị δ"], ["step", "Nhảy đơn vị u"], ["rect", "Chữ nhật rectₙ"], ["exp", "Mũ thực aⁿ"],
+  ["sin", "Hình sin"], ["per", "Tuần hoàn"], ["custom", "Tự nhập"],
+];
+const KIND = { delta: "1.2.2 a · Dãy xung đơn vị", step: "1.2.2 b · Dãy nhảy đơn vị", rect: "1.2.2 c · Dãy chữ nhật", exp: "1.2.2 d · Dãy mũ thực", sin: "1.2.2 e · Dãy hình sin", per: "1.2.3 a · Dãy tuần hoàn", custom: "1.2.1 c · Dãy cho bằng liệt kê" };
+const defP = () => ({ type: "delta", A: 1, k: 0, N: 4, a: 0.8, Ns: 10, pat: [4, 3, 2, 1], cust: [1, 2, 3], cs: 0 });
+
+function val(P, n) {
+  if (P.type === "custom") { const i = n - P.cs; return i >= 0 && i < P.cust.length ? P.cust[i] : 0; }
+  const m = n - P.k;
+  switch (P.type) {
+    case "delta": return m === 0 ? P.A : 0;
+    case "step": return m >= 0 ? P.A : 0;
+    case "rect": return m >= 0 && m <= P.N - 1 ? P.A : 0;
+    case "exp": return m >= 0 ? P.A * Math.pow(P.a, m) : 0;
+    case "sin": { const v = P.A * Math.sin(2 * Math.PI * m / P.Ns); return Math.abs(v) < 1e-12 ? 0 : v; }
+    case "per": { const L = P.pat.length; return P.A * P.pat[((m % L) + L) % L]; }
+  }
+  return 0;
+}
+const argS = k => (k === 0 ? "n" : k > 0 ? `n−${k}` : `n+${-k}`);
+function seqName(P, fallback = "x(n)") {
+  if (P.type === "custom") return fallback;
+  const a = argS(P.k), Ap = P.A === 1 ? "" : P.A === -1 ? "−" : fmt(P.A) + "·";
+  switch (P.type) {
+    case "delta": return `${Ap}δ(${a})`;
+    case "step": return `${Ap}u(${a})`;
+    case "rect": return `${Ap}rect${sub(P.N)}(${a})`;
+    case "exp": return `${Ap}(${fmt(P.a)})${sup(a)}·u(${a})`;
+    case "sin": return `${Ap}sin(2π${P.k === 0 ? "n" : "(" + a + ")"}/${P.Ns})`;
+    case "per": return `${Ap}xₚ(${a})`;
+  }
+}
+const infR = P => ["step", "exp", "sin", "per"].includes(P.type);
+const infL = P => ["sin", "per"].includes(P.type);
+function minPeriod(arr) { const L = arr.length; for (let p = 1; p <= L; p++) { if (L % p) continue; if (arr.every((v, i) => v === arr[i % p])) return p; } return L; }
+
+const BRACE = `<svg class="br" viewBox="0 0 14 100" preserveAspectRatio="none" aria-hidden="true"><path d="M13 2 Q6 2 6 12 L6 40 Q6 50 1 50 Q6 50 6 60 L6 88 Q6 98 13 98" fill="none" stroke="${C.ink}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+function piecewise(lhs, rows) {
+  return `<div class="pw"><span class="lhs">${lhs} =</span>${BRACE}<div class="rows">${rows.map(([v, c]) => `<div class="row"><b>${v}</b><span>${c}</span></div>`).join("")}</div></div>`;
+}
+function mathHTML(P, lhs = "x(n)") {
+  const A = fmt(P.A), k = P.k, a = argS(k);
+  switch (P.type) {
+    case "delta": return piecewise(lhs, [[A, `khi n = ${fi(k)}`], ["0", `khi n ≠ ${fi(k)}`]]);
+    case "step": return piecewise(lhs, [[A, `khi n ≥ ${fi(k)}`], ["0", `khi n &lt; ${fi(k)}`]]);
+    case "rect": return piecewise(lhs, [[A, `khi ${fi(k)} ≤ n ≤ ${fi(k + P.N - 1)}`], ["0", "với n còn lại"]]);
+    case "exp": return piecewise(lhs, [[`${P.A === 1 ? "" : fmt(P.A) + "·"}(${fmt(P.a)})<sup>${a}</sup>`, `khi n ≥ ${fi(k)}`], ["0", `khi n &lt; ${fi(k)}`]]);
+    case "sin": return `<p class="single">${lhs} = ${P.A === 1 ? "" : fmt(P.A) + "·"}sin(2π·${k === 0 ? "n" : "(" + a + ")"}/${P.Ns}) = ${P.A === 1 ? "" : fmt(P.A) + "·"}sin(ω₀·${k === 0 ? "n" : "(" + a + ")"})</p><p class="hint" style="margin-top:6px">với ω₀ = 2π/N = 2π/${P.Ns} ≈ ${fmt(2 * Math.PI / P.Ns)} rad/mẫu; xác định với mọi n (dãy hai phía, vô hạn).</p>`;
+    case "per": return `<p class="single">${lhs} = ${lhs.replace("(n)", `(n + ${P.pat.length})`)} = ${lhs.replace("(n)", `(n + k·${P.pat.length})`)}</p><p class="hint" style="margin-top:6px">Một chu kỳ (${P.pat.length} mẫu, bắt đầu tại n = ${fi(k)}): {${fmtList(P.pat.map(v => v * P.A))}}, lặp lại mãi về hai phía.</p>`;
+    case "custom": {
+      const rows = P.cust.map((v, i) => [fmt(v), `khi n = ${fi(P.cs + i)}`]).filter(([v]) => v !== "0");
+      if (rows.length > 7) return `<p class="single">${lhs} = {${fmtList(P.cust)}}, bắt đầu tại n = ${fi(P.cs)}</p><p class="hint">Dữ liệu đo không có công thức chung, chỉ liệt kê được.</p>`;
+      return piecewise(lhs, rows.concat([["0", "với n còn lại"]]));
+    }
+  }
+}
+function listHTML(ns, vs, P, opts = {}) {
+  const nz = ns.filter((n, i) => Math.abs(vs[i]) > 1e-12);
+  let lo, hi;
+  if (!nz.length) { lo = Math.max(ns[0], -2); hi = Math.min(ns[ns.length - 1], 2); }
+  else if (P && (infR(P) || infL(P))) { lo = infL(P) ? ns[0] : Math.max(ns[0], Math.min(nz[0] - 2, 0)); hi = ns[ns.length - 1]; }
+  else { lo = Math.max(ns[0], Math.min(nz[0] - 2, 0)); hi = Math.min(ns[ns.length - 1], Math.max(nz[nz.length - 1] + 2, 0)); }
+  if (hi - lo > 26) hi = lo + 26;
+  const items = [];
+  for (let n = lo; n <= hi; n++) { const v = vs[ns.indexOf(n)]; items.push(`<span class="el ${n === 0 ? "o" : ""}"><b>${fmt(v)}</b><i>${n === 0 ? "↑" : ""}</i></span>`); }
+  const lhs = opts.lhs || "x(n)";
+  return `<span class="el"><b>${lhs} = {…;&nbsp;</b><i></i></span>` + items.join(`<span class="sep">;</span>`) + `<span class="el"><b>;&nbsp;…}</b><i></i></span>` + (ns.includes(0) && lo <= 0 && hi >= 0 ? "" : `<span class="hint" style="margin-left:8px">(n = 0 nằm ngoài khoảng hiển thị)</span>`);
+}
+
+/* E, P, L theo lý thuyết */
+function theory(P) {
+  const A2 = P.A * P.A;
+  switch (P.type) {
+    case "delta": return { L: 1, Ls: `[${fi(P.k)}, ${fi(P.k)}] → 1 mẫu`, E: A2, P: A2, per: null };
+    case "rect": return { L: P.N, Ls: `[${fi(P.k)}, ${fi(P.k + P.N - 1)}] → ${P.N} mẫu`, E: P.N * A2, P: A2, per: null };
+    case "step": return { L: Infinity, Ls: `[${fi(P.k)}, +∞)`, E: Infinity, P: A2, per: null };
+    case "exp": { const a = Math.abs(P.a); return { L: Infinity, Ls: `[${fi(P.k)}, +∞)`, E: a < 1 ? A2 / (1 - P.a * P.a) : Infinity, Es: a < 1 ? `A²/(1 − a²)` : "", P: a < 1 ? 0 : a === 1 ? A2 : Infinity, per: null }; }
+    case "sin": { const vs = range(0, P.Ns - 1).map(m => P.A * Math.sin(2 * Math.PI * m / P.Ns)); const pw = vs.reduce((s, v) => s + v * v, 0) / P.Ns; const zero = vs.every(v => Math.abs(v) < 1e-9); return { L: Infinity, Ls: "(−∞, +∞)", E: zero ? 0 : Infinity, P: zero ? 0 : pw, per: zero ? "dãy toàn 0" : P.Ns }; }
+    case "per": { const pw = P.pat.reduce((s, v) => s + v * v, 0) * A2 / P.pat.length; return { L: Infinity, Ls: "(−∞, +∞)", E: pw > 0 ? Infinity : 0, P: pw, per: minPeriod(P.pat) }; }
+    case "custom": {
+      const idx = P.cust.map((v, i) => (Math.abs(v) > 1e-12 ? i : -1)).filter(i => i >= 0);
+      if (!idx.length) return { L: 0, Ls: "dãy toàn 0", E: 0, P: 0, per: null };
+      const f = idx[0], l = idx[idx.length - 1], Ln = l - f + 1, E = P.cust.reduce((s, v) => s + v * v, 0);
+      return { L: Ln, Ls: `[${fi(P.cs + f)}, ${fi(P.cs + l)}] → ${Ln} mẫu`, E, P: E / Ln, per: null };
+    }
+  }
+}
+function energyTerms(vs) {
+  const nz = vs.filter(v => Math.abs(v) > 1e-12);
+  if (!nz.length) return "0";
+  if (nz.length > 8) return `Σ|x(n)|² (${nz.length} số hạng)`;
+  return nz.map(v => `${fmtP(v)}²`).join(" + ");
+}
+
+/* MATLAB */
+function mExpr(P, nv, name) {
+  if (P.type === "custom") {
+    return [`xc_${name} = [${P.cust.map(mnum).join(" ")}];   % liet ke, bat dau tai n = ${P.cs}`,
+      `i_${name} = ${nv} - (${P.cs}) + 1;   ok_${name} = (i_${name} >= 1) & (i_${name} <= ${P.cust.length});`,
+      `${name} = zeros(size(n));  ${name}(ok_${name}) = xc_${name}(i_${name}(ok_${name}));`];
+  }
+  const m = P.k === 0 ? nv : `(${nv}${P.k > 0 ? "-" + P.k : "+" + -P.k})`;
+  const A = P.A === 1 ? "" : `${mnum(P.A)}*`;
+  switch (P.type) {
+    case "delta": return [`${name} = ${A}(${m} == 0);`];
+    case "step": return [`${name} = ${A}(${m} >= 0);`];
+    case "rect": return [`${name} = ${A}((${m} >= 0) & (${m} <= ${P.N - 1}));`];
+    case "exp": return [`${name} = ${A}(${mnum(P.a)}.^(${m})) .* (${m} >= 0);`];
+    case "sin": return [`${name} = ${A}sin(2*pi*${m}/${P.Ns});`];
+    case "per": return [`p_${name} = [${P.pat.map(mnum).join(" ")}];   % mot chu ky`, `${name} = ${A}p_${name}(mod(${m}, ${P.pat.length}) + 1);`];
+  }
+}
+const MTITLE = { delta: "Day xung don vi", step: "Day nhay don vi", rect: "Day chu nhat", exp: "Day ham mu thuc", sin: "Day hinh sin", per: "Day tuan hoan", custom: "Day liet ke" };
+
+/* ---------- Bộ điều khiển chọn dãy (dùng chung) ---------- */
+function seqUI(rootId, pre, getP, onchange) {
+  const root = $(rootId);
+  root.innerHTML = `<div class="seg" role="group" aria-label="Loại dãy">${TYPES.map(([k, l]) => `<button type="button" data-t="${k}">${l}</button>`).join("")}</div>
+  <div class="fields" style="margin-top:10px">
+    <div class="f" data-for="A"><label for="${pre}-A-r">Biên độ A</label><input type="range" id="${pre}-A-r" min="-3" max="3" step="0.5" aria-label="Biên độ"><input type="number" id="${pre}-A" min="-20" max="20" step="0.5" aria-label="Biên độ (nhập số)"></div>
+    <div class="f" data-for="k"><label for="${pre}-k-r">Dịch k<small>x(n − k)</small></label><input type="range" id="${pre}-k-r" min="-10" max="10" step="1" aria-label="Số nhịp dịch"><input type="number" id="${pre}-k" min="-20" max="20" step="1" aria-label="Số nhịp dịch (nhập số)"></div>
+    <div class="f" data-for="N"><label for="${pre}-N-r">Độ dài N</label><input type="range" id="${pre}-N-r" min="1" max="15" step="1" aria-label="Độ dài"><input type="number" id="${pre}-N" min="1" max="30" step="1" aria-label="Độ dài (nhập số)"></div>
+    <div class="f" data-for="a"><label for="${pre}-a-r">Cơ số a</label><input type="range" id="${pre}-a-r" min="-2" max="2" step="0.05" aria-label="Cơ số"><input type="number" id="${pre}-a" min="-10" max="10" step="0.05" aria-label="Cơ số (nhập số)"></div>
+    <div class="f" data-for="Ns"><label for="${pre}-Ns-r">Chu kỳ N<small>số mẫu / chu kỳ</small></label><input type="range" id="${pre}-Ns-r" min="2" max="30" step="1" aria-label="Chu kỳ"><input type="number" id="${pre}-Ns" min="2" max="40" step="1" aria-label="Chu kỳ (nhập số)"></div>
+    <div class="f nos" data-for="pat"><label for="${pre}-pat">Một chu kỳ<small>các mẫu</small></label><input type="text" id="${pre}-pat" autocomplete="off" spellcheck="false"></div>
+    <div class="f nos" data-for="cust"><label for="${pre}-cust">Các mẫu</label><input type="text" id="${pre}-cust" autocomplete="off" spellcheck="false"></div>
+    <div class="f" data-for="cs"><label for="${pre}-cs-r">Bắt đầu tại<small>n =</small></label><input type="range" id="${pre}-cs-r" min="-10" max="10" step="1" aria-label="Chỉ số bắt đầu"><input type="number" id="${pre}-cs" min="-20" max="20" step="1" aria-label="Chỉ số bắt đầu (nhập số)"></div>
+    <p class="err" id="${pre}-err" aria-live="polite"></p>
+  </div>`;
+  const VIS = { delta: ["A", "k"], step: ["A", "k"], rect: ["A", "k", "N"], exp: ["A", "k", "a"], sin: ["A", "k", "Ns"], per: ["A", "k", "pat"], custom: ["cust", "cs"] };
+  const LIM = { A: [-20, 20, false], k: [-20, 20, true], N: [1, 30, true], a: [-10, 10, false], Ns: [2, 40, true], cs: [-20, 20, true] };
+  const set = (key, v) => {
+    const [lo, hi, int] = LIM[key];
+    if (!Number.isFinite(v) || v < lo || v > hi || (int && !Number.isInteger(v))) { $(`${pre}-err`).textContent = `Giá trị phải là ${int ? "số nguyên" : "số"} từ ${fi(lo)} đến ${hi}.`; $(`${pre}-${key}`).classList.add("bad"); return; }
+    $(`${pre}-err`).textContent = ""; $(`${pre}-${key}`).classList.remove("bad");
+    getP()[key] = r4(v); onchange();
+  };
+  Object.keys(LIM).forEach(key => {
+    $(`${pre}-${key}-r`).addEventListener("input", e => set(key, Number(e.target.value)));
+    $(`${pre}-${key}`).addEventListener("input", e => { if (e.target.value === "" || e.target.value === "-") return; set(key, numIn(e.target.value)); });
+  });
+  ["pat", "cust"].forEach(key => $(`${pre}-${key}`).addEventListener("input", e => {
+    const r = parseList(e.target.value);
+    if (r.err) { e.target.classList.add("bad"); $(`${pre}-err`).textContent = r.err; return; }
+    e.target.classList.remove("bad"); $(`${pre}-err`).textContent = ""; getP()[key] = r.vals; onchange();
+  }));
+  root.querySelector(".seg").addEventListener("click", e => { const b = e.target.closest("[data-t]"); if (!b) return; getP().type = b.dataset.t; $(`${pre}-err`).textContent = ""; onchange(); });
+  return function sync() {
+    const P = getP();
+    root.querySelectorAll("[data-t]").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === P.type));
+    root.querySelectorAll("[data-for]").forEach(f => { f.hidden = !VIS[P.type].includes(f.dataset.for); });
+    Object.keys(LIM).forEach(key => {
+      const n = $(`${pre}-${key}`);
+      if (document.activeElement !== n) { n.value = P[key]; n.classList.remove("bad"); }
+      $(`${pre}-${key}-r`).value = P[key];
+    });
+    ["pat", "cust"].forEach(key => { const t = $(`${pre}-${key}`); if (document.activeElement !== t) { t.value = fmtList(P[key]); t.classList.remove("bad"); } });
+  };
+}
+function rangeUI(pre, S, onchange) {
+  [["n1", -30, 30], ["n2", -30, 40]].forEach(([key, lo, hi]) => $(`${pre}-${key}`).addEventListener("input", e => {
+    const v = numIn(e.target.value);
+    const other = key === "n1" ? S.n2 : S.n1;
+    if (!Number.isInteger(v) || v < lo || v > hi) { $(`${pre}-err`).textContent = `n phải là số nguyên từ ${lo} đến ${hi}.`; e.target.classList.add("bad"); return; }
+    if ((key === "n1" && v >= other) || (key === "n2" && v <= other)) { $(`${pre}-err`).textContent = "Cần n₁ < n₂."; e.target.classList.add("bad"); return; }
+    if (Math.abs((key === "n1" ? other - v : v - other)) > 60) { $(`${pre}-err`).textContent = "Khoảng hiển thị tối đa 60 mẫu."; e.target.classList.add("bad"); return; }
+    e.target.classList.remove("bad"); $(`${pre}-err`).textContent = ""; S[key] = v; onchange();
+  }));
+  return () => { ["n1", "n2"].forEach(key => { const el = $(`${pre}-${key}`); if (document.activeElement !== el) { el.value = S[key]; el.classList.remove("bad"); } }); };
+}
+
+/* ================= TAB 2: CÁC DÃY CƠ BẢN ================= */
+const S2 = { P: defP(), n1: -5, n2: 15 };
+const EX2 = [
+  ["δ(n)", { type: "delta", k: 0 }, -5, 10], ["δ(n−5)", { type: "delta", k: 5 }, -2, 10],
+  ["u(n)", { type: "step", k: 0 }, -5, 12], ["u(n−2)", { type: "step", k: 2 }, -5, 12], ["u(n+2)", { type: "step", k: -2 }, -5, 12],
+  ["x(n) = 1 với 0 ≤ n ≤ 3", { type: "rect", N: 4, k: 0 }, -3, 8], ["rect₄(n−2)", { type: "rect", N: 4, k: 2 }, -3, 9], ["rect₄(n+2)", { type: "rect", N: 4, k: -2 }, -6, 6],
+  ["e(n), a = 0,8 < 1", { type: "exp", a: 0.8, k: 0 }, -3, 15], ["e(n), a = 1,2 > 1", { type: "exp", a: 1.2, k: 0 }, -3, 15],
+  ["sin(2πn/10)", { type: "sin", Ns: 10, k: 0 }, -10, 10], ["Tuần hoàn N = 4", { type: "per", pat: [4, 3, 2, 1], k: 0 }, -6, 12],
+];
+const BT2 = [
+  ["Bài 1: δ(n−5)", { type: "delta", k: 5 }, 0, 20], ["Bài 1: δ(n−9)", { type: "delta", k: 9 }, 0, 20],
+  ["Bài 2: u(n−2)", { type: "step", k: 2 }, 0, 20], ["Bài 2: u(n+2)", { type: "step", k: -2 }, 0, 20],
+  ["Bài 3: rect₅(n+2)", { type: "rect", N: 5, k: -2 }, 0, 20], ["Bài 4: 5,6ⁿ", { type: "exp", a: 5.6, k: 0 }, 0, 20],
+];
+const MEAN2 = {
+  delta: () => `<p><b>Hình dung:</b> một tiếng vỗ tay duy nhất vào hang tại nhịp n = ${fi(S2.P.k)}, ngoài ra im lặng.</p><p><b>Dùng để làm gì:</b> “gõ thử” một hệ thống. Đầu ra khi đầu vào là δ(n) chính là đáp ứng xung h(n) ở Buổi 2.</p><p><b>Vì sao quan trọng:</b> mọi dãy đều ghép được từ các xung δ(n − k) nhân với giá trị x(k). Đây là gốc của công thức tích chập.</p>`,
+  step: () => `<p><b>Hình dung:</b> bật công tắc tại nhịp n = ${fi(S2.P.k)} rồi giữ nguyên mãi; trong hang là hét đều không ngừng.</p><p><b>Dùng để làm gì:</b> thử xem hệ phản ứng ra sao khi đầu vào thay đổi đột ngột rồi giữ nguyên (đáp ứng bậc thang): mất bao lâu ổn định, ổn định ở mức nào.</p><p><b>Liên hệ:</b> u(n) dài vô hạn về bên phải nên năng lượng vô hạn.</p>`,
+  rect: () => `<p><b>Hình dung:</b> hét đúng N = ${S2.P.N} nhịp rồi ngừng.</p><p><b>Dùng để làm gì:</b> làm “cửa sổ” cắt ra một đoạn tín hiệu. Nhân một dãy bất kỳ với rectₙ(n) là giữ lại N mẫu, các mẫu khác thành 0 (xem tab Phép toán).</p><p><b>Liên hệ:</b> rectₙ(n) = u(n) − u(n − N).</p>`,
+  exp: () => { const a = S2.P.a; const s = Math.abs(a) < 1 ? "nhỏ dần: giống tiếng vọng trong hang, mỗi lần dội về chỉ còn một phần" : Math.abs(a) > 1 ? "lớn dần mãi: giống micro bị hú, hệ mất ổn định" : "giữ nguyên độ lớn"; return `<p><b>Với a = ${fmt(a)}:</b> các mẫu ${s}${a < 0 ? ", và đổi dấu luân phiên vì a âm" : ""}.</p><p><b>Dùng để làm gì:</b> đây chính là dạng đáp ứng xung h(n) = aⁿu(n) của các hệ có hồi tiếp (cái hang ở Buổi 2, a = 0,5).</p><p><b>Quy luật:</b> |a| &lt; 1 tắt dần, |a| &gt; 1 tăng mãi.</p>`; },
+  sin: () => `<p><b>Hình dung:</b> một âm thanh đơn tần (tiếng còi, một nốt nhạc) sau khi lấy mẫu; mỗi chu kỳ có N = ${S2.P.Ns} mẫu.</p><p><b>Dùng để làm gì:</b> là “viên gạch” để phân tích tần số. N càng nhỏ, sóng dao động càng nhanh.</p><p><b>Tính chất:</b> vô hạn, hai phía, tuần hoàn với chu kỳ N, lẻ (x(−n) = −x(n)).</p>`,
+  per: () => `<p><b>Hình dung:</b> một khuôn mẫu lặp lại đúng sau mỗi ${S2.P.pat.length} mẫu.</p><p><b>Ví dụ thực tế:</b> nhịp tim, xung đồng hồ (clock) của vi xử lý, sóng răng cưa quét màn hình.</p><p><b>Định nghĩa:</b> x(n) = x(n + N) với mọi n; N nhỏ nhất thỏa mãn là chu kỳ cơ bản.</p>`,
+  custom: () => `<p><b>Hình dung:</b> dữ liệu đo thực tế, ví dụ các mẫu ADC đọc từ cảm biến.</p><p><b>Đặc điểm:</b> thường không có công thức chung, chỉ biểu diễn được bằng liệt kê và đồ thị. Liệt kê phải đánh dấu gốc n = 0, nếu không sẽ không biết mẫu nào là x(0).</p>`,
+};
+const sync2 = seqUI("s2-ui", "q2", () => S2.P, render2);
+const sync2r = rangeUI("s2", S2, render2);
+function presetChips(rootId, list, apply) {
+  $(rootId).innerHTML = list.map((p, i) => `<button class="chip" type="button" data-i="${i}">${p[0]}</button>`).join("");
+  $(rootId).addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) apply(list[+b.dataset.i]); });
+}
+const apply2 = ([, p, n1, n2]) => { S2.P = Object.assign(defP(), p); S2.n1 = n1; S2.n2 = n2; render2(); };
+presetChips("s2-ex", EX2, apply2); presetChips("s2-bt", BT2, apply2);
+
+function factHTML(t, v, s) { return `<div class="fact"><small>${t}</small><b>${v}</b>${s ? `<span class="sub">${s}</span>` : ""}</div>`; }
+function render2() {
+  const P = S2.P, ns = range(S2.n1, S2.n2), vs = ns.map(n => val(P, n));
+  $("s2-kind").textContent = KIND[P.type];
+  $("s2-name").textContent = "x(n) = " + (P.type === "custom" ? `{${fmtList(P.cust)}}` : seqName(P));
+  $("s2-math").innerHTML = mathHTML(P);
+  const R = yr(vs);
+  $("s2-plot").innerHTML = chart({ xmin: S2.n1, xmax: S2.n2, ...R, H: 230, title: "x(n)", titleColor: C.red, series: [{ color: C.red, pts: ns.map((n, i) => [n, vs[i]]) }] });
+  $("s2-list").innerHTML = listHTML(ns, vs, P);
+  const th = theory(P);
+  const Ein = vs.reduce((s, v) => s + v * v, 0);
+  const finite = Number.isFinite(th.L);
+  $("s2-facts").innerHTML = [
+    factHTML("Chiều dài L", Number.isFinite(th.L) ? th.L : "∞", th.Ls),
+    factHTML("Năng lượng Eₓ = Σ|x(n)|²", fmt(th.E), finite ? `= ${energyTerms(P.type === "custom" ? P.cust : vs)}${th.E !== 0 ? " = " + fmt(th.E) : ""}` : th.Es ? `= ${th.Es}` : `trong khoảng hiển thị: ${fmt(Ein)}, càng lấy thêm mẫu càng lớn`),
+    factHTML("Công suất trung bình Pₓ", fmt(th.P), finite ? (th.L ? `= Eₓ / L = ${fmt(th.E)} / ${th.L}` : "") : P.type === "exp" && Math.abs(P.a) < 1 ? "năng lượng hữu hạn chia cho N → ∞" : "= lim Eₓ / N khi N → ∞"),
+    factHTML("Tuần hoàn?", th.per === null ? "Không" : typeof th.per === "string" ? "—" : `Có, N = ${th.per}`, th.per === null ? "không có N nào để x(n) = x(n + N)" : typeof th.per === "string" ? th.per : `x(n) = x(n + ${th.per})`),
+  ].join("");
+  $("s2-mean").innerHTML = MEAN2[P.type]();
+  const nm = seqName(P);
+  $("s2-code").textContent = [`% ${MTITLE[P.type]}${P.type === "custom" ? "" : ": x(n) = " + nm}`, `clf;`, `n = [${S2.n1}:${S2.n2}];`, ...mExpr(P, "n", "x"), `stem(n, x, 'filled');`, `xlabel('Thoi gian roi rac n'); ylabel('Bien do');`, `title('${MTITLE[P.type]}');`, ``, `E = sum(abs(x).^2)          % nang luong trong khoang n hien thi`, `P = E / length(n)           % cong suat trung binh trong khoang do`].join("\n");
+  sync2(); sync2r();
+}
+
+/* ================= TAB 3: PHÉP TOÁN ================= */
+const OPS = [["add", "Cộng x₁ + x₂"], ["mul", "Nhân x₁ · x₂"], ["scale", "Nhân hằng c·x₁"], ["delay", "Trễ x₁(n − n₀)"], ["flip", "Lật x₁(−n)"]];
+const S3 = { P1: Object.assign(defP(), { type: "rect", N: 3, k: 1 }), P2: Object.assign(defP(), { type: "rect", N: 2, k: 2 }), op: "add", c: 2, n0: 2, n1: -2, n2: 8 };
+const R1 = (p) => Object.assign(defP(), p);
+const EX3 = [
+  ["Cộng: rect₃(n−1) + rect₂(n−2)", { P1: R1({ type: "rect", N: 3, k: 1 }), P2: R1({ type: "rect", N: 2, k: 2 }), op: "add", n1: -2, n2: 8 }],
+  ["Nhân: rect₃(n−1) · rect₂(n−2)", { P1: R1({ type: "rect", N: 3, k: 1 }), P2: R1({ type: "rect", N: 2, k: 2 }), op: "mul", n1: -2, n2: 8 }],
+  ["Nhân hằng: 2·rect₃(n−1)", { P1: R1({ type: "rect", N: 3, k: 1 }), op: "scale", c: 2, n1: -2, n2: 8 }],
+  ["Trễ: x(n) = 1 − n/4, tìm x(n−2)", { P1: R1({ type: "custom", cust: [0.75, 0.5, 0.25], cs: 1 }), op: "delay", n0: 2, n1: -2, n2: 9 }],
+];
+const BT3 = [
+  ["5a: rect₃(n) + rect₂(n−2)", { P1: R1({ type: "rect", N: 3, k: 0 }), P2: R1({ type: "rect", N: 2, k: 2 }), op: "add", n1: 0, n2: 20 }],
+  ["5b: rect₃(n) · rect₂(n−2)", { P1: R1({ type: "rect", N: 3, k: 0 }), P2: R1({ type: "rect", N: 2, k: 2 }), op: "mul", n1: 0, n2: 20 }],
+  ["5c: 5·rect₃(n)", { P1: R1({ type: "rect", N: 3, k: 0 }), op: "scale", c: 5, n1: 0, n2: 20 }],
+  ["rect₄(n) = u(n) − u(n−4)", { P1: R1({ type: "step", k: 0 }), P2: R1({ type: "step", k: 4, A: -1 }), op: "add", n1: -3, n2: 10 }],
+  ["Cắt sin bằng cửa sổ rect₈(n)", { P1: R1({ type: "sin", Ns: 10 }), P2: R1({ type: "rect", N: 8, k: 0 }), op: "mul", n1: -6, n2: 14 }],
+  ["Tiếng vọng đến muộn: aⁿ trễ 3 nhịp", { P1: R1({ type: "exp", a: 0.5 }), op: "delay", n0: 3, n1: -2, n2: 12 }],
+  ["Lật {1, 2, 3} (chuẩn bị Buổi 2)", { P1: R1({ type: "custom", cust: [1, 2, 3], cs: 0 }), op: "flip", n1: -5, n2: 5 }],
+];
+const sync31 = seqUI("s3-ui1", "q31", () => S3.P1, render3);
+const sync32 = seqUI("s3-ui2", "q32", () => S3.P2, render3);
+const sync3r = rangeUI("s3", S3, render3);
+const apply3 = ([, p]) => { Object.assign(S3, { c: 2, n0: 2 }, p); if (!p.P2) S3.P2 = R1({ type: "rect", N: 2, k: 2 }); S3.P1 = R1(p.P1); if (p.P2) S3.P2 = R1(p.P2); render3(); };
+presetChips("s3-ex", EX3, apply3); presetChips("s3-bt", BT3, apply3);
+$("s3-ops").innerHTML = OPS.map(([k, l]) => `<button type="button" data-op="${k}">${l}</button>`).join("");
+$("s3-ops").addEventListener("click", e => { const b = e.target.closest("[data-op]"); if (b) { S3.op = b.dataset.op; render3(); } });
+[["c", -10, 10, false], ["n0", -15, 15, true]].forEach(([key, lo, hi, int]) => {
+  const set = v => { if (!Number.isFinite(v) || v < lo || v > hi || (int && !Number.isInteger(v))) { $("s3-err").textContent = `${key === "c" ? "c" : "n₀"} phải là ${int ? "số nguyên" : "số"} từ ${lo} đến ${hi}.`; $(`s3-${key}`).classList.add("bad"); return; } $(`s3-${key}`).classList.remove("bad"); $("s3-err").textContent = ""; S3[key] = r4(v); render3(); };
+  $(`s3-${key}-r`).addEventListener("input", e => set(Number(e.target.value)));
+  $(`s3-${key}`).addEventListener("input", e => { if (e.target.value === "" || e.target.value === "-") return; set(numIn(e.target.value)); });
+});
+const MEAN3 = {
+  add: `<p><b>Quy tắc:</b> cộng từng cặp mẫu có cùng chỉ số n (cộng theo cột trong bảng).</p><p><b>Ứng dụng:</b> trộn tín hiệu, như hai người cùng nói vào một micro, hay tín hiệu cộng thêm nhiễu. Trong hang: tiếng hét mới cộng với tiếng vọng.</p><p><b>Mẹo:</b> cộng một dãy với một dãy âm là phép trừ, ví dụ rect₄(n) = u(n) − u(n−4).</p>`,
+  mul: `<p><b>Quy tắc:</b> nhân từng cặp mẫu có cùng chỉ số n. Chỗ nào một trong hai dãy bằng 0 thì kết quả bằng 0.</p><p><b>Ứng dụng:</b> nhân với rectₙ để chỉ giữ lại một đoạn (cửa sổ, “cổng” đóng mở); điều chế biên độ trong truyền thông.</p>`,
+  scale: `<p><b>Quy tắc:</b> nhân mọi mẫu với cùng một số c.</p><p><b>Ý nghĩa:</b> c &gt; 1 khuếch đại, 0 &lt; c &lt; 1 làm nhỏ đi (như núm âm lượng), c &lt; 0 đảo dấu. Trong hang: vách đá chỉ dội lại 0,5 tiếng, tức là nhân với 0,5.</p><p><b>Năng lượng:</b> nhân với c thì năng lượng nhân với c².</p>`,
+  delay: `<p><b>Quy tắc:</b> y(n) = x(n − n₀). Giá trị của y tại n là giá trị của x ở n₀ nhịp trước, nên cả dãy dời sang phải n₀ nhịp (n₀ &gt; 0: trễ). n₀ &lt; 0 thì dời sang trái (sớm).</p><p><b>Trong hang:</b> tiếng vọng đến tai muộn n₀ nhịp so với tiếng hét.</p><p><b>Ứng dụng:</b> phần tử trễ z⁻¹ trong các sơ đồ thực hiện hệ thống (Buổi 2) chính là phép trễ 1 nhịp.</p>`,
+  flip: `<p><b>Quy tắc:</b> y(n) = x(−n): lật dãy qua trục n = 0 như soi gương. Mẫu ở n = 2 chuyển sang n = −2.</p><p><b>Ứng dụng:</b> đây là bước “lật” trong cách 2 tính tích chập ở Buổi 2: h(k) → h(−k) → dịch thành h(n − k).</p>`,
+};
+function render3() {
+  const P1 = S3.P1, P2 = S3.P2, op = S3.op, ns = range(S3.n1, S3.n2);
+  const v1 = ns.map(n => val(P1, n)), v2 = ns.map(n => val(P2, n));
+  const bin = op === "add" || op === "mul";
+  const y = ns.map((n, i) => op === "add" ? v1[i] + v2[i] : op === "mul" ? v1[i] * v2[i] : op === "scale" ? S3.c * v1[i] : op === "delay" ? val(P1, n - S3.n0) : val(P1, -n));
+  const n1n = P1.type === "custom" ? "x₁(n)" : seqName(P1), n2n = P2.type === "custom" ? "x₂(n)" : seqName(P2);
+  const delayed = () => { if (P1.type === "custom") return `x₁(n${S3.n0 >= 0 ? "−" + S3.n0 : "+" + -S3.n0})`; const Q = { ...P1, k: P1.k + S3.n0 }; return seqName(Q); };
+  const rhs = { add: `<span class="x1">${n1n}</span> + <span class="x2">${n2n}</span>`, mul: `<span class="x1">${n1n}</span> · <span class="x2">${n2n}</span>`, scale: `${fmt(S3.c)} · <span class="x1">${n1n}</span>`, delay: P1.type === "custom" ? `<span class="x1">${delayed()}</span>` : `x₁(n − ${fmtP(S3.n0)}) = <span class="x1">${delayed()}</span>`, flip: `x₁(−n)` }[op];
+  $("s3-eq").innerHTML = `x₃(n) = ${rhs}`;
+  $("s3-kind").textContent = { add: "1.2.3 d · Phép cộng hai dãy", mul: "1.2.3 d · Phép nhân hai dãy", scale: "1.2.3 d · Phép nhân tín hiệu với một hằng số", delay: "1.2.3 d · Phép trễ (dịch)", flip: "Mở rộng · Phép lật (đảo thời gian)" }[op];
+  $("s3-rule").textContent = { add: "x₃(n) = x₁(n) + x₂(n) với từng n: cộng từng cặp mẫu cùng chỉ số.", mul: "x₃(n) = x₁(n)·x₂(n) với từng n: nhân từng cặp mẫu cùng chỉ số.", scale: `Mỗi mẫu của x₁ nhân với c = ${fmt(S3.c)}.`, delay: S3.n0 >= 0 ? `Cả dãy dời sang phải ${S3.n0} nhịp (trễ).` : `Cả dãy dời sang trái ${-S3.n0} nhịp (sớm).`, flip: "Lật dãy qua trục n = 0." }[op];
+  const all = v1.concat(bin ? v2 : [], y);
+  const R = yr(all);
+  const common = { xmin: S3.n1, xmax: S3.n2, ...R, H: 190 };
+  $("s3-p1").innerHTML = chart({ ...common, title: `x₁(n) = ${P1.type === "custom" ? "{" + fmtList(P1.cust) + "}" : n1n}`, titleColor: C.red, series: [{ color: C.red, pts: ns.map((n, i) => [n, v1[i]]) }] });
+  $("s3-p2").hidden = !bin;
+  if (bin) $("s3-p2").innerHTML = chart({ ...common, title: `x₂(n) = ${P2.type === "custom" ? "{" + fmtList(P2.cust) + "}" : n2n}`, titleColor: C.green, series: [{ color: C.green, pts: ns.map((n, i) => [n, v2[i]]) }] });
+  const ghost = op === "delay" || op === "flip" || op === "scale" ? [{ color: C.gray, hollow: true, labels: false, w: 2, r: 4.2, dash: true, pts: ns.map((n, i) => [n, v1[i]]).filter(([, v]) => v !== 0) }] : [];
+  $("s3-p3").innerHTML = chart({ ...common, H: 220, title: `x₃(n)${ghost.length ? "  (vòng xám: x₁(n) ban đầu)" : ""}`, titleColor: C.ink, series: ghost.concat([{ color: C.ink, pts: ns.map((n, i) => [n, y[i]]) }]) });
+
+  // bảng theo cột n
+  const nzAny = ns.filter((n, i) => v1[i] || (bin && v2[i]) || y[i]);
+  let lo = S3.n1, hi = S3.n2;
+  if (nzAny.length) { lo = Math.max(S3.n1, Math.min(nzAny[0] - 1, 0)); hi = Math.min(S3.n2, Math.max(nzAny[nzAny.length - 1] + 1, 0)); }
+  const cols = range(lo, hi).slice(0, 32), ix = n => n - S3.n1;
+  const cell = (v, cls = "") => `<td class="${Math.abs(v) < 1e-12 ? "z" : cls}">${Math.abs(v) < 1e-12 ? "0" : fmt(v)}</td>`;
+  let t = `<thead><tr><th>n</th>${cols.map(n => `<th class="${n === 0 ? "o" : ""}">${fi(n)}</th>`).join("")}</tr></thead><tbody>`;
+  t += `<tr><td style="color:var(--red)">x₁(n)</td>${cols.map(n => cell(v1[ix(n)], "r1")).join("")}</tr>`;
+  if (bin) t += `<tr><td style="color:var(--green-ink)">x₂(n)</td>${cols.map(n => cell(v2[ix(n)], "r2")).join("")}</tr>`;
+  if (op === "add") t += `<tr class="idx"><td>phép tính</td>${cols.map(n => `<td>${fmtP(v1[ix(n)])} + ${fmtP(v2[ix(n)])}</td>`).join("")}</tr>`;
+  if (op === "mul") t += `<tr class="idx"><td>phép tính</td>${cols.map(n => `<td>${fmtP(v1[ix(n)])} · ${fmtP(v2[ix(n)])}</td>`).join("")}</tr>`;
+  if (op === "scale") t += `<tr class="idx"><td>phép tính</td>${cols.map(n => `<td>${fmt(S3.c)} · ${fmtP(v1[ix(n)])}</td>`).join("")}</tr>`;
+  if (op === "delay") t += `<tr class="idx"><td>lấy x₁ tại</td>${cols.map(n => `<td>x₁(${fi(n - S3.n0)})</td>`).join("")}</tr>`;
+  if (op === "flip") t += `<tr class="idx"><td>lấy x₁ tại</td>${cols.map(n => `<td>x₁(${fi(-n)})</td>`).join("")}</tr>`;
+  t += `<tr class="res"><td>x₃(n)</td>${cols.map(n => `<td>${fmt(y[ix(n)])}</td>`).join("")}</tr></tbody>`;
+  $("s3-table").innerHTML = t;
+  $("s3-list").innerHTML = listHTML(ns, y, null, { lhs: "x₃(n)" });
+
+  const nzy = ns.filter((n, i) => Math.abs(y[i]) > 1e-12);
+  const E3 = y.reduce((s, v) => s + v * v, 0), E1 = v1.reduce((s, v) => s + v * v, 0);
+  const inf = op === "delay" || op === "scale" || op === "flip" ? (infR(P1) || infL(P1)) : op === "add" ? (infR(P1) || infL(P1) || infR(P2) || infL(P2)) : false;
+  const Lspan = nzy.length ? nzy[nzy.length - 1] - nzy[0] + 1 : 0;
+  const facts = [
+    factHTML("x₃ khác 0 trong khoảng", nzy.length ? `[${fi(nzy[0])}, ${fi(nzy[nzy.length - 1])}]` : "toàn 0", nzy.length ? `${Lspan} mẫu${inf ? " (trong khoảng hiển thị)" : ""}` : ""),
+    factHTML("Năng lượng của x₃", fmt(E3), `= ${energyTerms(y)}${inf ? " (trong khoảng hiển thị)" : ""}`),
+  ];
+  if (op === "scale") facts.push(factHTML("So với x₁", `E₃ = c²·E₁`, `${fmt(E3)} = ${fmt(S3.c * S3.c)} × ${fmt(E1)}`));
+  else if (op === "delay" || op === "flip") facts.push(factHTML("So với x₁", "E₃ = E₁", "dịch hay lật không làm đổi năng lượng"));
+  else facts.push(factHTML("Năng lượng x₁, x₂", `${fmt(E1)}; ${fmt(v2.reduce((s, v) => s + v * v, 0))}`, op === "add" ? "năng lượng không cộng thẳng được" : "trong khoảng hiển thị"));
+  facts.push(factHTML("Gốc n = 0", `x₃(0) = ${fmt(val0(y, ns))}`, "mẫu có mũi tên ↑ khi liệt kê"));
+  $("s3-facts").innerHTML = facts.join("");
+  $("s3-mean").innerHTML = MEAN3[op];
+
+  const lines = [`% ${{ add: "Phep cong hai day", mul: "Phep nhan hai day", scale: "Phep nhan voi hang so", delay: "Phep tre (dich)", flip: "Phep lat" }[op]}`, `clf;`, `n = [${S3.n1}:${S3.n2}];`, ...mExpr(P1, "n", "x1")];
+  if (bin) lines.push(...mExpr(P2, "n", "x2"));
+  if (op === "add") lines.push("x3 = x1 + x2;");
+  if (op === "mul") lines.push("x3 = x1 .* x2;          % nhan tung phan tu: dau cham .*");
+  if (op === "scale") lines.push(`x3 = ${mnum(S3.c)} * x1;`);
+  if (op === "delay") lines.push(`% x3(n) = x1(n - ${S3.n0}): thay n bang (n - ${S3.n0}) trong cong thuc cua x1`, ...mExpr(P1, `(n-(${S3.n0}))`, "x3"));
+  if (op === "flip") lines.push("% x3(n) = x1(-n): thay n bang (-n)", ...mExpr(P1, "(-n)", "x3"));
+  const k = bin ? 3 : 2;
+  lines.push(`subplot(${k},1,1); stem(n, x1, 'filled'); title('x1(n)');`);
+  if (bin) lines.push(`subplot(3,1,2); stem(n, x2, 'filled'); title('x2(n)');`);
+  lines.push(`subplot(${k},1,${k}); stem(n, x3, 'filled'); title('x3(n)'); xlabel('n');`);
+  $("s3-code").textContent = lines.join("\n");
+
+  document.querySelectorAll("#s3-ops [data-op]").forEach(b => b.setAttribute("aria-pressed", b.dataset.op === op));
+  $("s3-x2card").hidden = !bin; $("s3-cw").hidden = op !== "scale"; $("s3-n0w").hidden = op !== "delay";
+  [["c", S3.c], ["n0", S3.n0]].forEach(([key, v]) => { const el = $(`s3-${key}`); if (document.activeElement !== el) el.value = v; $(`s3-${key}-r`).value = v; });
+  sync31(); sync32(); sync3r();
+}
+function val0(y, ns) { const i = ns.indexOf(0); return i >= 0 ? y[i] : 0; }
+
+/* ================= TAB 1: TƯƠNG TỰ → SỐ ================= */
+const SIGS = [
+  ["voice", "Tiếng nói (micro)", t => 0.9 * Math.sin(2 * Math.PI * 0.11 * t + 0.6) + 0.42 * Math.sin(2 * Math.PI * 0.37 * t + 1.3) + 0.22 * Math.sin(2 * Math.PI * 0.95 * t)],
+  ["sine", "Sin đơn", t => Math.sin(2 * Math.PI * 0.15 * t)],
+  ["rise", "Tăng rồi giảm (hình 1.2)", t => 0.55 + 0.95 * Math.exp(-Math.pow((t - 6.2) / 2.1, 2))],
+];
+const S1 = { sig: "voice", Ts: 0.5, bits: 3, T: 10 };
+$("ad-sig").innerHTML = SIGS.map(([k, l]) => `<button type="button" data-s="${k}">${l}</button>`).join("");
+$("ad-sig").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) { S1.sig = b.dataset.s; render1(); } });
+[["ts", "Ts", 0.1, 2, false], ["b", "bits", 1, 8, true]].forEach(([id, key, lo, hi, int]) => {
+  const set = v => { if (!Number.isFinite(v) || v < lo || v > hi || (int && !Number.isInteger(v))) { $("ad-err").textContent = `Giá trị phải từ ${fmt(lo)} đến ${hi}${int ? " (số nguyên)" : ""}.`; $(`ad-${id}`).classList.add("bad"); return; } $(`ad-${id}`).classList.remove("bad"); $("ad-err").textContent = ""; S1[key] = r4(v); render1(); };
+  $(`ad-${id}-r`).addEventListener("input", e => set(Number(e.target.value)));
+  $(`ad-${id}`).addEventListener("input", e => { if (e.target.value === "") return; set(numIn(e.target.value)); });
+});
+function chainSVG() {
+  const W = 760, H = 150, bw = 76, bh = 44, y = 30, xs = [70, 182, 294, 406, 518, 630];
+  const names = ["LPF", "S&amp;H", "ADC", "DSP", "DAC", "LPF"];
+  const subs = ["lọc thông thấp", "lấy và giữ mẫu", "tương tự → số", "xử lý số", "số → tương tự", "làm trơn"];
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ hệ thống xử lý tín hiệu số"><rect width="${W}" height="${H}" fill="${C.surf}"/>`;
+  s += `<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L8 5L1 9" fill="none" stroke="${C.mute}" stroke-width="1.6"/></marker></defs>`;
+  s += `<text x="8" y="${y + bh / 2 + 4}" font-size="13" font-weight="700" fill="${C.red}">xₐ(t)</text>`;
+  s += `<line x1="44" x2="${xs[0] - 4}" y1="${y + bh / 2}" y2="${y + bh / 2}" stroke="${C.mute}" stroke-width="1.4" marker-end="url(#ar)"/>`;
+  xs.forEach((x, i) => {
+    const hot = i === 1 || i === 2, dsp = i === 3;
+    s += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="7" fill="${hot ? (i === 1 ? C.greenT : C.redT) : dsp ? C.soft : C.surf}" stroke="${hot ? (i === 1 ? C.green : C.red) : C.mute}" stroke-width="${hot ? 1.6 : 1}"/>`;
+    s += `<text x="${x + bw / 2}" y="${y + bh / 2 + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="${C.ink}">${names[i]}</text>`;
+    s += `<text x="${x + bw / 2}" y="${y + bh + 18}" text-anchor="middle" font-size="12.5" fill="${C.mute}">${subs[i]}</text>`;
+    if (i < xs.length - 1) s += `<line x1="${x + bw + 2}" x2="${xs[i + 1] - 4}" y1="${y + bh / 2}" y2="${y + bh / 2}" stroke="${C.mute}" stroke-width="1.4" marker-end="url(#ar)"/>`;
+  });
+  s += `<line x1="${xs[5] + bw + 2}" x2="${W - 46}" y1="${y + bh / 2}" y2="${y + bh / 2}" stroke="${C.mute}" stroke-width="1.4" marker-end="url(#ar)"/><text x="${W - 42}" y="${y + bh / 2 + 4}" font-size="13" font-weight="700" fill="${C.green}">yₐ(t)</text>`;
+  s += `<text x="${xs[1] + bw / 2}" y="${y + bh + 42}" text-anchor="middle" font-size="12" font-weight="700" fill="${C.green}">→ hình c</text>`;
+  s += `<text x="${xs[2] + bw / 2}" y="${y + bh + 42}" text-anchor="middle" font-size="12" font-weight="700" fill="${C.red}">→ hình d, x(n)</text>`;
+  s += `<text x="${xs[3] + bw / 2}" y="${y + bh + 42}" text-anchor="middle" font-size="12" font-weight="700" fill="${C.ink}">x(n) → y(n)</text>`;
+  return s + "</svg>";
+}
+$("ad-chain").innerHTML = chainSVG();
+function render1() {
+  const f = SIGS.find(s => s[0] === S1.sig)[2], T = S1.T, Ts = S1.Ts, b = S1.bits, M = Math.pow(2, b);
+  const dense = range(0, 600).map(i => i * T / 600), xa = dense.map(f);
+  let lo = Math.min(...xa), hi = Math.max(...xa);
+  lo = Math.floor(lo * 10) / 10; hi = Math.ceil(hi * 10) / 10;
+  const D = (hi - lo) / (M - 1);
+  const q = v => { const k = Math.max(0, Math.min(M - 1, Math.round((v - lo) / D))); return { k, v: lo + k * D }; };
+  const Ns = Math.floor(T / Ts + 1e-9), nn = range(0, Ns), tn = nn.map(n => r4(n * Ts)), xs = tn.map(f), xq = xs.map(v => q(v));
+  const yR = { ymin: Math.min(0, lo) - 0.12 * (hi - Math.min(0, lo)), ymax: hi + 0.18 * (hi - Math.min(0, lo)) };
+  const ticks = [0, lo, hi].filter((v, i, a) => a.indexOf(v) === i);
+  const xt = range(0, 10).filter(t => t % 2 === 0).map(t => ({ v: t, label: String(t) }));
+  const base = { xmin: 0, xmax: T, cont: true, ...yR, ticks, H: 210, W: 520, xticks: xt, axis: "t" };
+  const levels = M <= 32 ? range(0, M - 1).map(k => lo + k * D) : [];
+  const line = { type: "line", color: C.ink, pts: dense.map((t, i) => [t, xa[i]]) };
+  const faint = { type: "line", color: C.gray, w: 1.6, pts: dense.map((t, i) => [t, xa[i]]) };
+  $("ad-pa").innerHTML = chart({ ...base, title: "xₐ(t)", series: [line] });
+  $("ad-pb").innerHTML = chart({ ...base, title: `Lượng tử hóa: ${M} mức`, titleColor: C.red, levels, series: [faint, { type: "line", color: C.red, w: 2.2, pts: dense.map((t, i) => [t, q(xa[i]).v]) }] });
+  $("ad-pc").innerHTML = chart({ ...base, title: `xₛ(nTₛ): Tₛ = ${fmt(Ts)}`, titleColor: C.green, series: [faint, { color: C.green, labels: false, r: Ns > 30 ? 3 : 4.2, w: Ns > 30 ? 1.6 : 2.2, pts: tn.map((t, i) => [t, xs[i]]) }] });
+  $("ad-pd").innerHTML = chart({ ...base, title: `Số hóa x(nTₛ): ${b} bit`, titleColor: C.red, levels, series: [faint, { color: C.red, labels: false, r: Ns > 30 ? 3 : 4.2, w: Ns > 30 ? 1.6 : 2.2, pts: tn.map((t, i) => [t, xq[i].v]) }] });
+  const qv = xq.map(o => o.v), R = yr(qv);
+  $("ad-pn").innerHTML = chart({ xmin: 0, xmax: Ns, ...R, H: 210, title: "x(n): các mẫu số hóa, đánh số n = 0, 1, 2, …", titleColor: C.red, series: [{ color: C.red, pts: nn.map(n => [n, qv[n]]) }] });
+  $("ad-list").innerHTML = listHTML(nn, qv, { type: "step" }, { lhs: "x(n)" });
+  const errs = xs.map((v, i) => Math.abs(v - qv[i]));
+  $("ad-facts").innerHTML = [
+    factHTML("Chu kỳ lấy mẫu", `Tₛ = ${fmt(Ts)}`, `tần số fₛ = 1/Tₛ = ${fmt(r4(1 / Ts))} mẫu / đơn vị t`),
+    factHTML("Số mẫu trong 0 ≤ t ≤ 10", Ns + 1, `n = 0 … ${Ns}`),
+    factHTML("Số mức lượng tử", `2${sup(b)} = ${M}`, `bước Δ = (${fmt(hi)} − ${fmt(lo)}) / ${M - 1} = ${fmt(r4(D))}`),
+    factHTML("Sai số lớn nhất", fmt(r4(Math.max(...errs))), `luôn ≤ Δ/2 = ${fmt(r4(D / 2))}`),
+  ].join("");
+  const rows = Math.min(nn.length, 14);
+  let t = `<thead><tr><th>n</th><th>t = n·Tₛ</th><th>xₛ (giá trị thật)</th><th>mức gần nhất</th><th>mã ${b} bit</th><th>sai số</th></tr></thead><tbody>`;
+  for (let i = 0; i < rows; i++) t += `<tr><td>${i}</td><td>${fmt(tn[i])}</td><td>${fmt(r4(xs[i]))}</td><td style="color:var(--red);font-weight:700">${fmt(r4(qv[i]))}</td><td style="font-family:var(--f-mono)">${xq[i].k.toString(2).padStart(b, "0")}</td><td>${fmt(r4(errs[i]))}</td></tr>`;
+  if (nn.length > rows) t += `<tr><td colspan="6" class="z" style="text-align:left">… còn ${nn.length - rows} mẫu nữa</td></tr>`;
+  $("ad-table").innerHTML = t + "</tbody>";
+  document.querySelectorAll("#ad-sig [data-s]").forEach(x => x.setAttribute("aria-pressed", x.dataset.s === S1.sig));
+  [["ts", Ts], ["b", b]].forEach(([id, v]) => { const el = $(`ad-${id}`); if (document.activeElement !== el) el.value = v; $(`ad-${id}-r`).value = v; });
+}
+
+/* ---------- Sao chép mã ---------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  const pre = $(b.dataset.copy), txt = pre.textContent;
+  const done = ok => { b.textContent = ok ? "Đã sao chép" : "Đã chọn, nhấn Ctrl+C"; setTimeout(() => (b.textContent = "Sao chép"), 1800); };
+  const sel = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done(false); };
+  try { navigator.clipboard.writeText(txt).then(() => done(true), sel); } catch (_) { sel(); }
+});
+
+/* ---------- Chuyển tab, thanh bên ---------- */
+const MODES = { ad: ["Đầu vào · Tương tự → số", "tuongtu"], seq: ["Đầu vào · Các dãy cơ bản", "day"], op: ["Đầu vào · Phép toán", "phep-toan"] };
+function selectMode(m, push = true) {
+  Object.keys(MODES).forEach(k => { $(`mt-${k}`).setAttribute("aria-selected", k === m); $(`mode-${k}`).hidden = k !== m; $(`side-${k}`).hidden = k !== m; });
+  $("side-title").textContent = MODES[m][0]; $("side").scrollTop = 0;
+  if (push) try { history.replaceState(null, "", "#" + MODES[m][1]); } catch (_) {}
+}
+Object.keys(MODES).forEach(k => $(`mt-${k}`).addEventListener("click", () => { selectMode(k); window.scrollTo(0, 0); }));
+const mq = window.matchMedia("(max-width: 900px)"), narrow = () => mq.matches;
+try { mq.addEventListener("change", e => { if (e.matches) setSide(false, false); }); } catch (_) {}
+function setSide(open, save) {
+  $("app").classList.toggle("closed", !open);
+  $("side-toggle").setAttribute("aria-expanded", open);
+  $("side-label").textContent = open ? "Ẩn đầu vào" : "Hiện đầu vào";
+  if (save && !narrow()) { try { localStorage.setItem("dtth-side", open ? "1" : "0"); } catch (_) {} }
+}
+$("side-toggle").addEventListener("click", () => setSide($("app").classList.contains("closed"), true));
+$("side-close").addEventListener("click", () => setSide(false, true));
+$("scrim").addEventListener("click", () => setSide(false, false));
+document.addEventListener("click", e => { if (e.target.closest("[data-open-side]")) setSide(true, true); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && narrow() && !$("app").classList.contains("closed")) setSide(false, false); });
+(() => { let saved = null; try { saved = localStorage.getItem("dtth-side"); } catch (_) {} setSide(narrow() ? false : saved !== "0", false); })();
+const setTopH = () => document.documentElement.style.setProperty("--topH", $("top").offsetHeight + "px");
+setTopH(); window.addEventListener("resize", setTopH);
+try { new ResizeObserver(setTopH).observe($("top")); } catch (_) {}
+
+render1(); render2(); render3();
+let lastVW = vwNow();
+window.addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(() => { const v = vwNow(); if (Math.abs(v - lastVW) < 30) return; lastVW = v; render1(); render2(); render3(); }, 200); });
+const h0 = (location.hash || "").slice(1);
+const start = Object.keys(MODES).find(k => MODES[k][1] === h0);
+selectMode(start || "ad", false);
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
