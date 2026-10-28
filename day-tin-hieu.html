@@ -1003,4 +1003,5 @@ const h0 = (location.hash || "").slice(1);
 const start = Object.keys(MODES).find(k => MODES[k][1] === h0);
 selectMode(start || "ad", false);
 </script>
+<script src="stats.js" defer></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>

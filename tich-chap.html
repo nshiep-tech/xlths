@@ -1728,4 +1728,5 @@ renderEx(false);
 let lastVW = vwNow();
 window.addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(() => { const v = vwNow(); if (Math.abs(v - lastVW) < 30) return; lastVW = v; try { renderAll(); renderDE(); renderDemo(); } catch (_) {} }, 200); });
 </script>
+<script src="stats.js" defer></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
