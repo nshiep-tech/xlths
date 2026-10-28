@@ -14,18 +14,21 @@
   // Trang chủ: hiện số lượt truy cập (cần bật "Allow adding visitor counts" trong cài đặt GoatCounter).
   var box = document.getElementById('visits');
   if (!box || !window.fetch) return;
+  box.hidden = false;
   var dir = location.pathname.replace(/[^\/]*$/, '');
   function get(path) {
-    return fetch(base + '/counter/' + path + '.json')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) { return j && j.count ? String(j.count).trim() : null; })
-      .catch(function () { return null; });
+    return fetch(base + '/counter/' + path + '.json', { cache: 'no-store' })
+      .then(function (r) {
+        if (r.status === 404) return '0';            // chưa có lượt nào được ghi
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json().then(function (j) { return j && j.count ? String(j.count).trim() : '0'; });
+      });
   }
   Promise.all([get('TOTAL'), get(dir + 'day-tin-hieu.html'), get(dir + 'tich-chap.html')]).then(function (v) {
-    if (!v[0]) return;
     document.getElementById('v-total').textContent = v[0];
-    document.getElementById('v-b1').textContent = v[1] || '0';
-    document.getElementById('v-b2').textContent = v[2] || '0';
-    box.hidden = false;
+    document.getElementById('v-b1').textContent = v[1];
+    document.getElementById('v-b2').textContent = v[2];
+  }).catch(function () {
+    document.getElementById('v-note').textContent = 'Chưa tải được số lượt: cần có mạng, hoặc trình chặn quảng cáo đang chặn goatcounter.com.';
   });
 })();
