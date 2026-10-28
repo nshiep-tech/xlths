@@ -623,6 +623,12 @@ function plot(o) {
     s += `<line x1="${L}" x2="${W - R}" y1="${sy(t)}" y2="${sy(t)}" stroke="${t === 0 ? "#9A9A96" : C.line}" stroke-width="${t === 0 ? 1.4 : 1}" ${t === 0 ? "" : 'stroke-dasharray="4 4"'}/>`;
     s += `<text x="${L - 8}" y="${sy(t) + 4}" text-anchor="end" font-size="12" fill="${C.mute}">${fmtTick(t)}</text>`;
   });
+  if (o.hline && o.hline.v >= ymin && o.hline.v <= ymax) {
+    const yy = sy(o.hline.v), hc = o.hline.color || C.green;
+    (o.gaps || []).forEach(([k, v]) => { if (k >= o.kmin && k <= o.kmax && Math.abs(v - o.hline.v) > 1e-9) s += `<line x1="${sx(k) + Math.min(10, step * 0.22)}" x2="${sx(k) + Math.min(10, step * 0.22)}" y1="${yy}" y2="${Math.max(T - 6, Math.min(H - B, sy(v)))}" stroke="${C.mute}" stroke-width="1.4" stroke-dasharray="2 3"/>`; });
+    s += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="${hc}" stroke-width="2" stroke-dasharray="7 5"/>`;
+    if (o.hline.label) { const lw = o.hline.label.length * 7.2 + 12; s += `<rect x="${W - R - lw}" y="${yy - 22}" width="${lw}" height="19" rx="5" fill="#FFFFFE" stroke="${hc}" stroke-width="1"/><text x="${W - R - lw / 2}" y="${yy - 8}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${hc}">${o.hline.label}</text>`; }
+  }
   const ks = range(o.kmin, o.kmax);
   const every = Math.max(1, Math.ceil(ks.length / Math.max(6, Math.floor((W - L - R) / 31))));
   ks.forEach((k, i) => { if (k % every === 0) s += `<text x="${sx(k)}" y="${H - 9}" text-anchor="middle" font-size="12.5" fill="${k === 0 ? C.ink : C.mute}" font-weight="${k === 0 ? 700 : 400}">${fi(k)}</text>`; });
@@ -649,7 +655,7 @@ function fmtTick(t) {
   return (t < 0 ? "−" : "") + (m === 1 ? "" : m + "·") + "10" + String(e).split("").map(c => SUP[c]).join("");
 }
 const fmtList = a => a.map(fmt).join("; ");
-function parseList(str) {
+function parseList(str, vmax = VMAX) {
   const t = str.replace(/;/g, " ").replace(/,\s+/g, " ").trim();
   if (!t) return { err: "Hãy nhập ít nhất một mẫu." };
   const parts = t.split(/\s+/);
@@ -657,7 +663,7 @@ function parseList(str) {
   const vals = parts.map(p => Number(p.replace(/−/g, "-").replace(",", ".")));
   const bad = parts.find((p, i) => Number.isNaN(vals[i]));
   if (bad !== undefined) return { err: `“${bad}” không phải là số. Ví dụ hợp lệ: 1 0,5 −2` };
-  if (vals.some(v => Math.abs(v) > VMAX)) return { err: `Giá trị phải nằm trong khoảng −${VMAX} đến ${VMAX}.` };
+  if (vals.some(v => Math.abs(v) > vmax)) return { err: `Giá trị phải nằm trong khoảng −${vmax} đến ${vmax}.` };
   return { vals: vals.map(r4) };
 }
 
@@ -1077,12 +1083,13 @@ const SYS = {
 const r6 = v => Math.round(v * 1e6) / 1e6;
 const ptsOf = (ns, f) => ns.map(n => [n, r4(f(n))]);
 function PL(ns, series, o = {}) {
-  const vals = series.flatMap(s => s.pts.map(p => p[1])).filter(Number.isFinite);
+  const vals = series.flatMap(s => s.pts.map(p => p[1])).concat(o.hline ? [o.hline.v] : []).filter(Number.isFinite);
   const R = yr(vals.length ? vals : [1]);
+  R.ticks = R.ticks.filter(t => t === 0 || Math.abs(t) > 0.06 * (R.ymax - R.ymin));
   const nz = series.reduce((m, s) => Math.max(m, s.pts.filter(p => Math.abs(p[1]) > 1e-9).length), 0);
   const maxLen = Math.max(0, ...series.flatMap(s => s.pts.filter(p => Math.abs(p[1]) > 1e-9).map(p => fmt(p[1]).length)));
   if (nz > 10 || ns.length > 18 || (maxLen > 4 && nz > 4)) series.forEach(s => { if (s.labels === undefined) s.labels = false; });
-  return `<div class="plot">${plot({ kmin: ns[0], kmax: ns[ns.length - 1], ...R, height: o.h || 180, title: o.title || "", titleColor: o.tc || C.ink, axis: o.axis || "n", hl: o.hl, hlColor: o.hlc, W: o.W, series })}</div>`;
+  return `<div class="plot">${plot({ kmin: ns[0], kmax: ns[ns.length - 1], ...R, height: o.h || 180, title: o.title || "", titleColor: o.tc || C.ink, axis: o.axis || "n", hl: o.hl, hlColor: o.hlc, W: o.W, hline: o.hline, gaps: o.gaps, series })}</div>`;
 }
 const S1 = (ns, f, color, extra = {}) => ({ color, pts: ptsOf(ns, f), ...extra });
 function cmpPlot(ns, L, R, title) {
@@ -1377,6 +1384,79 @@ DEMO.solve4 = function (S) {
     ${maxErr < 1e-6 ? `<div class="ex-verdict ok">✓ Công thức khớp với tính lần lượt ở mọi n từ 0 đến 15.</div>` : `<div class="ex-verdict no">✗ Công thức lệch với tính lần lượt (sai số lớn nhất ${fmt(r4(maxErr))}).</div>`}`;
 };
 
+/* ----- 3 câu hỏi: đích, lệch ban đầu, hệ số co ----- */
+const coefTxt = (c, s) => { const a = Math.abs(c); if (a < 1e-12) return ""; return (Math.abs(a - 1) < 1e-12 ? "" : fmt(r4(a)) + "·") + s; };
+function dichFormula(K, d, a) {
+  const P = a > 0 && Number.isInteger(a) ? `${a}ⁿ` : `(${fmt(r4(a))})ⁿ`;
+  if (Math.abs(d) < 1e-12) return `${fmt(r4(K))}`;
+  const part = coefTxt(d, P);
+  if (Math.abs(K) < 1e-12) return (d < 0 ? "−" : "") + part;
+  return `${fmt(r4(K))} ${d < 0 ? "−" : "+"} ${part}`;
+}
+function dichType(a) {
+  if (Math.abs(a) < 1e-12) return ["ok", "a = 0: hệ không nhớ gì, tới đích ngay sau một nhịp."];
+  if (a > 0 && a < 1) return ["ok", `0 &lt; a &lt; 1: khoảng lệch co lại và giữ nguyên dấu, y tiến <b>êm</b> về đích${a >= 0.75 ? " (a gần 1 nên khá chậm)" : a <= 0.3 ? " (a nhỏ nên rất nhanh)" : ""}. Hệ ổn định.`];
+  if (a < 0 && a > -1) return ["ok", "−1 &lt; a &lt; 0: khoảng lệch co lại nhưng <b>đổi dấu</b> mỗi nhịp, y dao động quanh đích rồi êm dần. Hệ ổn định."];
+  if (Math.abs(Math.abs(a) - 1) < 1e-12) return ["no", "|a| = 1: khoảng lệch không co lại, y không bao giờ êm. Hệ ở biên ổn định."];
+  return ["no", `|a| &gt; 1: khoảng lệch <b>phình ra</b> mỗi nhịp, y chạy mãi không về. Hệ <b>mất ổn định</b>; "đích" chỉ có trên giấy.`];
+}
+DEMO.dich = function (S) {
+  const a = S.a, b = S.b, ym1 = S.ym1, NT = 4;
+  const it = []; { let p = ym1; for (let n = 0; n <= 15; n++) { p = a * p + b; it.push(p); } }
+  const lhs = Math.abs(a) < 1e-12 ? "y(n)" : `y(n) ${a > 0 ? "−" : "+"} ${coefTxt(a, "y(n−1)")}`;
+  const read = Math.abs(a) < 1e-12 ? `y(n) = ${fmt(b)}` : `y(n) = ${a < 0 ? "−" : ""}${coefTxt(a, "y(n−1)")}${Math.abs(b) < 1e-12 ? "" : b < 0 ? " − " + fmt(-b) : " + " + fmt(b)}`;
+  const head = `<p class="hint">Đổi a, b, y(−1) ở thanh bên: bảng tính tay, đồ thị và 3 câu trả lời tự tính lại.</p>
+    <p class="eqline">${lhs} = ${fmt(b)},   y(−1) = ${fmt(ym1)}</p>
+    <p class="hint"><b>Đọc thành lời:</b> chuyển vế được <b style="font-family:var(--f-mono)">${read}</b>, tức là bây giờ = <b>${fmt(a)}</b> phần của nhịp trước + <b>${fmt(b)}</b> mới thêm vào.</p>`;
+  let rows = "", prev = ym1;
+  for (let n = 0; n < NT; n++) { rows += `<tr><td>${n}</td><td style="text-align:left;white-space:nowrap">${fmt(a)} × ${fmtP(r4(prev))} + ${fmtP(b)}</td><td style="font-weight:800">${fmt(r4(it[n]))}</td></tr>`; prev = it[n]; }
+  const calc = `<div class="tbl-wrap"><table><thead><tr><th>n</th><th style="text-align:left">a × (nhịp trước) + b</th><th>y(n)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  if (Math.abs(a - 1) < 1e-12) {
+    const ns = range(0, 10);
+    return head + calc + PL(ns, [S1(ns, n => it[n], C.red)], { title: "y(n): không có đích", tc: C.red }) + `<div class="ex-verdict no">a = 1: không có mức đứng yên (K = b : 0). Mỗi nhịp y chỉ cộng thêm ${fmt(b)}, nên y(n) = ${fmt(ym1)} + ${fmt(b)}·(n + 1).</div>`;
+  }
+  const K = b / (1 - a), d = it[0] - K, F = n => K + d * Math.pow(a, n);
+  const big = Math.abs(a) > 1, ns = range(0, big ? 7 : 10);
+  const plotH = PL(ns, [S1(ns, n => it[n], C.red)], { title: `y(n) tính lần lượt; đường đứt nét = đích K = ${fmt(r4(K))}`, tc: C.red, h: 210, hline: { v: K, label: `đích = ${fmt(r4(K))}` }, gaps: ns.map(n => [n, it[n]]) });
+  const lechs = range(0, 3).map(n => fmt(r4(d * Math.pow(a, n)))).join("; ");
+  const ty = dichType(a), maxErr = Math.max(...range(0, 15).map(n => Math.abs(F(n) - it[n]) / Math.max(1, Math.abs(it[n]))));
+  return head + calc + plotH + `<ol class="ex-steps" style="margin-top:4px">
+      <li><div><b>Đích ở đâu?</b> Mức y đứng yên: K = b : (1 − a) = ${fmt(b)} : (1 − ${fmtP(a)}) = <b>${fmt(r4(K))}</b>.</div></li>
+      <li><div><b>Lúc đầu lệch bao nhiêu?</b> y(0) − K = ${fmt(r4(it[0]))} − ${fmtP(r4(K))} = <b>${fmt(r4(d))}</b>${d < 0 ? " (thấp hơn đích)" : d > 0 ? " (cao hơn đích)" : ""}.</div></li>
+      <li><div><b>Mỗi nhịp lệch còn bao nhiêu phần?</b> a = <b>${fmt(a)}</b>. Khoảng lệch: ${lechs}; … (đường chấm xám trên đồ thị).</div></li>
+    </ol>
+    <div class="ex-ans ok" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="badge">Công thức</span><b style="font-family:var(--f-mono);font-size:18px;overflow-x:auto;max-width:100%">y(n) = ${dichFormula(K, d, a)},  n ≥ 0</b></div>
+    <div class="ex-verdict ${ty[0]}">${ty[1]}</div>
+    ${maxErr < 1e-6 ? `<div class="ex-verdict ok">✓ Công thức khớp với tính lần lượt ở mọi n từ 0 đến 15.</div>` : `<div class="ex-verdict no">✗ Công thức lệch với tính lần lượt.</div>`}`;
+};
+DEMO.ident = function (S) {
+  const y = S.ys || [];
+  const head = `<p class="hint">Nhập dãy số đo y(0), y(1), … ở thanh bên (ít nhất 3 số, đầu vào giữ đều). Phần mềm tìm luật y(n) = a·y(n−1) + b rồi dự đoán các nhịp sau.</p>`;
+  if (y.length < 3) return head + `<div class="ex-verdict no">Cần ít nhất 3 số đo để lập 2 phương trình.</div>`;
+  if (Math.abs(y[1] - y[0]) < 1e-12) return head + `<div class="ex-verdict neu">y(1) = y(0): hệ đã đứng yên, không đủ thông tin để tách a và b.</div>`;
+  const a = r6((y[2] - y[1]) / (y[1] - y[0])), b = r6(y[1] - a * y[0]);
+  const chk = range(3, y.length - 1).map(n => [n, a * y[n - 1] + b, y[n]]);
+  const okAll = chk.every(([, p, m]) => Math.abs(p - m) < 1e-6 * Math.max(1, Math.abs(m)));
+  const pr = []; { let p = y[0]; pr.push(p); for (let n = 1; n <= 12; n++) { p = a * p + b; pr.push(p); } }
+  const ns = range(0, 10);
+  let body = `<ol class="ex-steps" style="margin-top:4px">
+      <li><div><b>Lập phương trình từ số đo.</b> Mỗi cặp số liên tiếp cho một phương trình:<p class="eqline">${fmt(y[1])} = a × ${fmtP(y[0])} + b</p><p class="eqline">${fmt(y[2])} = a × ${fmtP(y[1])} + b</p></div></li>
+      <li><div><b>Tìm a, b.</b> Trừ hai phương trình: ${fmt(r4(y[2] - y[1]))} = a × ${fmtP(r4(y[1] - y[0]))} ⇒ <b>a = ${fmt(r4(a))}</b>; thay lại: <b>b = ${fmt(r4(b))}</b>.</div></li>
+      <li><div><b>Kiểm tra bằng số đo còn lại.</b> ${chk.length ? chk.map(([n, p, m]) => `y(${n}) dự đoán ${fmt(r4(p))}, đo được ${fmt(m)} ${Math.abs(p - m) < 1e-6 * Math.max(1, Math.abs(m)) ? "✓" : "✗"}`).join("; ") : "Chưa có số đo thứ tư để kiểm tra; nên đo thêm."}</div></li>
+    </ol>`;
+  if (!okAll) return head + body + `<div class="ex-verdict no">Số đo không khớp một luật bậc 1 duy nhất: hệ có thể bậc cao hơn, hoặc số đo có nhiễu.</div>`;
+  let tail = "";
+  if (Math.abs(a - 1) < 1e-12) tail = `<div class="ex-verdict neu">a = 1: không có đích, mỗi nhịp y cộng thêm ${fmt(r4(b))}.</div>`;
+  else {
+    const K = b / (1 - a), d = y[0] - K;
+    tail = `<p class="hint">Luật tìm được: <b style="font-family:var(--f-mono)">y(n) − ${fmtP(a)}·y(n−1) = ${fmt(r4(b))}</b>. Trả lời 3 câu hỏi: đích K = ${fmt(r4(b))} : (1 − ${fmtP(a)}) = <b>${fmt(r4(K))}</b>; lệch ban đầu = <b>${fmt(r4(d))}</b>; mỗi nhịp còn <b>${fmt(a)}</b> phần.</p>
+      <div class="ex-ans ok" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="badge">Công thức</span><b style="font-family:var(--f-mono);font-size:18px;overflow-x:auto;max-width:100%">y(n) = ${dichFormula(K, d, a)}</b></div>
+      ${PL(ns, [{ color: C.red, hollow: true, labels: false, w: 2, pts: ns.filter(n => n >= y.length).map(n => [n, r4(pr[n])]) }, { color: C.red, pts: y.slice(0, 11).map((v, n) => [n, v]) }], { title: "Chấm đặc: số đo · chấm rỗng: dự đoán từ luật", tc: C.red, h: 210, hline: { v: K, label: `đích = ${fmt(r4(K))}` } })}
+      <div class="ex-verdict ${dichType(a)[0]}">Dự đoán y(10) = <b>${fmt(r4(pr[10]))}</b>. ${dichType(a)[1]}</div>`;
+  }
+  return head + body + tail;
+};
+
 /* ----- Nội dung các nhóm và bài tập ----- */
 const EQ = s => `<p class="eqline">${s}</p>`;
 const G = {
@@ -1386,6 +1466,7 @@ const G = {
   nq: { name: "Hệ nhân quả", sec: "2.1", method: { t: "Cách kiểm tra một hệ có nhân quả không", s: ["<b>Hệ bất kỳ:</b> nhìn công thức, đầu ra y(n) chỉ được dùng x(m) với m ≤ n (hiện tại, quá khứ).", "Thấy x(n+1), x(n+2)… (mẫu tương lai), hoặc có thời điểm n mà đối số của x lớn hơn n → <b>không nhân quả</b>.", "<b>Hệ LTI:</b> dùng định lý trong slide: nhân quả ⇔ h(n) = 0 với mọi n &lt; 0."], tip: "Định lý h(n) chỉ áp dụng cho hệ tuyến tính bất biến. Hệ không bất biến thì xét trực tiếp công thức." } },
   od: { name: "Hệ ổn định", sec: "2.1", method: { t: "Cách kiểm tra hệ LTI có ổn định không", s: ["Tìm đáp ứng xung h(n).", "Tính S = Σ|h(n)| (cộng trị tuyệt đối của mọi mẫu).", "S hữu hạn → <b>ổn định</b>; S = ∞ → <b>không ổn định</b>."], tip: "Cấp số nhân: 1 + |a| + |a|² + … = 1/(1 − |a|) khi |a| &lt; 1, và bằng ∞ khi |a| ≥ 1. Hệ FIR (h hữu hạn, giá trị hữu hạn) luôn ổn định." } },
   dq: { name: "Phương trình sai phân và hệ đệ quy", sec: "2.2", method: { t: "Nhận biết và tính hệ đệ quy", s: ["Viết về dạng y(n) = (các số hạng x) + (các số hạng y quá khứ).", "Vế phải có y(n−1), y(n−2)… → <b>đệ quy</b> (có hồi tiếp, h(n) thường dài vô hạn: IIR). Chỉ có x → <b>không đệ quy</b> (FIR).", "Tính lần lượt từ n = 0, dùng điều kiện đầu y(−1), y(−2)…; muốn có công thức “nhảy cóc” thì giải theo 4 bước (nhóm bài tiếp theo)."], tip: "Đệ quy = dùng lại kết quả của chính mình ở nhịp trước, giống tiếng vọng trong hang." } },
+  dich: { name: "Hiểu phương trình sai phân bằng 3 câu hỏi", sec: "2.2", method: { t: "Cách làm 3 câu hỏi (không cần thuộc công thức)", s: ["<b>Đọc thành lời:</b> viết y(n) − a·y(n−1) = b thành y(n) = a·y(n−1) + b: bây giờ = <b>a phần</b> của nhịp trước + <b>b mới thêm</b>. Chú ý dấu: y(n) + 0,5·y(n−1) thì a = −0,5.", "<b>Câu 1 – Đích ở đâu?</b> Mức y đứng yên: K = a·K + b, nên <b>K = b : (1 − a)</b>.", "<b>Câu 2 – Lúc đầu lệch bao nhiêu?</b> Tính y(0) từ phương trình, lệch = y(0) − K.", "<b>Câu 3 – Mỗi nhịp lệch còn bao nhiêu phần?</b> Chính là a. Ghép lại: <b>y(n) = K + (y(0) − K)·aⁿ</b>."], tip: "Nhìn a là biết tính cách hệ: 0 < a < 1 tiến êm về đích; −1 < a < 0 dao động quanh đích rồi êm; |a| > 1 lệch phình ra, hệ mất ổn định. Liên hệ 4 bước: câu 3 là B1 (λ = a), câu 1 là B2 (K), câu 2 là B4 (C = lệch ban đầu)." } },
   giai: { name: "Giải phương trình sai phân 4 bước", sec: "2.2", method: { t: "Quy trình 4 bước (slide 2.2) và cách làm từng bước", s: ["<b>B1 – Nghiệm thuần nhất y₀:</b> cho vế phải bằng 0, thay y = λⁿ được phương trình đặc trưng. Hai nghiệm thực: C₁λ₁ⁿ + C₂λ₂ⁿ. Nghiệm kép: (C₁ + C₂n)λⁿ. Nghiệm phức r·e^(±jθ): rⁿ(C₁cos nθ + C₂sin nθ).", "<b>B2 – Nghiệm riêng y_p:</b> đoán cùng dạng đầu vào. Hằng số → K. bⁿ → K·bⁿ; nếu b trùng một λ → K·n·bⁿ. cos, sin → A·cos + B·sin. Thay vào phương trình để tìm hệ số.", "<b>B3 – Nghiệm tổng quát:</b> y(n) = y₀(n) + y_p(n).", "<b>B4 – Tìm hằng số C:</b> dùng phương trình và điều kiện đầu y(−1), y(−2) để tính lần lượt y(0), y(1); thay vào công thức rồi giải ra C."], tip: "Lỗi hay gặp: sai dấu khi lập phương trình đặc trưng; đoán y_p trùng nghiệm λ (ra 0 = 1); thay thẳng y(−1) vào công thức (công thức chỉ đúng với n ≥ 0). Luôn tính lần lượt 1–2 giá trị để tự kiểm tra." } },
   pt: { name: "Các phần tử thực hiện hệ thống", sec: "2.2", method: { t: "Bốn “linh kiện” lắp nên mọi hệ thống số", s: ["<b>Phần tử cộng</b> (vòng tròn +): cộng các tín hiệu cùng thời điểm. Không nhớ.", "<b>Phần tử nhân</b> (vòng tròn ×): nhân các tín hiệu với nhau, từng mẫu một. Không nhớ.", "<b>Phần tử nhân hằng số</b> (tam giác a): y(n) = a·x(n). Không nhớ.", "<b>Phần tử trễ đơn vị</b> (khối D hay z⁻¹): y(n) = x(n−1), giữ mẫu lại 1 nhịp. <b>Có nhớ.</b>"], tip: "Chú ý: slide viết phần tử nhân là y(n) = x₁(n) * x₂(n). Dấu * ở đây là nhân thường từng mẫu, KHÔNG phải tích chập." } },
   sd: { name: "Sơ đồ trực tiếp 1", sec: "2.2", method: { t: "Quy tắc vẽ sơ đồ trực tiếp 1", s: ["Viết lại: y(n) = b₀x(n) + b₁x(n−1) + … − a₁y(n−1) − a₂y(n−2) − …", "<b>Nhánh trái:</b> x(n) đi qua chuỗi bộ trễ z⁻¹ để có x(n−1), x(n−2)…; mỗi hệ số b<sub>r</sub> khác 0 là một bộ nhân.", "<b>Nhánh phải (hồi tiếp):</b> y(n) đi qua chuỗi bộ trễ để có y(n−1), y(n−2)…; mỗi hệ số −a<sub>k</sub> khác 0 là một bộ nhân.", "Mọi bộ nhân đổ về <b>một bộ cộng</b>; đầu ra bộ cộng là y(n)."], tip: "Đếm nhanh: số bộ trễ = M + N (bậc cao nhất của x và của y); số bộ nhân = số hệ số khác 0." } },
@@ -1489,6 +1570,30 @@ const EXS = [
     demo: { type: "rec", mode: "iter", x: [1, 1] },
     steps: [`${EQ("y(0) = x(0) + 0,5·y(−1) = 1 + 0 = 1")}`, `${EQ("y(1) = x(1) + 0,5·y(0) = 1 + 0,5 = 1,5")}`, `${EQ("y(2) = x(2) + 0,5·y(1) = 0 + 0,75 = 0,75")}`, `${EQ("y(3) = 0,375;  y(4) = 0,1875;  y(5) = 0,09375")}Từ n = 2 trở đi không còn tiếng hét, chỉ còn tiếng vọng giảm một nửa mỗi nhịp.`, "Kiểm tra bằng tích chập: h(n) = (0,5)ⁿ·u(n), x = δ(n) + δ(n−1) nên y(n) = h(n) + h(n−1). Ví dụ y(2) = 0,25 + 0,5 = 0,75 ✓."],
     ans: ["neu", "y = {1; 1,5; 0,75; 0,375; 0,1875; 0,09375; …}"], mean: `<p>Bảng tính lần lượt chính là cách chip DSP chạy: mỗi nhịp lấy mẫu vào mới cộng với kết quả nhịp trước đã nhân 0,5.</p>` },
+  { id: "d1", g: "dich", title: "Tiếng vọng tắt dần (không hét thêm)", q: `<p>Trong hang, ta đã ngừng hét. Mỗi nhịp tiếng vọng chỉ còn một nửa nhịp trước. Ngay trước n = 0 tiếng vọng có độ lớn 8.</p>${EQ("y(n) − 0,5·y(n−1) = 0,   y(−1) = 8")}<p>Tìm công thức y(n) với n ≥ 0.</p>`,
+    demo: { type: "dich", a: 0.5, b: 0, ym1: 8 },
+    steps: [`<b>Đọc thành lời:</b> y(n) = 0,5·y(n−1) + 0. Mỗi nhịp giữ lại một nửa (<b>a = 0,5</b>), không thêm gì (<b>b = 0</b>).`, `<b>Tính tay:</b> y(0) = 0,5 × 8 = 4; y(1) = 0,5 × 4 = 2; y(2) = 1; y(3) = 0,5.`, `<b>Đích ở đâu?</b> Không thêm gì thì cuối cùng im lặng: K = 0 : (1 − 0,5) = <b>0</b>.`, `<b>Lúc đầu lệch bao nhiêu?</b> y(0) − K = 4 − 0 = <b>4</b>.`, `<b>Viết công thức:</b> đích + lệch × aⁿ = 0 + 4·(0,5)ⁿ. ${EQ("y(n) = 4·(0,5)ⁿ")}`, `<b>Kiểm tra:</b> n = 3 cho 4 × 0,125 = 0,5, khớp với tính tay.`],
+    ans: ["neu", "y(n) = 4·(0,5)ⁿ với n ≥ 0."], mean: `<p>Không có đầu vào thì hệ tự tắt về 0. Tốc độ tắt do a quyết định: đây là “tiếng vọng thuần” của hệ, cũng chính là nghiệm thuần nhất ở B1.</p>` },
+  { id: "d2", g: "dich", title: "Bể nước rò, đổ thêm mỗi ngày", q: `<p>Mỗi đêm bể mất một nửa số nước đang có. Mỗi sáng đổ thêm 4 lít. Hôm qua (n = −1) bể rỗng.</p>${EQ("y(n) − 0,5·y(n−1) = 4,   y(−1) = 0")}<p>Bể có bao nhiêu nước vào ngày thứ n?</p>`,
+    demo: { type: "dich", a: 0.5, b: 4, ym1: 0 },
+    steps: [`<b>Đọc thành lời:</b> y(n) = 0,5·y(n−1) + 4: giữ lại một nửa (<b>a = 0,5</b>), thêm 4 lít (<b>b = 4</b>).`, `<b>Tính tay:</b> y(0) = 0,5 × 0 + 4 = 4; y(1) = 0,5 × 4 + 4 = 6; y(2) = 7; y(3) = 7,5.`, `<b>Đích ở đâu?</b> Bể đứng yên khi nước rò ra bằng nước đổ vào. Rò ra một nửa, đổ vào 4 lít, nên bể phải có <b>8 lít</b>. Bằng công thức: K = 4 : (1 − 0,5) = 8.`, `<b>Lúc đầu lệch bao nhiêu?</b> y(0) − K = 4 − 8 = <b>−4</b> (thiếu 4 lít).`, `<b>Viết công thức:</b> phần thiếu chia đôi mỗi ngày: −4; −2; −1; −0,5. ${EQ("y(n) = 8 − 4·(0,5)ⁿ")}`, `<b>Kiểm tra:</b> n = 3 cho 8 − 4 × 0,125 = 7,5, khớp với tính tay.`],
+    ans: ["neu", "y(n) = 8 − 4·(0,5)ⁿ với n ≥ 0."], mean: `<p>Bể đầy dần nhưng không bao giờ vượt 8 lít. Mức cuối chỉ phụ thuộc a và b, không phụ thuộc lúc đầu bể có bao nhiêu nước.</p>` },
+  { id: "d3", g: "dich", title: "Ly cà phê nguội dần", q: `<p>Ly cà phê 75 °C để trong phòng 25 °C. Mỗi phút, khoảng chênh giữa cà phê và phòng chỉ còn 80%: y(n) = 0,8·y(n−1) + 0,2 × 25.</p>${EQ("y(n) − 0,8·y(n−1) = 5,   y(−1) = 75")}<p>Tìm nhiệt độ cà phê sau n phút.</p>`,
+    demo: { type: "dich", a: 0.8, b: 5, ym1: 75 },
+    steps: [`<b>Đọc thành lời:</b> y(n) = 0,8·y(n−1) + 5: <b>a = 0,8</b>, <b>b = 5</b>.`, `<b>Tính tay:</b> y(0) = 0,8 × 75 + 5 = 65; y(1) = 57; y(2) = 50,6; y(3) = 45,48.`, `<b>Đích ở đâu?</b> K = 5 : (1 − 0,8) = 5 : 0,2 = <b>25 °C</b>, đúng bằng nhiệt độ phòng.`, `<b>Lúc đầu lệch bao nhiêu?</b> y(0) − K = 65 − 25 = <b>40</b> (nóng hơn phòng 40 độ).`, `<b>Viết công thức:</b> khoảng chênh mỗi phút còn 80%: 40; 32; 25,6; … ${EQ("y(n) = 25 + 40·(0,8)ⁿ")}`, `<b>Kiểm tra:</b> n = 2 cho 25 + 40 × 0,64 = 50,6, khớp với tính tay.`],
+    ans: ["neu", "y(n) = 25 + 40·(0,8)ⁿ với n ≥ 0."], mean: `<p>Lần này y đi <b>xuống</b> về đích vì lúc đầu lệch dương. a = 0,8 gần 1 nên nguội chậm: sau 10 phút vẫn còn khoảng 29,3 °C.</p>` },
+  { id: "d4", g: "dich", title: "Chỉnh quá tay (dao động quanh đích)", q: `<p>Người mới lái xe: lệch sang phải thì bẻ lái sang trái quá đà, rồi lại bẻ sang phải quá đà… Mỗi lần chỉnh, độ quá đà giảm một nửa.</p>${EQ("y(n) + 0,5·y(n−1) = 3,   y(−1) = 0")}<p>Tìm y(n) và giải thích vì sao đồ thị lên xuống.</p>`,
+    demo: { type: "dich", a: -0.5, b: 3, ym1: 0 },
+    steps: [`<b>Đọc thành lời:</b> chuyển vế: y(n) = <b>−0,5</b>·y(n−1) + 3. Chú ý dấu: <b>a = −0,5</b>, <b>b = 3</b>.`, `<b>Tính tay:</b> y(0) = 3; y(1) = −0,5 × 3 + 3 = 1,5; y(2) = 2,25; y(3) = 1,875.`, `<b>Đích ở đâu?</b> K = 3 : (1 − (−0,5)) = 3 : 1,5 = <b>2</b>.`, `<b>Lúc đầu lệch bao nhiêu?</b> y(0) − K = 3 − 2 = <b>1</b>.`, `<b>Viết công thức:</b> lệch nhân −0,5 mỗi nhịp: 1; −0,5; 0,25; −0,125. Dấu đổi liên tục. ${EQ("y(n) = 2 + (−0,5)ⁿ")}`, `<b>Kiểm tra:</b> n = 3 cho 2 − 0,125 = 1,875, khớp với tính tay.`],
+    ans: ["neu", "y(n) = 2 + (−0,5)ⁿ với n ≥ 0."], mean: `<p>a âm thì khoảng lệch đổi dấu mỗi nhịp, nên y lúc trên lúc dưới đích. Vì |a| = 0,5 &lt; 1 nên dao động nhỏ dần rồi êm.</p>` },
+  { id: "d5", g: "dich", title: "Micro rú (hệ mất ổn định)", q: `<p>Đặt micro sát loa: âm thanh ra loa bị thu lại, khuếch đại gấp đôi rồi phát ra tiếp. Thêm một tiếng động nhỏ không đổi bằng 1.</p>${EQ("y(n) − 2·y(n−1) = 1,   y(−1) = 0")}<p>Tìm y(n) và nhận xét.</p>`,
+    demo: { type: "dich", a: 2, b: 1, ym1: 0 },
+    steps: [`<b>Đọc thành lời:</b> y(n) = 2·y(n−1) + 1: mỗi nhịp <b>gấp đôi</b> (<b>a = 2</b>), thêm 1 (<b>b = 1</b>).`, `<b>Tính tay:</b> y(0) = 1; y(1) = 2 × 1 + 1 = 3; y(2) = 7; y(3) = 15.`, `<b>Đích ở đâu?</b> Theo công thức: K = 1 : (1 − 2) = <b>−1</b>. Nhưng y đang chạy ra xa, nên “đích” này chỉ có trên giấy.`, `<b>Lúc đầu lệch bao nhiêu?</b> y(0) − K = 1 − (−1) = <b>2</b>.`, `<b>Viết công thức:</b> lệch <b>nhân đôi</b> mỗi nhịp: 2; 4; 8; 16; … ${EQ("y(n) = −1 + 2·2ⁿ")}`, `<b>Kiểm tra:</b> n = 3 cho −1 + 2 × 8 = 15, khớp với tính tay.`],
+    ans: ["neu", "y(n) = −1 + 2·2ⁿ với n ≥ 0: hệ mất ổn định."], mean: `<p>a &gt; 1 nên khoảng lệch phình ra mãi: đó là tiếng rú. Công thức vẫn đúng, nhưng hệ <b>mất ổn định</b>. Người thiết kế phải giữ |a| &lt; 1.</p>` },
+  { id: "d6", g: "dich", title: "Chiều ngược lại: từ số đo tìm ra luật", q: `<p>Một hệ chưa biết bên trong, đầu vào giữ đều. Đo được đầu ra 4 nhịp đầu: <b>10; 14; 16; 17</b>. Biết luật có dạng y(n) = a·y(n−1) + b.</p><p>Tìm a, b; viết công thức y(n); dự đoán y(10).</p>`,
+    demo: { type: "ident", ys: [10, 14, 16, 17] },
+    steps: [`<b>Lập phương trình từ số đo:</b> mỗi cặp số liên tiếp cho một phương trình. ${EQ("14 = a × 10 + b")}${EQ("16 = a × 14 + b")}`, `<b>Tìm a, b:</b> trừ hai phương trình: 16 − 14 = a × (14 − 10), tức 2 = 4a, nên <b>a = 0,5</b>. Thay lại: 14 = 5 + b, nên <b>b = 9</b>.`, `<b>Kiểm tra bằng số đo thứ tư:</b> 0,5 × 16 + 9 = 17, đúng số đo. Luật tìm được là đúng.`, `<b>Trả lời 3 câu hỏi:</b> đích K = 9 : (1 − 0,5) = <b>18</b>; lệch ban đầu = 10 − 18 = <b>−8</b>; mỗi nhịp lệch còn <b>0,5</b>. ${EQ("y(n) = 18 − 8·(0,5)ⁿ")}`, `<b>Dự đoán:</b> y(10) = 18 − 8 × (0,5)¹⁰ = 18 − 8/1024 ≈ <b>17,99</b>.`],
+    ans: ["neu", "a = 0,5; b = 9; y(n) = 18 − 8·(0,5)ⁿ; y(10) ≈ 17,99."], mean: `<p>Bài 1–5 đi từ luật ra số liệu; bài này đi từ số liệu ra luật, gọi là <b>nhận dạng hệ thống</b>. Có luật rồi thì dự đoán được tương lai. Bộ lọc thích nghi LMS làm đúng việc này, liên tục và tự động.</p>` },
   { id: "dq3", g: "giai", title: "Ví dụ 1: hét đều vào hang (bậc 1, đầu vào hằng số)", q: `<p>Giải ${EQ("y(n) − 0,5·y(n−1) = x(n)")}với x(n) = u(n) (hét đều mãi), điều kiện đầu y(−1) = 0.</p>`,
     demo: { type: "solve4", a1: -0.5, a2: 0, b0: 1, b: 1, ym1: 0, ym2: 0 },
     steps: [`<b>B1 – nghiệm thuần nhất:</b> giải y(n) − 0,5·y(n−1) = 0. Thử y = λⁿ: λⁿ − 0,5·λⁿ⁻¹ = 0 ⇒ λ = 0,5. ${EQ("y₀(n) = C·(0,5)ⁿ")}`, `<b>B2 – nghiệm riêng:</b> vế phải là hằng số (u(n) = 1 với n ≥ 0), đoán y_p = K: ${EQ("K − 0,5·K = 1  ⇒  K = 2")}`, `<b>B3 – nghiệm tổng quát:</b> ${EQ("y(n) = y₀(n) + y_p(n) = C·(0,5)ⁿ + 2")}`, `<b>B4 – dùng điều kiện đầu:</b> y(0) = x(0) + 0,5·y(−1) = 1. Thay n = 0: C + 2 = 1 ⇒ C = −1. ${EQ("y(n) = 2 − (0,5)ⁿ,  n ≥ 0")}`, "Kiểm tra: y(1) = 2 − 0,5 = 1,5, trùng với tính lần lượt 1 + 0,5·1 = 1,5. Đồ thị: chấm đen (tính lần lượt) nằm đúng trong vòng xanh (công thức)."],
@@ -1540,6 +1645,8 @@ const CTRL = {
   ti: [["x", "x(n)", "list"], ["k", "Dịch k", "int", -5, 6]],
   causal: [["n0", "Xét tại n₀", "int", -6, 8]],
   stab: [["a", "Cơ số a", "num", -3, 3]],
+  dich: [["a", "a: phần giữ lại mỗi nhịp", "num", -3, 3], ["b", "b: phần thêm vào mỗi nhịp", "num", -100, 100], ["ym1", "y(−1): trước khi bắt đầu", "num", -100, 100]],
+  ident: [["ys", "Số đo y(0), y(1), …", "list", -1000, 1000]],
   solve4: [["a1", "a₁", "num", -3, 3], ["a2", "a₂", "num", -3, 3], ["b0", "b₀", "num", -10, 10], ["b", "Cơ số b của x(n) = bⁿ", "num", -2, 2], ["ym1", "y(−1)", "num", -10, 10], ["ym2", "y(−2)", "num", -10, 10]],
   conv: [["h1", "h₁(n)", "list"], ["h2", "h₂(n)", "list"], ["x", "x(n) thử", "list"]],
   rec: { iter: [["x", "x(n)", "list"]] },
@@ -1586,7 +1693,7 @@ function renderEx(scroll) {
   $("ex-title").textContent = `Bài ${e.no}. ${e.title}`;
   $("ex-q").innerHTML = e.q;
   $("ex-method").innerHTML = `<h3>${g.method.t}</h3><ol>${g.method.s.map(s => `<li>${s}</li>`).join("")}</ol><p class="tip">${g.method.tip}</p>`;
-  $("ex-demo-title").textContent = e.demo.type === "solve4" ? "Máy giải 4 bước (tự giải theo số liệu ở thanh bên)" : e.demo.type === "df1" ? "Sơ đồ thực hiện" : e.demo.type === "elem" ? "Đầu ra của từng phần tử" : "Kiểm tra bằng đồ thị";
+  $("ex-demo-title").textContent = e.demo.type === "dich" ? "Máy tính 3 câu hỏi (đổi a, b, y(−1) ở thanh bên)" : e.demo.type === "ident" ? "Tìm luật từ số đo (nhập số đo ở thanh bên)" : e.demo.type === "solve4" ? "Máy giải 4 bước (tự giải theo số liệu ở thanh bên)" : e.demo.type === "df1" ? "Sơ đồ thực hiện" : e.demo.type === "elem" ? "Đầu ra của từng phần tử" : "Kiểm tra bằng đồ thị";
   $("ex-mean").innerHTML = e.mean;
   $("ex-pos").textContent = `${i + 1} / ${EXS.length}`;
   $("ex-prev").disabled = i === 0; $("ex-next").disabled = i === EXS.length - 1;
@@ -1607,7 +1714,7 @@ $("ex-ctrl").addEventListener("input", ev => {
   const e = curEx(), S = stOf(e), k = inp.dataset.k, ty = inp.dataset.t;
   const spec = ctrlSpec(e).find(s => s[0] === k);
   let v;
-  if (ty === "list") { const r = parseList(inp.value); if (r.err) { inp.classList.add("bad"); $("ex-err").textContent = r.err; return; } v = r.vals; if (e.demo.type === "conv" && v.length > 8) { inp.classList.add("bad"); $("ex-err").textContent = "Tối đa 8 mẫu cho mỗi dãy."; return; } }
+  if (ty === "list") { const r = parseList(inp.value, spec && spec[4] != null ? spec[4] : VMAX); if (r.err) { inp.classList.add("bad"); $("ex-err").textContent = r.err; return; } v = r.vals; if (e.demo.type === "conv" && v.length > 8) { inp.classList.add("bad"); $("ex-err").textContent = "Tối đa 8 mẫu cho mỗi dãy."; return; } }
   else {
     if (inp.value.trim() === "" || inp.value.trim() === "-") return;
     v = Number(inp.value.replace(/−/g, "-").replace(",", "."));
