@@ -1,0 +1,1305 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phòng thí nghiệm biến đổi Z</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="XLTHS">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<style>
+/* Bố cục: đầu trang (trường + giảng viên) → thanh tab dính theo 6 phần của Buổi 3 → mỗi tab: bảng điều khiển (ẩn/hiện) + vùng kết quả. Một giao diện nền sáng duy nhất theo yêu cầu, không đổi sang nền tối. */
+:root{
+  --paper:#F6F7F9; --card:#FFFFFF; --ink:#0F1115; --ink2:#3B4048; --muted:#667085; --line:#E4E7EC; --line2:#D0D5DD; --soft:#F2F4F7;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05); --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px rgba(16,24,40,.06);
+  --red:#C41E3A; --red-t:#FDECEF; --green:#145F39; --green-t:#E8F5EE; --amber:#9A5B00; --amber-t:#FFF3DC;
+  --blue:#1F4E8C; --blue-t:#EAF1FB;
+  --f-body:"Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.pagehead{background:var(--card);border-bottom:1px solid var(--line)}
+.pagehead .wrap{padding-block:18px 14px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:flex-end;justify-content:space-between}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.eyebrow::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
+h1{margin:4px 0 0;font-size:clamp(22px,3.6vw,30px);font-weight:800;letter-spacing:-.015em;line-height:1.15;text-wrap:balance}
+h1 .z{color:var(--green)}
+.author{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right}
+.author small{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.author b{font-size:15px;font-weight:800;letter-spacing:.08em}
+.author span{font-size:12.5px;color:var(--muted)}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm)}
+nav.tabs .wrap{display:flex;gap:8px;align-items:center}
+.tablist{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;margin-block:8px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tablist::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:0;background:none;font:600 14px var(--f-body);color:var(--ink2);padding:8px 14px;border-radius:9px;cursor:pointer;min-height:40px;white-space:nowrap}
+.tab .no{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-right:6px}
+.tab:hover{background:rgba(255,255,255,.7);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.tab[aria-selected="true"] .no{color:var(--red)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.toggle{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;border:1px solid var(--line2);background:var(--card);box-shadow:var(--shadow-sm);border-radius:10px;font:600 13px var(--f-body);padding:8px 12px;min-height:44px;cursor:pointer;color:var(--ink)}
+main .wrap{padding-block:18px 40px}
+.panel-grid{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:18px;align-items:start}
+body.hide-controls .panel-grid{grid-template-columns:minmax(0,1fr)}
+body.hide-controls aside.controls{display:none}
+aside.controls{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);max-height:calc(100vh - 100px);overflow:auto}
+.out{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0;box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px;font-size:17px;font-weight:700;text-wrap:balance}
+.card h3{margin:14px 0 6px;font-size:14.5px;font-weight:700}
+.intro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.intro div{border-radius:12px;padding:12px 14px;font-size:14px}
+.intro .why{background:var(--red-t)}
+.intro .what{background:var(--blue-t)}
+.intro .use{background:var(--green-t)}
+.intro b{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.intro .why b{color:var(--red)} .intro .what b{color:var(--blue)} .intro .use b{color:var(--green)}
+.ref{font-size:12.5px;color:var(--muted);margin-top:8px}
+.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field small{color:var(--muted);font-size:12.5px;line-height:1.4}
+input[type=text],input[type=number],select{font:500 15px var(--f-mono);padding:9px 10px;border:1px solid var(--line2);border-radius:9px;background:#fff;color:var(--ink);min-height:44px;width:100%}
+select{font-family:var(--f-body)}
+input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:7px 12px;font:500 13.5px var(--f-body);cursor:pointer;min-height:40px;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--green-t);border-color:var(--green);color:var(--green);font-weight:700}
+.chip.small{min-height:36px;padding:5px 10px;font-size:13px}
+.btn{border:1px solid var(--red);background:var(--red);color:#fff;box-shadow:0 1px 2px rgba(196,30,58,.25);border-radius:10px;font:600 14px var(--f-body);padding:9px 14px;min-height:44px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line2);box-shadow:var(--shadow-sm)}
+.math{font-family:var(--f-mono);font-size:15px}
+.big{font-size:17px;line-height:2.1}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span{white-space:nowrap}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px 2px}
+.frac>span:last-child{padding:2px 4px 0}
+sup{font-size:.72em;line-height:0}
+.res{background:var(--green-t);border-radius:10px;padding:10px 14px;margin-top:10px;overflow-x:auto}
+.warn{background:var(--amber-t);border-radius:10px;padding:10px 14px;margin-top:10px;color:#4a3000}
+.bad{background:var(--red-t);border-radius:10px;padding:10px 14px;margin-top:10px}
+.ok{color:var(--green);font-weight:700}
+.no-ok{color:var(--red);font-weight:700}
+.plot{width:100%;overflow:hidden}
+.plot svg{display:block}
+.zbox{display:flex;justify-content:center}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tbl-wrap{overflow-x:auto}
+table.t{border-collapse:collapse;font-size:14px;width:100%}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-variant-numeric:tabular-nums}
+table.t th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.t td.m{font-family:var(--f-mono)}
+.grid-mul{border-collapse:separate;border-spacing:4px;font-family:var(--f-mono);font-size:14px}
+.grid-mul td,.grid-mul th{padding:8px 10px;border-radius:8px;text-align:center;white-space:nowrap}
+.grid-mul th{background:var(--soft);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--ink2);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.key{font-size:13.5px;color:var(--ink2)}
+.close{border-left:4px solid var(--green);background:var(--green-t);padding:10px 14px;border-radius:0 10px 10px 0;font-weight:600}
+.next{border-left:4px solid var(--red);background:var(--red-t);padding:10px 14px;border-radius:0 10px 10px 0;margin-top:8px}
+.steps{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{content:counter(s);width:28px;height:28px;border-radius:8px;background:var(--red-t);color:var(--red);display:grid;place-items:center;font:700 13px var(--f-mono)}
+.steps li>div{min-width:0;overflow-x:auto}
+.ex-group{margin-top:6px}
+.ex{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;box-shadow:var(--shadow-sm)}
+.ex+.ex{margin-top:10px}
+.ex .hd{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between}
+.ex .id{font:700 13px var(--f-mono);color:var(--red);margin-right:8px}
+.ex .q{margin:6px 0 8px}
+.ex .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ex .sol{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.ex .sol>div{background:var(--soft);border-radius:9px;padding:8px 12px;overflow-x:auto}
+.ex .mean{background:var(--green-t)!important}
+.switch{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;cursor:pointer;min-height:44px}
+.switch input{width:20px;height:20px;accent-color:var(--green)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+footer{color:var(--muted);font-size:12.5px;padding-block:6px 30px}
+@media (max-width: 900px){
+  .panel-grid{grid-template-columns:minmax(0,1fr)}
+  aside.controls{position:static;max-height:none}
+  .intro{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width: 600px){
+  .toggle span{display:none}
+  .author{align-items:flex-start;text-align:left}
+  .author span{display:none}
+  .pagehead .wrap{flex-direction:column;align-items:flex-start}
+}
+@media (max-width: 520px){
+  body{font-size:15px}
+  .card{padding:14px}
+  .big{font-size:15.5px}
+  .tab{padding:8px 11px;font-size:13.5px}
+  .toggle{font-size:12.5px;padding:8px 10px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+<style>.sitebar{position:relative}</style>
+</head>
+<body>
+<header class="sitebar"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="XLTHS – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19" stroke="#98A2B3" stroke-width="1.4"/><path d="M5.5 20V6.5M10.5 20V10.5M15 20v-6M19 20v-3.5" stroke="#C41E3A" stroke-width="2" stroke-linecap="round"/><circle cx="5.5" cy="5.8" r="2.1" fill="#C41E3A"/><circle cx="10.5" cy="9.8" r="2.1" fill="#C41E3A"/><circle cx="15" cy="13.4" r="2.1" fill="#1A7F4B"/><circle cx="19" cy="15.9" r="1.9" fill="#1A7F4B"/></svg></span><span class="brand-t"><b>XLTHS</b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html" aria-current="page"><span class="n">03</span>Biến đổi Z</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 3</div>
+      <h1>Phòng thí nghiệm <span class="z">biến đổi Z</span></h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của Buổi 3">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="conv" id="tb-conv"><span class="no">0</span>Ý tưởng z⁻¹</button>
+      <button class="tab" role="tab" data-tab="roc" id="tb-roc"><span class="no">1–2</span>Biến đổi Z &amp; ROC</button>
+      <button class="tab" role="tab" data-tab="pz" id="tb-pz"><span class="no">3</span>Cực – không</button>
+      <button class="tab" role="tab" data-tab="izt" id="tb-izt"><span class="no">4</span>Z ngược</button>
+      <button class="tab" role="tab" data-tab="prop" id="tb-prop"><span class="no">5</span>Tính chất</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ============ TAB 0: Ý TƯỞNG ============ -->
+<section class="tabpanel" id="p-conv" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Dãy x(n)</span>
+        <input type="text" id="cv-x" value="1 2 3" aria-label="Các mẫu của x(n)">
+        <small>Các mẫu cách nhau bằng dấu cách. Số thập phân viết 0,5 hoặc 0.5.</small></div>
+      <div class="field"><span class="lbl">x(n) bắt đầu tại n =</span><input type="number" id="cv-x0" value="0" step="1"></div>
+      <div class="field"><span class="lbl">Dãy h(n)</span><input type="text" id="cv-h" value="1 1" aria-label="Các mẫu của h(n)"></div>
+      <div class="field"><span class="lbl">h(n) bắt đầu tại n =</span><input type="number" id="cv-h0" value="0" step="1"></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips">
+          <button class="chip small" data-cv="1 2 3|0|1 1|0">123 × 11</button>
+          <button class="chip small" data-cv="1 2 1|0|1 -1|0">{1,2,1}*{1,−1}</button>
+          <button class="chip small" data-cv="1 1 1|0|1 1 1|0">rect₃ * rect₃</button>
+          <button class="chip small" data-cv="2 1 -1|-1|1 0,5 0,25|0">Có n âm</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Tích chập chính là nhân đa thức</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Buổi 2 tính tích chập phải lật, dịch, nhân, cộng cho từng n. Rất dễ nhầm.</div>
+          <div class="what"><b>Ý tưởng</b>Gắn cho mẫu ở vị trí n một nhãn z⁻ⁿ. Dãy thành đa thức; z⁻¹ nghĩa là “trễ 1 nhịp”.</div>
+          <div class="use"><b>Ứng dụng</b>Nhân hai đa thức là ra ngay tích chập. MATLAB dùng cùng lệnh <span class="mono">conv</span> cho cả hai việc.</div>
+        </div>
+        <div class="ref">Mở đầu Buổi 3 · nối từ tích chập Buổi 2 (mục 2.1.2.2)</div>
+      </div>
+      <div class="card">
+        <h2>Bước 1. Viết mỗi dãy thành đa thức theo z⁻¹</h2>
+        <div class="math big" id="cv-poly"></div>
+      </div>
+      <div class="card">
+        <h2>Bước 2. Nhân từng cặp, ô cùng màu có cùng nhãn z⁻ⁿ</h2>
+        <div class="tbl-wrap" id="cv-grid"></div>
+        <p class="key">Ô ở hàng x(k), cột h(m) mang nhãn z⁻⁽ᵏ⁺ᵐ⁾. Cộng các ô cùng màu là được hệ số của y(n) với n = k + m. Đây đúng là quy tắc của tích chập.</p>
+      </div>
+      <div class="card">
+        <h2>Bước 3. Đọc kết quả</h2>
+        <div class="math big" id="cv-res"></div>
+        <div id="cv-num"></div>
+        <div class="plot" id="cv-plot"></div>
+        <div class="legend"><span><i style="background:var(--blue)"></i>x(n)</span><span><i style="background:var(--amber)"></i>h(n)</span><span><i style="background:var(--green)"></i>y(n) = x(n) * h(n)</span></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: dãy số = đa thức theo z⁻¹; tích chập = nhân đa thức.</div>
+        <div class="next"><b>Còn vướng →</b> dãy dài vô hạn như tiếng vọng {1; 0,5; 0,25; …} thì đa thức thành chuỗi vô hạn. Cần định nghĩa chung và biết khi nào chuỗi hội tụ (tab 1–2).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 1-2: ZT & ROC ============ -->
+<section class="tabpanel" id="p-roc" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Chọn dãy x(n)</span>
+        <select id="rc-preset">
+          <option value="an">aⁿ·u(n) — phía phải</option>
+          <option value="anm">−aⁿ·u(−n−1) — phía trái</option>
+          <option value="aabs">a^|n| — hai phía</option>
+          <option value="u">u(n)</option>
+          <option value="um">−u(−n−1)</option>
+          <option value="nan">n·aⁿ·u(n)</option>
+          <option value="delta">δ(n − k)</option>
+          <option value="rect">rect_N(n)</option>
+          <option value="cos">cos(ω₀n)·u(n)</option>
+          <option value="sin">sin(ω₀n)·u(n)</option>
+          <option value="custom">Dãy hữu hạn tự nhập</option>
+        </select></div>
+      <div class="field" id="rc-f-a"><span class="lbl">Tham số a = <span id="rc-a-v" class="mono"></span></span>
+        <input type="range" id="rc-a" min="-2.5" max="2.5" step="0.05" value="0.5"></div>
+      <div class="field" id="rc-f-k"><span class="lbl">Độ trễ k</span><input type="number" id="rc-k" value="2" min="-5" max="5" step="1"></div>
+      <div class="field" id="rc-f-N"><span class="lbl">Chiều dài N</span><input type="number" id="rc-N" value="4" min="1" max="10" step="1"></div>
+      <div class="field" id="rc-f-w"><span class="lbl">ω₀ = <span id="rc-w-v" class="mono"></span></span>
+        <input type="range" id="rc-w" min="0.05" max="1" step="0.05" value="0.25"><small>Tính theo π (0,25 nghĩa là ω₀ = π/4).</small></div>
+      <div class="field" id="rc-f-c"><span class="lbl">Các mẫu</span><input type="text" id="rc-c" value="2 0 1 3">
+        <span class="lbl" style="margin-top:6px">bắt đầu tại n =</span><input type="number" id="rc-c0" value="-2" step="1"></div>
+      <div class="field"><span class="lbl">Điểm thử |z| = r = <span id="rc-r-v" class="mono"></span></span>
+        <input type="range" id="rc-r" min="0" max="1" step="0.001" value="0.62">
+        <small>Kéo để đổi bán kính điểm thử. Phần mềm kiểm tra chuỗi Σ x(n)z⁻ⁿ có hội tụ tại đó không.</small></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Định nghĩa biến đổi Z và miền hội tụ</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Dãy dài vô hạn cho tổng vô hạn. Tổng đó lúc ra số, lúc ra vô cùng, tuỳ z.</div>
+          <div class="what"><b>Là gì</b>X(z) = Σ x(n)·z⁻ⁿ. Tập các z làm tổng hữu hạn là miền hội tụ (ROC), luôn ghi kèm X(z).</div>
+          <div class="use"><b>Ứng dụng</b>ROC cho biết dãy nằm phía nào của trục thời gian. Buổi 4 dùng ROC để xét hệ nhân quả và ổn định.</div>
+        </div>
+        <div class="ref">Mục 3.1.1 (định nghĩa), 3.1.2 (mặt phẳng z, tiêu chuẩn Cauchy, Rx−, Rx+), 3.1.3 (bảng)</div>
+      </div>
+      <div class="card">
+        <h2>Dãy x(n)</h2>
+        <div class="math big" id="rc-xdef"></div>
+        <div class="plot" id="rc-xplot"></div>
+      </div>
+      <div class="two">
+        <div class="card">
+          <h2>Biến đổi Z và ROC</h2>
+          <div class="math big" id="rc-X"></div>
+          <div id="rc-rocinfo"></div>
+        </div>
+        <div class="card">
+          <h2>Mặt phẳng z</h2>
+          <div class="zbox plot" id="rc-z"></div>
+          <div class="legend"><span><i style="background:var(--green-t);border:1px solid var(--green)"></i>ROC</span><span><i style="background:var(--red)"></i>Điểm cực ×</span><span><i style="background:#fff;border:2px solid var(--green)"></i>Điểm không ○</span><span><i style="background:var(--blue)"></i>Vòng thử</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Tiêu chuẩn Cauchy tại điểm thử: các số hạng |x(n)·z⁻ⁿ| có nhỏ dần về cả hai phía không?</h2>
+        <div class="plot" id="rc-terms"></div>
+        <div class="legend"><span><i style="background:var(--green)"></i>n ≥ 0: phần X₁(z), hội tụ khi |z| &gt; Rx−</span><span><i style="background:var(--red)"></i>n &lt; 0: phần X₂(z), hội tụ khi |z| &lt; Rx+</span></div>
+        <div id="rc-verdict"></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: không có ROC thì X(z) chưa nói được x(n) là dãy nào. So aⁿ·u(n) với −aⁿ·u(−n−1): cùng công thức, khác ROC.</div>
+        <div class="next"><b>Còn vướng →</b> biên của ROC nằm ở đâu? Ở các điểm X(z) bằng vô cùng, tức điểm cực (tab 3).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 3: CỰC KHÔNG ============ -->
+<section class="tabpanel" id="p-pz" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tử số N(z), lũy thừa giảm dần của z</span>
+        <input type="text" id="pz-N" value="1 2"><small>“1 2” nghĩa là z + 2.</small></div>
+      <div class="field"><span class="lbl">Mẫu số D(z), lũy thừa giảm dần của z</span>
+        <input type="text" id="pz-D" value="1 -3 2"><small>“1 −3 2” nghĩa là z² − 3z + 2.</small></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips">
+          <button class="chip small" data-pz="1 2|1 -3 2">Bài giảng: (z+2)/(z²−3z+2)</button>
+          <button class="chip small" data-pz="1 0 -1|1 0 -0,25">(z²−1)/(z²−0,25)</button>
+          <button class="chip small" data-pz="1 0 0 0 -1|1 -1 0 0 0">rect₄: triệt tiêu</button>
+          <button class="chip small" data-pz="1 0 0|1 0 0,25">Cực phức ±0,5j</button>
+          <button class="chip small" data-pz="1 0|1 -1 0,25">Cực bội 0,5</button>
+        </div></div>
+      <hr style="border:0;border-top:1px solid var(--line);width:100%">
+      <span class="lbl">Thử đặt điểm cực</span>
+      <div class="field"><span class="lbl">Bán kính r = <span class="mono" id="pz-r-v"></span></span><input type="range" id="pz-r" min="0.1" max="1.3" step="0.01" value="0.8"></div>
+      <div class="field"><span class="lbl">Góc θ = <span class="mono" id="pz-t-v"></span></span><input type="range" id="pz-t" min="0" max="180" step="5" value="45"></div>
+      <div class="chips"><button class="chip small" data-pzp="0.8|0">Thực dương</button><button class="chip small" data-pzp="0.8|180">Thực âm</button><button class="chip small" data-pzp="0.85|45">Cặp phức</button><button class="chip small" data-pzp="1|60">Trên vòng tròn</button><button class="chip small" data-pzp="1.1|30">Ngoài vòng tròn</button></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Điểm cực, điểm không</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Đọc cả biểu thức X(z) rất mệt. Vài điểm đặc biệt đã nói lên gần hết tính chất của dãy.</div>
+          <div class="what"><b>Là gì</b>Điểm không: X(z) = 0, nghiệm tử số. Điểm cực: X(z) → ∞, nghiệm mẫu số.</div>
+          <div class="use"><b>Ứng dụng</b>Thiết kế bộ lọc (Buổi 7–9) là đặt cực, không vào chỗ mong muốn, ví dụ đặt không để triệt nhiễu 50 Hz trên điện tim.</div>
+        </div>
+        <div class="ref">Mục 3.1.2.3 (điểm cực, điểm không). Lưu ý: bản gốc ghi nhầm “điểm cực là nơi X(z) = 0”.</div>
+      </div>
+      <div class="two">
+        <div class="card">
+          <h2>X(z) đã nhập</h2>
+          <div class="math big" id="pz-X"></div>
+          <div id="pz-list"></div>
+        </div>
+        <div class="card">
+          <h2>Mặt phẳng z</h2>
+          <div class="zbox plot" id="pz-z"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Các ROC có thể có và loại dãy tương ứng</h2>
+        <div id="pz-rocs"></div>
+      </div>
+      <div class="card">
+        <h2>Vị trí điểm cực quyết định dáng của dãy (dãy nhân quả)</h2>
+        <div class="two">
+          <div class="zbox plot" id="pz-z2"></div>
+          <div><div class="plot" id="pz-h"></div><div id="pz-say"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: điểm cực vẽ biên ROC và quyết định dãy tắt dần hay lớn dần.</div>
+        <div class="next"><b>Còn vướng →</b> tính xong trong miền z rồi, làm sao quay về x(n)? (tab 4)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 4: Z NGƯỢC ============ -->
+<section class="tabpanel" id="p-izt" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tử số N(z), lũy thừa giảm dần</span><input type="text" id="iz-N" value="1 2"></div>
+      <div class="field"><span class="lbl">Mẫu số D(z), lũy thừa giảm dần</span><input type="text" id="iz-D" value="1 -3 2"></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <select id="iz-preset">
+          <option value="">— Chọn ví dụ —</option>
+          <option value="1 0|1 -0,5">Bài giảng 3.2.1: z/(z − ½)</option>
+          <option value="1 0|1 -2">Bài giảng 3.2.2: z/(z − 2)</option>
+          <option value="1 2|1 -3 2">Bài giảng 3.2.3: (z + 2)/(z² − 3z + 2)</option>
+          <option value="1 0 0|1 -0,75 0,125">Hai cực đơn: z²/((z − 0,5)(z − 0,25))</option>
+          <option value="1 0|1 -1 0,25">Cực bội: z/(z − 0,5)²</option>
+          <option value="1 0 0|1 -3 3 -1">Cực bội bậc 3: z²/(z − 1)³</option>
+          <option value="1 0 0|1 0 0,25">Cực phức: z²/(z² + 0,25)</option>
+          <option value="1 0 0|1 -1,5 0,5">Bình rò nước Buổi 2: z²/((z − 0,5)(z − 1))</option>
+          <option value="1 1 1|1 -0,5">Bậc tử lớn hơn: (z² + z + 1)/(z − 0,5)</option>
+        </select></div>
+      <div class="field"><span class="lbl">Chọn miền hội tụ</span><div class="chips" id="iz-rocs"></div></div>
+      <div class="field"><span class="lbl">Phương pháp</span>
+        <div class="chips" id="iz-methods">
+          <button class="chip small" data-m="pf" aria-pressed="true">Phân thức tối giản</button>
+          <button class="chip small" data-m="ps" aria-pressed="false">Chuỗi lũy thừa</button>
+          <button class="chip small" data-m="res" aria-pressed="false">Thặng dư</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Biến đổi Z ngược: ba đường quay về x(n)</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Sang miền z để nhân cho dễ; xong việc phải quay về dãy số.</div>
+          <div class="what"><b>Ba cách</b>Thặng dư (tính tích phân), chuỗi lũy thừa (chia đa thức), phân thức tối giản (tách thành mảnh có trong bảng).</div>
+          <div class="use"><b>Ứng dụng</b>Buổi 4 giải phương trình sai phân đúng bằng các bước này. MATLAB: <span class="mono">residuez</span>, <span class="mono">impz</span>.</div>
+        </div>
+        <div class="ref">Mục 3.2.1, 3.2.2, 3.2.3. Đổi ROC để thấy cùng X(z) cho các dãy khác nhau.</div>
+      </div>
+      <div class="card">
+        <h2>X(z) và ROC đang chọn</h2>
+        <div class="math big" id="iz-X"></div>
+      </div>
+      <div class="card" id="iz-method-card">
+        <h2 id="iz-mtitle"></h2>
+        <div id="iz-steps"></div>
+      </div>
+      <div class="card">
+        <h2>Kết quả x(n)</h2>
+        <div class="res math" id="iz-result"></div>
+        <div class="plot" id="iz-plot"></div>
+        <div id="iz-check"></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: tách thành mảnh có trong bảng, tra bảng theo ROC, cộng lại.</div>
+        <div class="next"><b>Còn vướng →</b> mỗi dãy mới lại lấy tổng từ định nghĩa thì vẫn mệt. Cần các quy tắc biến đổi nhanh (tab 5).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 5: TÍNH CHẤT ============ -->
+<section class="tabpanel" id="p-prop" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tính chất</span>
+        <div class="chips" id="pr-props">
+          <button class="chip small" data-p="lin">Tuyến tính</button>
+          <button class="chip small" data-p="delay">Trễ</button>
+          <button class="chip small" data-p="scale">Nhân aⁿ</button>
+          <button class="chip small" data-p="nmul">Nhân n</button>
+          <button class="chip small" data-p="conv">Tích chập</button>
+          <button class="chip small" data-p="corr">Tương quan</button>
+          <button class="chip small" data-p="init">Giá trị ban đầu</button>
+        </div></div>
+      <div id="pr-x1box">
+        <div class="field"><span class="lbl">Dãy x₁(n)</span><select id="pr-x1"></select></div>
+        <div class="row2" style="margin-top:8px">
+          <div class="field"><span class="lbl">a của x₁</span><input type="number" id="pr-a1" value="0.5" step="0.1"></div>
+          <div class="field"><span class="lbl">N của x₁</span><input type="number" id="pr-N1" value="3" min="1" max="10" step="1"></div>
+        </div>
+      </div>
+      <div id="pr-x2box">
+        <div class="field"><span class="lbl">Dãy x₂(n)</span><select id="pr-x2"></select></div>
+        <div class="row2" style="margin-top:8px">
+          <div class="field"><span class="lbl">a của x₂</span><input type="number" id="pr-a2" value="1" step="0.1"></div>
+          <div class="field"><span class="lbl">N của x₂</span><input type="number" id="pr-N2" value="3" min="1" max="10" step="1"></div>
+        </div>
+      </div>
+      <div class="row2" id="pr-ab"><div class="field"><span class="lbl">Hệ số α</span><input type="number" id="pr-al" value="1" step="0.5"></div><div class="field"><span class="lbl">Hệ số β</span><input type="number" id="pr-be" value="2" step="0.5"></div></div>
+      <div class="field" id="pr-n0box"><span class="lbl">Độ trễ n₀</span><input type="number" id="pr-n0" value="1" step="1" min="-6" max="6"></div>
+      <div class="field" id="pr-bbox"><span class="lbl">Nhân với bⁿ, b =</span><input type="number" id="pr-b" value="0.5" step="0.1"></div>
+      <div id="pr-corrbox">
+        <div class="field"><span class="lbl">x(n), các mẫu</span><input type="text" id="pr-cx" value="1 1 1"></div>
+        <div class="field" style="margin-top:8px"><span class="lbl">y(n), các mẫu</span><input type="text" id="pr-cy" value="1 1 1"><small>Cả hai bắt đầu tại n = 0.</small></div>
+      </div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Các tính chất: phím tắt thay cho lấy tổng</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Mỗi dãy mới mà lấy tổng lại từ định nghĩa thì rất tốn công.</div>
+          <div class="what"><b>Là gì</b>Một thao tác trên dãy (dịch, nhân, chập…) ứng với một thao tác đơn giản trên X(z).</div>
+          <div class="use" id="pr-use"><b>Ứng dụng</b></div>
+        </div>
+        <div class="ref" id="pr-ref">Mục 3.3</div>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Miền n</h2><div class="math" id="pr-n"></div><div class="plot" id="pr-nplot"></div><div class="legend" id="pr-leg"></div></div>
+        <div class="card"><h2>Miền z</h2><div class="math" id="pr-z"></div><div class="two" id="pr-zz"></div></div>
+      </div>
+      <div class="card"><h2>Kiểm tra hai miền khớp nhau</h2><div id="pr-check"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 6: BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải. Bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Định nghĩa, ROC</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. Cực – không</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Z ngược</button>
+          <button class="chip small" data-g="D" aria-pressed="false">D. Tính chất</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Bài tập Buổi 3 có lời giải</h2>
+        <p class="key" style="margin:0">20 bài theo đúng thứ tự bài giảng. Đáp án đã đối chiếu bằng máy. Nút “Mở trong phòng thí nghiệm” nạp sẵn số liệu của bài vào tab tương ứng để kiểm tra trực quan.</p>
+      </div>
+      <div id="ex-list"></div>
+    </div>
+  </div>
+</section>
+
+<footer>Phòng thí nghiệm biến đổi Z · Xử lý tín hiệu số, Buổi 3 · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+
+<script>
+"use strict";
+/* =================== TIỆN ÍCH SỐ =================== */
+const $ = id => document.getElementById(id);
+const EPS = 1e-9;
+function fmt(v, dp = 4){
+  if (v === Infinity) return '∞'; if (v === -Infinity) return '−∞';
+  if (!isFinite(v)) return '?';
+  if (Math.abs(v) < 5e-10) return '0';
+  let s = (+v.toFixed(dp)).toString();
+  if (s.includes('e')) s = v.toPrecision(4);
+  return s.replace('-', '−').replace('.', ',');
+}
+const C = (re, im = 0) => ({re, im});
+const cadd = (a, b) => C(a.re + b.re, a.im + b.im);
+const csub = (a, b) => C(a.re - b.re, a.im - b.im);
+const cmul = (a, b) => C(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re);
+const cdiv = (a, b) => { const d = b.re * b.re + b.im * b.im; return C((a.re * b.re + a.im * b.im) / d, (a.im * b.re - a.re * b.im) / d); };
+const cabs = a => Math.hypot(a.re, a.im);
+const carg = a => Math.atan2(a.im, a.re);
+const cscale = (a, s) => C(a.re * s, a.im * s);
+function cpowi(a, n){
+  const r = cabs(a);
+  if (r === 0) return n === 0 ? C(1) : (n > 0 ? C(0) : C(Infinity));
+  const t = carg(a), R = Math.pow(r, n);
+  return C(R * Math.cos(n * t), R * Math.sin(n * t));
+}
+function fmtc(z, dp = 4){
+  const re = Math.abs(z.re) < 5e-10 ? 0 : z.re, im = Math.abs(z.im) < 5e-10 ? 0 : z.im;
+  if (im === 0) return fmt(re, dp);
+  const ims = fmt(Math.abs(im), dp); const jpart = (ims === '1' ? '' : ims) + 'j';
+  if (re === 0) return (im < 0 ? '−' : '') + jpart;
+  return fmt(re, dp) + (im < 0 ? ' − ' : ' + ') + jpart;
+}
+function parseNum(s){
+  s = s.trim().replace(/−/g, '-').replace(',', '.');
+  if (s.includes('/')){ const [a, b] = s.split('/'); return parseFloat(a) / parseFloat(b); }
+  return parseFloat(s);
+}
+function parseList(s){
+  const out = String(s).trim().split(/[\s;]+/).filter(Boolean).map(parseNum);
+  return out.some(v => !isFinite(v)) ? null : out;
+}
+const trimLead = c => { let i = 0; while (i < c.length - 1 && Math.abs(c[i]) < 1e-14) i++; return c.slice(i); };
+function conv(a, b){ const r = new Array(a.length + b.length - 1).fill(0); a.forEach((x, i) => b.forEach((y, j) => { r[i + j] += x * y; })); return r; }
+function polyAdd(a, b){ // mảng tăng dần (cùng gốc)
+  const n = Math.max(a.length, b.length), r = [];
+  for (let i = 0; i < n; i++) r.push((a[i] || 0) + (b[i] || 0)); return r;
+}
+function polyDivDesc(N, D){ // chia đa thức (giảm dần)
+  N = N.slice(); const q = [];
+  while (N.length >= D.length){ const f = N[0] / D[0]; q.push(f); for (let i = 0; i < D.length; i++) N[i] -= f * D[i]; N.shift(); }
+  return {q: q.length ? q : [0], r: N.length ? N : [0]};
+}
+function polyvalC(c, z){ let r = C(0); for (const a of c) r = cadd(cmul(r, z), C(a)); return r; } // giảm dần
+/* ---------- Nghiệm đa thức ---------- */
+function roots(c0){
+  let c = trimLead(c0.slice()); let z0 = 0;
+  while (c.length > 1 && Math.abs(c[c.length - 1]) < 1e-14){ c.pop(); z0++; }
+  const n = c.length - 1; let r = [];
+  if (n === 1) r = [C(-c[1] / c[0])];
+  else if (n === 2){
+    const [a, b, cc] = c, d = b * b - 4 * a * cc;
+    if (d >= 0){ const s = Math.sqrt(d); const q = -0.5 * (b + (b >= 0 ? s : -s)); r = q === 0 ? [C(0), C(0)] : [C(q / a), C(cc / q)]; }
+    else { const s = Math.sqrt(-d); r = [C(-b / (2 * a), s / (2 * a)), C(-b / (2 * a), -s / (2 * a))]; }
+  } else if (n > 2){
+    const a = c.map(v => v / c[0]); const R = 1 + Math.max(...a.slice(1).map(Math.abs));
+    let z = []; for (let k = 0; k < n; k++){ const t = 2 * Math.PI * k / n + 0.4; z.push(C(R * 0.9 * Math.cos(t), R * 0.9 * Math.sin(t))); }
+    for (let it = 0; it < 800; it++){
+      let mv = 0;
+      for (let k = 0; k < n; k++){
+        let num = polyvalC(a, z[k]), den = C(1);
+        for (let j = 0; j < n; j++) if (j !== k) den = cmul(den, csub(z[k], z[j]));
+        const dz = cdiv(num, den); z[k] = csub(z[k], dz); mv = Math.max(mv, cabs(dz));
+      }
+      if (mv < 1e-15) break;
+    }
+    r = z;
+  }
+  for (let i = 0; i < z0; i++) r.push(C(0));
+  return r.map(cleanC);
+}
+function cleanC(z){
+  let {re, im} = z; const m = Math.max(1, cabs(z));
+  if (Math.abs(im) < 1e-8 * m) im = 0;
+  if (Math.abs(re) < 1e-10 * m) re = 0;
+  const rr = Math.round(re * 1e8) / 1e8, ri = Math.round(im * 1e8) / 1e8;
+  if (Math.abs(rr - re) < 1e-9) re = rr; if (Math.abs(ri - im) < 1e-9) im = ri;
+  return C(re, im);
+}
+function polyDerDesc(c){ const d = c.length - 1; return c.slice(0, -1).map((v, i) => v * (d - i)); }
+function groupRoots(rs, tol = 3e-3, poly = null){
+  const g = [];
+  rs.forEach(z => {
+    const f = g.find(o => cabs(csub(cscale(o.sum, 1 / o.m), z)) < tol * Math.max(1, cabs(z)));
+    if (f){ f.sum = cadd(f.sum, z); f.m++; } else g.push({sum: z, m: 1});
+  });
+  return g.map(o => {
+    let z = cscale(o.sum, 1 / o.m);
+    if (poly && o.m > 1){ // nghiệm bội m là nghiệm đơn của đạo hàm bậc m−1 → Newton cho chính xác
+      let q = poly.slice(); for (let i = 0; i < o.m - 1; i++) q = polyDerDesc(q);
+      const dq = polyDerDesc(q);
+      for (let it = 0; it < 40; it++){ const fz = polyvalC(q, z), dz = polyvalC(dq, z); if (cabs(dz) < 1e-300) break; const st = cdiv(fz, dz); z = csub(z, st); if (cabs(st) < 1e-15) break; }
+    }
+    return {z: cleanC(z), m: o.m};
+  });
+}
+const rootsG = c => groupRoots(roots(c), 3e-3, trimLead(c));
+/* ---------- Khai triển Taylor & chuỗi ---------- */
+function taylorAt(c, p, K){ // c giảm dần (thực), trả về hệ số tăng dần theo t tại z = p + t
+  let arr = c.map(v => C(v)); const out = [];
+  for (let k = 0; k <= K; k++){
+    if (arr.length === 0){ out.push(C(0)); continue; }
+    const b = [arr[0]]; for (let i = 1; i < arr.length; i++) b.push(cadd(arr[i], cmul(p, b[i - 1])));
+    out.push(b[b.length - 1]); arr = b.slice(0, -1);
+  }
+  return out;
+}
+function smul(a, b, K){ const r = []; for (let k = 0; k <= K; k++){ let s = C(0); for (let i = 0; i <= k; i++) if (a[i] && b[k - i]) s = cadd(s, cmul(a[i], b[k - i])); r.push(s); } return r; }
+function sdiv(a, b, K){ const q = []; for (let k = 0; k <= K; k++){ let s = a[k] || C(0); for (let i = 1; i <= k; i++) if (b[i]) s = csub(s, cmul(b[i], q[k - i])); q.push(cdiv(s, b[0])); } return q; }
+/* Phần chính của num/den tại mọi cực: hệ số C_j của 1/(z − p)^j */
+function principalParts(num, den){
+  den = trimLead(den); const lead = den[0];
+  const poles = rootsG(den);
+  return poles.map(({z: p, m: s}) => {
+    const K = s - 1;
+    const nT = taylorAt(trimLead(num), p, K);
+    let dS = [C(lead)];
+    poles.forEach(q => { if (q.z === p) return; const f = [csub(p, q.z), C(1)]; for (let i = 0; i < q.m; i++) dS = smul(dS, f, K); });
+    const G = sdiv(nT, dS, K);
+    const coef = []; for (let j = 1; j <= s; j++) coef.push(G[s - j]);
+    return {p, s, coef};
+  });
+}
+/* ---------- Biến đổi Z ngược theo phương pháp X(z)/z của bài giảng ---------- */
+function izt(N, D){
+  N = trimLead(N); D = trimLead(D);
+  let S = [], R = N;
+  if (N.length > D.length){ const d = polyDivDesc(N, D); S = d.q; R = d.r; }
+  const pp = principalParts(R, [...D, 0]);
+  const deltas = {}; const terms = [];
+  // phần nguyên S(z) = Σ s_i z^(deg−i) ↔ δ(n + k)
+  S.forEach((s, i) => { const k = S.length - 1 - i; if (Math.abs(s) > 1e-12) deltas[-k] = (deltas[-k] || 0) + s; });
+  pp.forEach(({p, s, coef}) => {
+    coef.forEach((cj, idx) => {
+      const j = idx + 1; if (cabs(cj) < 1e-10) return;
+      if (cabs(p) < 1e-12){ const n = j - 1; deltas[n] = (deltas[n] || 0) + cj.re; }
+      else terms.push({C: cj, p, m: j - 1});
+    });
+  });
+  return {pp, terms, deltas, S};
+}
+function binomPoly(n, m){ let r = 1; for (let i = 0; i < m; i++) r *= (n - i) / (i + 1); return r; }
+function izEval(res, roc, n){
+  let v = C(0);
+  res.terms.forEach(t => {
+    const causal = cabs(t.p) <= roc.rin + 1e-9;
+    if (causal && n >= 0) v = cadd(v, cscale(cmul(t.C, cpowi(t.p, n - t.m)), binomPoly(n, t.m)));
+    if (!causal && n <= -1) v = csub(v, cscale(cmul(t.C, cpowi(t.p, n - t.m)), binomPoly(n, t.m)));
+  });
+  if (res.deltas[n]) v = cadd(v, C(res.deltas[n]));
+  return v.re;
+}
+/* =================== CHUỖI HIỂN THỊ =================== */
+const SUP = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','−':'⁻','n':'ⁿ','+':'⁺'};
+const sup = s => String(s).split('').map(ch => SUP[ch] || ch).join('');
+const frac = (a, b) => `<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+function polyZ(c, v = 'z'){ // giảm dần
+  c = trimLead(c); const d = c.length - 1; let out = '';
+  c.forEach((a, i) => {
+    if (Math.abs(a) < 1e-12) return; const p = d - i, A = Math.abs(a);
+    let co = (Math.abs(A - 1) < 1e-12 && p !== 0) ? '' : fmt(A);
+    const mono = p === 0 ? '' : (p === 1 ? v : `${v}<sup>${p}</sup>`);
+    out += (out ? (a < 0 ? ' − ' : ' + ') : (a < 0 ? '−' : '')) + co + mono;
+  });
+  return out || '0';
+}
+function polyW(b){ // tăng dần theo z^-1
+  let out = '';
+  b.forEach((a, k) => {
+    if (Math.abs(a) < 1e-12) return; const A = Math.abs(a);
+    const co = (Math.abs(A - 1) < 1e-12 && k !== 0) ? '' : fmt(A);
+    const mono = k === 0 ? '' : `z<sup>−${k}</sup>`;
+    out += (out ? (a < 0 ? ' − ' : ' + ') : (a < 0 ? '−' : '')) + co + mono;
+  });
+  return out || '0';
+}
+function laurent(vals, n0){ // Σ x(n) z^-n
+  let out = '';
+  vals.forEach((a, i) => {
+    const n = n0 + i; if (Math.abs(a) < 1e-12) return; const A = Math.abs(a);
+    const co = (Math.abs(A - 1) < 1e-12 && n !== 0) ? '' : fmt(A);
+    const mono = n === 0 ? '' : (n === -1 ? 'z' : `z<sup>${n > 0 ? '−' + n : -n}</sup>`);
+    out += (out ? (a < 0 ? ' − ' : ' + ') : (a < 0 ? '−' : '')) + co + mono;
+  });
+  return out || '0';
+}
+function zMinus(p){ // (z − p)
+  if (cabs(p) < 1e-12) return 'z';
+  if (Math.abs(p.im) < 1e-12) return p.re > 0 ? `(z − ${fmt(p.re)})` : `(z + ${fmt(-p.re)})`;
+  return `(z − (${fmtc(p)}))`;
+}
+function piStr(t){
+  const q = t / Math.PI; if (Math.abs(q) < 1e-9) return '0';
+  for (let d = 1; d <= 12; d++){ const k = Math.round(q * d); if (Math.abs(q * d - k) < 1e-6){ const g = gcd(Math.abs(k), d); const kk = k / g, dd = d / g; return `${kk < 0 ? '−' : ''}${Math.abs(kk) === 1 ? '' : Math.abs(kk)}π${dd === 1 ? '' : '/' + dd}`; } }
+  return fmt(t, 3);
+}
+function gcd(a, b){ return b ? gcd(b, a % b) : a; }
+function powStr(p, m){ // p^(n−m) với p thực
+  const e = m === 0 ? 'n' : `n−${m}`;
+  if (Math.abs(p - 1) < 1e-12) return '';
+  if (p > 0 && Number.isInteger(+p.toFixed(9))) return `${fmt(p)}<sup>${e}</sup>`;
+  return `(${fmt(p)})<sup>${e}</sup>`;
+}
+const BIN = ['', 'n', 'n(n−1)/2', 'n(n−1)(n−2)/6', 'n(n−1)(n−2)(n−3)/24'];
+function termsHTML(res, roc){
+  const parts = []; // {neg, body}
+  const keys = Object.keys(res.deltas).map(Number).sort((a, b) => a - b);
+  keys.forEach(n => { const v = res.deltas[n]; if (Math.abs(v) < 1e-10) return; const d = n === 0 ? 'δ(n)' : (n > 0 ? `δ(n − ${n})` : `δ(n + ${-n})`); parts.push({neg: v < 0, body: (Math.abs(Math.abs(v) - 1) < 1e-10 ? '' : fmt(Math.abs(v)) + '·') + d}); });
+  const used = new Set();
+  res.terms.forEach((t, i) => {
+    if (used.has(i)) return; const causal = cabs(t.p) <= roc.rin + 1e-9; const unit = causal ? 'u(n)' : 'u(−n−1)'; const sg = causal ? 1 : -1;
+    const bin = BIN[t.m] !== undefined ? BIN[t.m] : `C(n,${t.m})`;
+    if (Math.abs(t.p.im) < 1e-10){
+      const c = sg * t.C.re; const ps = powStr(t.p.re, t.m);
+      const pieces = [Math.abs(Math.abs(c) - 1) < 1e-10 && (ps || bin) ? '' : fmt(Math.abs(c)), bin ? (t.m >= 2 ? `[${bin}]` : bin) : '', ps, unit].filter(Boolean);
+      parts.push({neg: c < 0, body: pieces.join('·')});
+    } else {
+      const j = res.terms.findIndex((u, k) => k !== i && !used.has(k) && u.m === t.m && cabs(csub(u.p, C(t.p.re, -t.p.im))) < 1e-7);
+      if (j >= 0 && t.m === 0){
+        used.add(j); const tt = t.p.im > 0 ? t : res.terms[j];
+        const A = 2 * cabs(tt.C) * sg, r = cabs(tt.p), th = carg(tt.p), ph = carg(tt.C);
+        const phs = Math.abs(ph) < 1e-9 ? '' : (ph > 0 ? ` + ${piStr(ph)}` : ` − ${piStr(-ph)}`);
+        const rs = Math.abs(r - 1) < 1e-12 ? '' : `(${fmt(r)})<sup>n</sup>·`;
+        parts.push({neg: A < 0, body: `${Math.abs(Math.abs(A) - 1) < 1e-10 ? '' : fmt(Math.abs(A)) + '·'}${rs}cos(${piStr(th)}·n${phs})·${unit}`});
+      } else {
+        const c = cscale(t.C, sg);
+        parts.push({neg: false, body: `(${fmtc(c)})·${bin ? bin + '·' : ''}(${fmtc(t.p)})<sup>${t.m ? 'n−' + t.m : 'n'}</sup>·${unit}`});
+      }
+    }
+  });
+  if (!parts.length) return '0';
+  return parts.map((p, i) => i === 0 ? (p.neg ? '−' : '') + p.body : (p.neg ? ' − ' : ' + ') + p.body).join('');
+}
+/* =================== VẼ ĐỒ THỊ =================== */
+const CL = {ink:'#161616', muted:'#6B6B67', line:'#E2E2DE', grid:'#EEEEEA', red:'#C41E3A', green:'#145F39', greenT:'#E7F4EC', blue:'#1F4E8C', amber:'#9A5B00', paper:'#FFFFFD'};
+function niceTicks(lo, hi, n = 5){
+  const span = hi - lo || 1; const step0 = span / n; const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const st = [1, 2, 2.5, 5, 10].map(f => f * mag).find(s => span / s <= n) || 10 * mag;
+  const out = []; for (let v = Math.ceil(lo / st) * st; v <= hi + 1e-12; v += st) out.push(+v.toFixed(10)); return out;
+}
+function stemPlot(el, cfg){
+  const W = Math.max(280, el.clientWidth || 600), H = cfg.height || (W < 520 ? 210 : 240);
+  const padL = 46, padR = 12, padT = 16, padB = 34; const {nmin, nmax} = cfg;
+  let vs = []; cfg.series.forEach(s => s.n.forEach((n, i) => { if (n >= nmin && n <= nmax && isFinite(s.v[i])) vs.push(s.v[i]); }));
+  let ymin = Math.min(0, ...vs), ymax = Math.max(0, ...vs);
+  if (ymax - ymin < 1e-12){ ymax = 1; ymin = Math.min(ymin, 0); }
+  const pad = (ymax - ymin) * 0.12; ymax += pad; if (ymin < 0) ymin -= pad;
+  const X = n => padL + (n - nmin + 0.5) / (nmax - nmin + 1) * (W - padL - padR);
+  const Y = v => padT + (ymax - v) / (ymax - ymin) * (H - padT - padB);
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${cfg.label || 'Đồ thị dãy'}"><rect width="${W}" height="${H}" fill="${CL.paper}"/>`;
+  niceTicks(ymin, ymax, 4).forEach(t => { s += `<line x1="${padL}" x2="${W - padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="${CL.grid}"/><text x="${padL - 6}" y="${Y(t) + 4}" text-anchor="end" font-size="11.5" fill="${CL.muted}" font-family="JetBrains Mono, monospace">${fmt(t, 3)}</text>`; });
+  const cnt = nmax - nmin + 1; const pxPer = (W - padL - padR) / cnt; const every = pxPer >= 24 ? 1 : pxPer >= 12 ? 2 : pxPer >= 6 ? 5 : 10;
+  for (let n = nmin; n <= nmax; n++) if (((n % every) + every) % every === 0) s += `<text x="${X(n)}" y="${H - padB + 16}" text-anchor="middle" font-size="11.5" fill="${CL.muted}" font-family="JetBrains Mono, monospace">${n < 0 ? '−' + (-n) : n}</text>`;
+  s += `<text x="${W - padR}" y="${H - 4}" text-anchor="end" font-size="11.5" fill="${CL.muted}">n</text>`;
+  s += `<line x1="${padL}" x2="${W - padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="${CL.ink}" stroke-width="1"/>`;
+  if (nmin <= 0 && nmax >= 0) s += `<line x1="${X(0)}" x2="${X(0)}" y1="${padT}" y2="${H - padB}" stroke="${CL.line}" stroke-dasharray="3 3"/>`;
+  const k = cfg.series.length;
+  cfg.series.forEach((sr, si) => {
+    const off = (si - (k - 1) / 2) * Math.min(6, pxPer * 0.22);
+    sr.n.forEach((n, i) => {
+      const v = sr.v[i]; if (n < nmin || n > nmax || !isFinite(v)) return;
+      const x = X(n) + off, y = Y(v), col = typeof sr.color === 'function' ? sr.color(n) : sr.color;
+      if (Math.abs(v) > 1e-12 || sr.showZero) s += `<line x1="${x}" x2="${x}" y1="${Y(0)}" y2="${y}" stroke="${col}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="${pxPer < 9 ? 2.5 : 4}" fill="${sr.hollow ? CL.paper : col}" stroke="${col}" stroke-width="1.8"/>`;
+      if (cfg.values && cnt <= 22 && Math.abs(v) > 1e-12 && k === 1) s += `<text x="${x}" y="${v >= 0 ? y - 8 : y + 16}" text-anchor="middle" font-size="11" fill="${CL.ink}" font-family="JetBrains Mono, monospace">${fmt(v, 3)}</text>`;
+    });
+  });
+  el.innerHTML = s + '</svg>';
+}
+function zPlane(el, cfg){
+  const Wc = el.clientWidth || 320; const S = Math.max(230, Math.min(Wc, cfg.size || 360));
+  const pts = [...(cfg.poles || []), ...(cfg.zeros || [])].map(o => cabs(o.z));
+  let ext = Math.max(1.35, ...pts.map(r => r * 1.25));
+  if (cfg.roc && isFinite(cfg.roc.rin) && cfg.roc.rin > 0) ext = Math.max(ext, cfg.roc.rin * 1.25);
+  if (cfg.roc && isFinite(cfg.roc.rout)) ext = Math.max(ext, cfg.roc.rout * 1.2);
+  if (cfg.testR) ext = Math.max(ext, cfg.testR * 1.15);
+  ext = Math.min(ext, 7);
+  const c = S / 2, k = (S / 2 - 22) / ext, P = z => [c + z.re * k, c - z.im * k];
+  const uid = 'cp' + Math.random().toString(36).slice(2, 8);
+  let s = `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" role="img" aria-label="Mặt phẳng z"><defs><clipPath id="${uid}"><rect x="6" y="6" width="${S - 12}" height="${S - 12}" rx="8"/></clipPath></defs><rect x="6" y="6" width="${S - 12}" height="${S - 12}" rx="8" fill="${CL.paper}" stroke="${CL.line}"/>`;
+  const circ = r => { const R = r * k; return `M${c + R} ${c}a${R} ${R} 0 1 0 ${-2 * R} 0a${R} ${R} 0 1 0 ${2 * R} 0z`; };
+  if (cfg.roc && cfg.roc !== 'empty'){
+    const {rin, rout} = cfg.roc; let d = '';
+    d += isFinite(rout) ? circ(rout) : `M0 0H${S}V${S}H0z`;
+    if (rin > 0) d += circ(rin);
+    s += `<g clip-path="url(#${uid})"><path d="${d}" fill="${CL.greenT}" fill-rule="evenodd"/></g>`;
+    if (rin > 0) s += `<path d="${circ(rin)}" fill="none" stroke="${CL.green}" stroke-width="1.3" stroke-dasharray="5 3"/>`;
+    if (isFinite(rout)) s += `<path d="${circ(rout)}" fill="none" stroke="${CL.green}" stroke-width="1.3" stroke-dasharray="5 3"/>`;
+  }
+  s += `<line x1="12" x2="${S - 12}" y1="${c}" y2="${c}" stroke="${CL.muted}"/><line x1="${c}" x2="${c}" y1="12" y2="${S - 12}" stroke="${CL.muted}"/>`;
+  s += `<path d="${circ(1)}" fill="none" stroke="${CL.ink}" stroke-width="1" stroke-dasharray="2 3"/>`;
+  s += `<text x="${S - 14}" y="${c - 6}" text-anchor="end" font-size="11.5" fill="${CL.muted}">Re</text><text x="${c + 6}" y="22" font-size="11.5" fill="${CL.muted}">Im</text><text x="${c + k + 3}" y="${c + 14}" font-size="11" fill="${CL.muted}" font-family="JetBrains Mono, monospace">1</text>`;
+  if (cfg.testR) s += `<path d="${circ(cfg.testR)}" fill="none" stroke="${CL.blue}" stroke-width="2"/>`;
+  (cfg.zeros || []).forEach(o => { let [x, y] = P(o.z); const out = cabs(o.z) > ext; if (out) return; s += `<circle cx="${x}" cy="${y}" r="6.5" fill="${CL.paper}" stroke="${CL.green}" stroke-width="2.2"/>`; if (o.m > 1) s += `<text x="${x + 9}" y="${y + 16}" font-size="11.5" font-weight="700" fill="${CL.green}">${o.m}</text>`; });
+  (cfg.poles || []).forEach(o => { let [x, y] = P(o.z); if (cabs(o.z) > ext) return; s += `<path d="M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x - 6} ${y + 6}L${x + 6} ${y - 6}" stroke="${CL.red}" stroke-width="2.4"/>`; if (o.m > 1) s += `<text x="${x + 8}" y="${y - 7}" font-size="11.5" font-weight="700" fill="${CL.red}">${o.m}</text>`; });
+  const off = [...(cfg.poles || []), ...(cfg.zeros || [])].filter(o => cabs(o.z) > ext);
+  if (off.length) s += `<text x="14" y="${S - 14}" font-size="11" fill="${CL.muted}">Có điểm nằm ngoài khung (|z| &gt; ${fmt(ext, 2)})</text>`;
+  el.innerHTML = s + '</svg>';
+}
+function pzFromND(N, D){
+  const z = rootsG(trimLead(N)), p = rootsG(trimLead(D));
+  const cancelled = [];
+  z.forEach(zz => { const pp = p.find(q => q.m > 0 && cabs(csub(q.z, zz.z)) < 1e-6); if (pp){ const m = Math.min(pp.m, zz.m); pp.m -= m; zz.m -= m; cancelled.push({z: zz.z, m}); } });
+  return {zeros: z.filter(o => o.m > 0), poles: p.filter(o => o.m > 0), cancelled};
+}
+function rocText(r){
+  if (r === 'empty') return 'không tồn tại (ROC rỗng)';
+  const a = r.rin, b = r.rout;
+  if (a === 0 && !isFinite(b)) return r.inclZero === false && r.inclInf === false ? '0 < |z| < ∞' : r.inclZero === false ? 'mọi z ≠ 0' : r.inclInf === false ? 'mọi z ≠ ∞' : 'toàn mặt phẳng z';
+  if (a === 0) return `|z| &lt; ${fmt(b)}`;
+  if (!isFinite(b)) return `|z| &gt; ${fmt(a)}`;
+  return `${fmt(a)} &lt; |z| &lt; ${fmt(b)}`;
+}
+
+/* =================== TAB 0: TÍCH CHẬP = NHÂN ĐA THỨC =================== */
+const TINTS = ['#E8EFF8', '#E7F4EC', '#FFF3DC', '#FBE9EC', '#EFE9F8', '#E3F3F3', '#F4EFE6', '#F0F4E2', '#F8E8F2', '#EAF0F6'];
+function renderConv(){
+  const x = parseList($('cv-x').value) || [0], h = parseList($('cv-h').value) || [0];
+  const x0 = parseInt($('cv-x0').value) || 0, h0 = parseInt($('cv-h0').value) || 0;
+  const y = conv(x, h), y0 = x0 + h0;
+  $('cv-poly').innerHTML = `X(z) = ${laurent(x, x0)}<br>H(z) = ${laurent(h, h0)}`;
+  const lab = n => n === 0 ? '' : (n === -1 ? 'z' : `z<sup>${n > 0 ? '−' + n : -n}</sup>`);
+  let g = '<table class="grid-mul"><tr><th>×</th>' + h.map((v, j) => `<th>${fmt(v)}${lab(h0 + j)}</th>`).join('') + '</tr>';
+  x.forEach((v, i) => { g += `<tr><th>${fmt(v)}${lab(x0 + i)}</th>` + h.map((w, j) => { const n = x0 + i + h0 + j; return `<td style="background:${TINTS[((n - y0) % TINTS.length + TINTS.length) % TINTS.length]}">${fmt(v * w)}${lab(n)}</td>`; }).join('') + '</tr>'; });
+  $('cv-grid').innerHTML = g + '</table>';
+  $('cv-res').innerHTML = `Y(z) = X(z)·H(z) = ${laurent(y, y0)}<br>y(n) = {${y.map((v, i) => (y0 + i === 0 ? '<u>' + fmt(v) + '</u>' : fmt(v))).join('; ')}}, bắt đầu tại n = ${y0}`;
+  const digits = a => a.every(v => Number.isInteger(v) && v >= 0 && v <= 9);
+  if (digits(x) && digits(h) && y.every(v => v <= 9) && x0 === 0 && h0 === 0 && x[0] && h[0]){
+    $('cv-num').innerHTML = `<div class="res">So với phép nhân số: ${x.join('')} × ${h.join('')} = ${y.join('')}. Hàng đơn vị, hàng chục đóng vai trò nhãn z⁻ⁿ.</div>`;
+  } else $('cv-num').innerHTML = '';
+  const nmin = Math.min(x0, h0, y0) - 1, nmax = Math.max(x0 + x.length, h0 + h.length, y0 + y.length);
+  const idx = (a, s) => a.map((_, i) => s + i);
+  stemPlot($('cv-plot'), {nmin, nmax, series: [{n: idx(x, x0), v: x, color: CL.blue}, {n: idx(h, h0), v: h, color: CL.amber}, {n: idx(y, y0), v: y, color: CL.green}], label: 'x, h và y'});
+}
+
+/* =================== TAB 1–2: ZT & ROC =================== */
+const oneMinus = (a, w) => { const A = Math.abs(a); const co = Math.abs(A - 1) < 1e-12 ? '' : fmt(A); return a >= 0 ? `1 − ${co}${w}` : `1 + ${co}${w}`; };
+const zm = a => a === 0 ? 'z' : (a > 0 ? `z − ${fmt(a)}` : `z + ${fmt(-a)}`);
+const ZW = 'z<sup>−1</sup>';
+function rcParams(){ let a = parseFloat($('rc-a').value); if (Math.abs(a) < 0.025) a = 0.05; return {a, k: parseInt($('rc-k').value) || 0, N: Math.max(1, Math.min(10, parseInt($('rc-N').value) || 1)), w: parseFloat($('rc-w').value) * Math.PI, wq: parseFloat($('rc-w').value)}; }
+function rcPreset(key, P){
+  const a = P.a, A = Math.abs(a);
+  const cw = Math.cos(P.w), sw = Math.sin(P.w);
+  const wStr = piStr(P.w);
+  switch (key){
+    case 'an': return {xdef: `x(n) = (${fmt(a)})<sup>n</sup>·u(n)`, f: n => n >= 0 ? Math.pow(a, n) : 0, X: `X(z) = Σ<sub>n≥0</sub> (${fmt(a)}·z<sup>−1</sup>)<sup>n</sup> = ${frac('1', oneMinus(a, ZW))} = ${frac('z', zm(a))}`, N: [1, 0], D: [1, -a], roc: {rin: A, rout: Infinity}, Rm: A, Rp: Infinity, uses: 'a'};
+    case 'anm': return {xdef: `x(n) = −(${fmt(a)})<sup>n</sup>·u(−n−1)`, f: n => n <= -1 ? -Math.pow(a, n) : 0, X: `X(z) = −Σ<sub>m≥1</sub> (z/${fmt(a)})<sup>m</sup> = ${frac('1', oneMinus(a, ZW))} = ${frac('z', zm(a))}`, N: [1, 0], D: [1, -a], roc: {rin: 0, rout: A}, Rm: 0, Rp: A, uses: 'a'};
+    case 'u': return {xdef: 'x(n) = u(n)', f: n => n >= 0 ? 1 : 0, X: `X(z) = ${frac('1', '1 − ' + ZW)} = ${frac('z', 'z − 1')}`, N: [1, 0], D: [1, -1], roc: {rin: 1, rout: Infinity}, Rm: 1, Rp: Infinity, uses: ''};
+    case 'um': return {xdef: 'x(n) = −u(−n−1)', f: n => n <= -1 ? -1 : 0, X: `X(z) = ${frac('1', '1 − ' + ZW)} = ${frac('z', 'z − 1')}`, N: [1, 0], D: [1, -1], roc: {rin: 0, rout: 1}, Rm: 0, Rp: 1, uses: ''};
+    case 'nan': return {xdef: `x(n) = n·(${fmt(a)})<sup>n</sup>·u(n)`, f: n => n >= 0 ? n * Math.pow(a, n) : 0, X: `X(z) = ${frac(fmt(a) + 'z<sup>−1</sup>', '(' + oneMinus(a, ZW) + ')<sup>2</sup>')} = ${frac(fmt(a) + 'z', '(' + zm(a) + ')<sup>2</sup>')}`, N: [a, 0], D: [1, -2 * a, a * a], roc: {rin: A, rout: Infinity}, Rm: A, Rp: Infinity, uses: 'a'};
+    case 'aabs': {
+      const ok = A < 1; const b = 1 / a;
+      return {xdef: `x(n) = (${fmt(a)})<sup>|n|</sup>`, f: n => Math.pow(a, Math.abs(n)), X: ok ? `X(z) = ${frac('1', oneMinus(a, ZW))} + ${frac('1', oneMinus(a, 'z'))} − 1 = ${frac(fmt(1 - a * a) + 'z', '(' + zm(a) + ')(1 ' + (a >= 0 ? '− ' : '+ ') + fmt(A) + 'z)')}` : `Phần n ≥ 0 cần |z| &gt; ${fmt(A)}, phần n &lt; 0 cần |z| &lt; ${fmt(1 / A)}. Không có z nào thỏa cả hai.`, N: ok ? [-(1 - a * a) / a, 0] : [1], D: ok ? conv([1, -a], [1, -b]) : [1], roc: ok ? {rin: A, rout: 1 / A} : 'empty', Rm: A, Rp: 1 / A, uses: 'a'};
+    }
+    case 'delta': {
+      const k = P.k; const Xs = k === 0 ? '1' : (k > 0 ? `z<sup>−${k}</sup>` : `z<sup>${-k}</sup>`);
+      return {xdef: k === 0 ? 'x(n) = δ(n)' : `x(n) = δ(n ${k > 0 ? '−' : '+'} ${Math.abs(k)})`, f: n => n === k ? 1 : 0, X: `X(z) = ${Xs}`, N: k >= 0 ? [1] : [1, ...Array(-k).fill(0)], D: k > 0 ? [1, ...Array(k).fill(0)] : [1], roc: {rin: 0, rout: Infinity, inclZero: k <= 0, inclInf: k >= 0}, Rm: 0, Rp: Infinity, uses: 'k'};
+    }
+    case 'rect': {
+      const Nn = P.N; const ser = Array(Nn).fill(1);
+      return {xdef: `x(n) = rect<sub>${Nn}</sub>(n) = u(n) − u(n − ${Nn})`, f: n => n >= 0 && n < Nn ? 1 : 0, X: `X(z) = ${polyW(ser)} = ${frac('1 − z<sup>−' + Nn + '</sup>', '1 − z<sup>−1</sup>')}`, N: [1, ...Array(Nn - 1).fill(0), -1], D: [1, -1, ...Array(Nn - 1).fill(0)], roc: {rin: 0, rout: Infinity, inclZero: Nn === 1, inclInf: true}, Rm: 0, Rp: Infinity, uses: 'N'};
+    }
+    case 'cos': return {xdef: `x(n) = cos(${wStr}·n)·u(n)`, f: n => n >= 0 ? Math.cos(P.w * n) : 0, X: `X(z) = ${frac('1 − ' + fmt(cw) + 'z<sup>−1</sup>', '1 − ' + fmt(2 * cw) + 'z<sup>−1</sup> + z<sup>−2</sup>')}`, N: [1, -cw, 0], D: [1, -2 * cw, 1], roc: {rin: 1, rout: Infinity}, Rm: 1, Rp: Infinity, uses: 'w'};
+    case 'sin': return {xdef: `x(n) = sin(${wStr}·n)·u(n)`, f: n => n >= 0 ? Math.sin(P.w * n) : 0, X: `X(z) = ${frac(fmt(sw) + 'z<sup>−1</sup>', '1 − ' + fmt(2 * cw) + 'z<sup>−1</sup> + z<sup>−2</sup>')}`, N: [sw, 0], D: [1, -2 * cw, 1], roc: {rin: 1, rout: Infinity}, Rm: 1, Rp: Infinity, uses: 'w'};
+    case 'custom': {
+      const v = parseList($('rc-c').value) || [1]; const n0 = parseInt($('rc-c0').value) || 0; const n1 = n0 + v.length - 1;
+      let N = v.slice(), D = [1];
+      if (n1 > 0) D = [1, ...Array(n1).fill(0)]; else if (n1 < 0) N = [...N, ...Array(-n1).fill(0)];
+      const hasPos = v.some((x, i) => n0 + i > 0 && x !== 0), hasNeg = v.some((x, i) => n0 + i < 0 && x !== 0);
+      return {xdef: `x(n) = {${v.map((x, i) => n0 + i === 0 ? '<u>' + fmt(x) + '</u>' : fmt(x)).join('; ')}}, mẫu gạch chân ở n = 0`, f: n => (n >= n0 && n <= n1) ? v[n - n0] : 0, X: `X(z) = ${laurent(v, n0)}`, N, D, roc: {rin: 0, rout: Infinity, inclZero: !hasPos, inclInf: !hasNeg}, Rm: 0, Rp: Infinity, uses: 'c', finite: true};
+    }
+  }
+}
+function rcRfromSlider(){ const t = parseFloat($('rc-r').value); return Math.pow(10, -1.3 + t * 2.1); } // 0,05 … 6,3
+function rcSliderFromR(r){ return (Math.log10(r) + 1.3) / 2.1; }
+function renderRoc(){
+  const key = $('rc-preset').value, P = rcParams(); const pr = rcPreset(key, P);
+  ['a', 'k', 'N', 'w', 'c'].forEach(u => { $('rc-f-' + u).hidden = pr.uses !== u; });
+  $('rc-a-v').textContent = fmt(P.a); $('rc-w-v').textContent = piStr(P.w);
+  const r = rcRfromSlider(); $('rc-r-v').textContent = fmt(r, 3);
+  $('rc-xdef').innerHTML = pr.xdef;
+  const nmin = -10, nmax = 15; const ns = []; for (let n = nmin; n <= nmax; n++) ns.push(n);
+  stemPlot($('rc-xplot'), {nmin, nmax, series: [{n: ns, v: ns.map(pr.f), color: n => n < 0 ? CL.red : CL.green}], label: 'x(n)'});
+  const pz = pzFromND(pr.N, pr.D);
+  $('rc-X').innerHTML = pr.X + `<div class="res">ROC: <b>${rocText(pr.roc)}</b>${pr.roc !== 'empty' ? ` &nbsp;·&nbsp; Rx− = ${fmt(pr.Rm)}, Rx+ = ${fmt(pr.Rp)}` : ''}</div>`;
+  let info = '';
+  if (pz.cancelled.length) info += `<div class="warn">Điểm cực và điểm không trùng nhau tại z = ${pz.cancelled.map(o => fmtc(o.z)).join(', ')} nên triệt tiêu nhau. Vì vậy ROC rộng hơn so với nhìn mẫu số.</div>`;
+  if (key === 'an' || key === 'anm') info += `<div class="key" style="margin-top:8px">So sánh: ${key === 'an' ? '−aⁿ·u(−n−1)' : 'aⁿ·u(n)'} có cùng công thức X(z) nhưng ROC là ${key === 'an' ? '|z| &lt; |a|' : '|z| &gt; |a|'}. Đổi ở ô “Chọn dãy” để thấy.</div>`;
+  if (key === 'aabs') info += `<div class="key" style="margin-top:8px">Đây là ví dụ (2/3)<sup>|n|</sup> trong bài giảng khi a ≈ 0,67. Kéo |a| ≥ 1 để thấy ROC rỗng.</div>`;
+  $('rc-rocinfo').innerHTML = info;
+  zPlane($('rc-z'), {poles: pz.poles, zeros: pz.zeros, roc: pr.roc, testR: r});
+  // các số hạng tại |z| = r
+  const tn = [], tv = []; for (let n = -15; n <= 15; n++){ tn.push(n); tv.push(Math.abs(pr.f(n)) * Math.pow(r, -n)); }
+  const cap = 50; const tvc = tv.map(v => Math.min(v, cap));
+  stemPlot($('rc-terms'), {nmin: -15, nmax: 15, series: [{n: tn, v: tvc, color: n => n < 0 ? CL.red : CL.green}], label: 'Số hạng của chuỗi'});
+  let ok1, ok2;
+  if (pr.roc === 'empty'){ ok1 = r > pr.Rm; ok2 = r < pr.Rp; }
+  else { ok1 = r > pr.roc.rin || (pr.roc.rin === 0); ok2 = r < pr.roc.rout; }
+  if (pr.finite || key === 'delta' || key === 'rect'){ ok1 = true; ok2 = true; }
+  const inR = ok1 && ok2 && pr.roc !== 'empty';
+  const clipped = tv.some(v => v > cap) ? ' (cột vượt 50 được cắt ở 50)' : '';
+  $('rc-verdict').innerHTML = `<div class="${inR ? 'res' : 'bad'}">Tại |z| = ${fmt(r, 3)}: phần n ≥ 0 ${ok1 ? '<span class="ok">hội tụ</span>' : '<span class="no-ok">phân kỳ</span>'} (cần |z| &gt; ${fmt(pr.Rm)}); phần n &lt; 0 ${ok2 ? '<span class="ok">hội tụ</span>' : '<span class="no-ok">phân kỳ</span>'} (cần |z| &lt; ${fmt(pr.Rp)}). ⇒ z ${inR ? '<b>thuộc</b>' : '<b>không thuộc</b>'} ROC${clipped}.${pr.finite || key === 'rect' || key === 'delta' ? ' Dãy hữu hạn: tổng chỉ có hữu hạn số hạng nên luôn hữu hạn, trừ khi z = 0 hoặc z = ∞ làm một số hạng vô cùng.' : ''}</div>`;
+}
+
+/* =================== TAB 3: CỰC – KHÔNG =================== */
+function renderPz(){
+  const N = parseList($('pz-N').value), D = parseList($('pz-D').value);
+  if (!N || !D || D.every(v => v === 0)){ $('pz-X').innerHTML = '<div class="bad">Hệ số chưa hợp lệ. Nhập các số cách nhau bằng dấu cách.</div>'; return; }
+  const Nt = trimLead(N), Dt = trimLead(D);
+  const pz = pzFromND(Nt, Dt);
+  const G = Nt[0] / Dt[0];
+  const fac = (arr) => arr.map(o => zMinus(o.z) + (o.m > 1 ? `<sup>${o.m}</sup>` : '')).join('') || '1';
+  $('pz-X').innerHTML = `X(z) = ${frac(polyZ(Nt), polyZ(Dt))}<br>= ${fmt(G) === '1' ? '' : fmt(G) + '·'}${frac(fac(rootsG(Nt)), fac(rootsG(Dt)))}`;
+  const row = (o, t) => `<tr><td>${t}</td><td class="m">${fmtc(o.z)}</td><td class="m">${o.m}</td><td class="m">${fmt(cabs(o.z))}</td><td class="m">${Math.abs(o.z.im) < 1e-10 && o.z.re >= 0 ? '0' : piStr(carg(o.z))}</td></tr>`;
+  let t = `<div class="tbl-wrap"><table class="t"><tr><th>Loại</th><th>Vị trí</th><th>Bội</th><th>|z|</th><th>Góc</th></tr>`;
+  pz.zeros.forEach(o => t += row(o, '<span style="color:var(--green);font-weight:700">○ Không</span>'));
+  pz.poles.forEach(o => t += row(o, '<span style="color:var(--red);font-weight:700">× Cực</span>'));
+  t += '</table></div>';
+  if (pz.cancelled.length) t += `<div class="warn">Triệt tiêu cực – không tại z = ${pz.cancelled.map(o => fmtc(o.z)).join(', ')}: ROC có thể rộng ra (chú ý cuối mục 3.1.2.3).</div>`;
+  $('pz-list').innerHTML = t;
+  zPlane($('pz-z'), {poles: pz.poles, zeros: pz.zeros});
+  const radii = [...new Set(pz.poles.filter(o => cabs(o.z) > 1e-12).map(o => +cabs(o.z).toFixed(8)))].sort((a, b) => a - b);
+  const rings = []; let prev = 0; radii.forEach(r => { rings.push({rin: prev, rout: r}); prev = r; }); rings.push({rin: prev, rout: Infinity});
+  let h = `<div class="tbl-wrap"><table class="t"><tr><th>ROC</th><th>Loại dãy x(n)</th><th>Chứa vòng tròn đơn vị?</th></tr>`;
+  rings.forEach((g, i) => {
+    const kind = !isFinite(g.rout) ? 'Phía phải (nhân quả nếu không có cực ở ∞)' : (g.rin === 0 ? 'Phía trái (phản nhân quả)' : 'Hai phía');
+    const uc = g.rin < 1 && g.rout > 1;
+    h += `<tr><td class="m">${rocText(g)}</td><td>${kind}</td><td>${uc ? '<span class="ok">Có</span>' : '<span class="muted">Không</span>'}</td></tr>`;
+  });
+  h += '</table></div><p class="key">Mỗi dòng là một dãy x(n) khác nhau có cùng X(z). Muốn biết cụ thể là dãy nào, sang tab 4 và chọn ROC tương ứng. Cột cuối sẽ dùng ở Buổi 4 (ổn định) và Buổi 5 (biến đổi Fourier).</p>';
+  $('pz-rocs').innerHTML = h;
+  renderPzDrag();
+}
+function renderPzDrag(){
+  const r = parseFloat($('pz-r').value), th = parseFloat($('pz-t').value) * Math.PI / 180;
+  $('pz-r-v').textContent = fmt(r, 2); $('pz-t-v').textContent = `${$('pz-t').value}°`;
+  const real = Math.abs(Math.sin(th)) < 1e-9; const p = C(r * Math.cos(th), r * Math.sin(th));
+  const A = real ? [1, -p.re] : [1, -2 * r * Math.cos(th), r * r];
+  const h = []; for (let n = 0; n <= 30; n++){ let v = n === 0 ? 1 : 0; for (let k = 1; k < A.length; k++) v -= A[k] * (h[n - k] || 0); h.push(v); }
+  const poles = real ? [{z: C(p.re), m: 1}] : [{z: p, m: 1}, {z: C(p.re, -p.im), m: 1}];
+  zPlane($('pz-z2'), {poles, zeros: [{z: C(0), m: real ? 1 : 2}], roc: {rin: r, rout: Infinity}, size: 300});
+  const ns = h.map((_, i) => i);
+  stemPlot($('pz-h'), {nmin: 0, nmax: 30, series: [{n: ns, v: h, color: CL.green}], label: 'Dãy nhân quả'});
+  let say;
+  if (r > 1.0001) say = '<div class="bad"><b>Ngoài vòng tròn đơn vị:</b> dãy lớn dần tới vô cùng, giống micro bị hú.</div>';
+  else if (Math.abs(r - 1) < 1e-4) say = '<div class="warn"><b>Trên vòng tròn đơn vị:</b> dãy không tắt, không lớn, dao động mãi như đèn báo nhấp nháy.</div>';
+  else if (real && p.re > 0) say = '<div class="res"><b>Trong vòng tròn, trên trục thực dương:</b> tắt dần đều, không đổi dấu, như tiếng vọng trong hang.</div>';
+  else if (real) say = '<div class="res"><b>Trong vòng tròn, trên trục thực âm:</b> tắt dần và đổi dấu xen kẽ.</div>';
+  else say = `<div class="res"><b>Cặp cực phức trong vòng tròn:</b> dao động tắt dần, mỗi chu kỳ khoảng ${fmt(360 / (th * 180 / Math.PI), 1)} mẫu (theo góc θ), như tiếng chuông ngân rồi tắt.</div>`;
+  $('pz-say').innerHTML = say + `<p class="key">X(z) = ${real ? frac('z', zMinus(C(p.re))) : frac('z<sup>2</sup>', zMinus(p) + zMinus(C(p.re, -p.im)))}, ROC |z| &gt; ${fmt(r, 2)}. Khoảng cách tới gốc quyết định tắt hay lớn; góc quyết định dao động nhanh hay chậm.</p>`;
+}
+
+/* =================== TAB 4: Z NGƯỢC =================== */
+let izState = {roc: -1, method: 'pf'};
+function izRings(res){
+  const radii = [...new Set(res.terms.map(t => +cabs(t.p).toFixed(8)))].sort((a, b) => a - b);
+  const rings = []; let prev = 0; radii.forEach(r => { rings.push({rin: prev, rout: r}); prev = r; }); rings.push({rin: prev, rout: Infinity});
+  return rings;
+}
+function divSteps(num, den, K){ // tăng dần
+  const rem = num.slice(); const q = [], st = [];
+  for (let k = 0; k < K; k++){
+    const qk = (rem[k] || 0) / den[0]; q.push(qk);
+    for (let i = 0; i < den.length; i++) rem[k + i] = (rem[k + i] || 0) - qk * den[i];
+    st.push({k, qk, rem: rem.slice(k + 1, k + den.length)});
+  }
+  return {q, st};
+}
+function renderIzt(){
+  const N0 = parseList($('iz-N').value), D0 = parseList($('iz-D').value);
+  if (!N0 || !D0 || D0.every(v => v === 0) || N0.every(v => v === 0)){ $('iz-X').innerHTML = '<div class="bad">Hệ số chưa hợp lệ.</div>'; return; }
+  const N = trimLead(N0), D = trimLead(D0);
+  const res = izt(N, D); const rings = izRings(res);
+  if (izState.roc < 0 || izState.roc >= rings.length) izState.roc = rings.length - 1;
+  const roc = rings[izState.roc];
+  $('iz-rocs').innerHTML = rings.map((g, i) => `<button class="chip small" data-roc="${i}" aria-pressed="${i === izState.roc}">${rocText(g)}</button>`).join('');
+  $('iz-X').innerHTML = `X(z) = ${frac(polyZ(N), polyZ(D))}, &nbsp;ROC: <b>${rocText(roc)}</b>`;
+  const m = izState.method; const titles = {pf: 'Phương pháp phân thức tối giản (mục 3.2.3)', ps: 'Phương pháp chuỗi lũy thừa – chia đa thức (mục 3.2.2)', res: 'Phương pháp thặng dư (mục 3.2.1)'};
+  $('iz-mtitle').textContent = titles[m];
+  let html = '';
+  if (m === 'pf') html = izPF(N, D, res, roc);
+  else if (m === 'ps') html = izPS(N, D, res, roc, rings);
+  else html = izRes(N, D, res, roc, rings);
+  $('iz-steps').innerHTML = html;
+  $('iz-result').innerHTML = 'x(n) = ' + termsHTML(res, roc);
+  const nmin = -10, nmax = 15, ns = []; for (let n = nmin; n <= nmax; n++) ns.push(n);
+  const xs = ns.map(n => izEval(res, roc, n));
+  stemPlot($('iz-plot'), {nmin, nmax, series: [{n: ns, v: xs, color: n => n < 0 ? CL.red : CL.green}], values: true, label: 'x(n)'});
+  // kiểm tra tại z0 trong ROC
+  let r0 = !isFinite(roc.rout) ? Math.max(roc.rin * 1.6, roc.rin + 0.5, 0.9) : (roc.rin === 0 ? roc.rout * 0.6 : Math.sqrt(roc.rin * roc.rout));
+  const z0 = C(r0 * Math.cos(0.7), r0 * Math.sin(0.7));
+  let sum = C(0); for (let n = -260; n <= 260; n++){ const v = izEval(res, roc, n); if (v) sum = cadd(sum, cscale(cpowi(z0, -n), v)); }
+  const Xz = cdiv(polyvalC(N, z0), polyvalC(D, z0));
+  const good = cabs(csub(sum, Xz)) < 1e-6 * Math.max(1, cabs(Xz));
+  $('iz-check').innerHTML = `<div class="${good ? 'res' : 'bad'}">Kiểm tra tại z₀ = ${fmtc(z0, 3)} (nằm trong ROC): Σ x(n)·z₀⁻ⁿ ≈ ${fmtc(sum, 5)}; X(z₀) theo công thức = ${fmtc(Xz, 5)} ⇒ ${good ? '<span class="ok">khớp</span>' : '<span class="no-ok">chưa khớp</span>'}.</div>`;
+}
+function izPF(N, D, res, roc){
+  const Dz = [...D, 0];
+  let s = '<ol class="steps">';
+  if (N.length > D.length){
+    s += `<li><div>Bậc tử (${N.length - 1}) lớn hơn bậc mẫu (${D.length - 1}): chia trước. X(z) = ${polyZ(res.S)} + ${frac(polyZ(polyDivDesc(N, D).r), polyZ(D))}. Phần nguyên ứng với các xung δ(n + k).</div></li>`;
+  }
+  const R = N.length > D.length ? polyDivDesc(N, D).r : N;
+  s += `<li><div>Xét ${frac('X(z)', 'z')} = ${frac(polyZ(R), polyZ(Dz))} (chia thêm cho z để mỗi mảnh có dạng z/(z − a) như trong bảng).</div></li>`;
+  const plist = res.pp.map(o => `z = ${fmtc(o.p)}${o.s > 1 ? ` (bội ${o.s})` : ''}`).join('; ');
+  s += `<li><div>Các điểm cực của X(z)/z: ${plist}.</div></li>`;
+  let co = '<div class="tbl-wrap"><table class="t"><tr><th>Cực</th><th>Mảnh của X(z)/z</th><th>Hệ số</th><th>Cách tính</th></tr>';
+  res.pp.forEach(o => o.coef.forEach((c, i) => {
+    const j = i + 1; const how = o.s === 1 ? `che mẫu: (z − z<sub>k</sub>)·X(z)/z tại z = ${fmtc(o.p)}` : (j === o.s ? `(z − z<sub>l</sub>)<sup>${o.s}</sup>·X(z)/z tại z = ${fmtc(o.p)}` : `đạo hàm bậc ${o.s - j} của (z − z<sub>l</sub>)<sup>${o.s}</sup>·X(z)/z, chia ${o.s - j}!`);
+    co += `<tr><td class="m">${fmtc(o.p)}</td><td class="m">${frac('A', zMinus(o.p) + (j > 1 ? `<sup>${j}</sup>` : ''))}</td><td class="m">${cabs(c) < 1e-10 ? '0 (triệt tiêu)' : fmtc(c)}</td><td>${how}</td></tr>`;
+  }));
+  s += `<li><div>Tính các hệ số:${co}</table></div></div></li>`;
+  const pieces = []; res.pp.forEach(o => o.coef.forEach((c, i) => { if (cabs(c) < 1e-10) return; const j = i + 1; const cs = fmtc(c);
+    if (cabs(o.p) < 1e-12){ pieces.push(j === 1 ? cs : `${cs === '1' ? '' : cs + '·'}z<sup>−${j - 1}</sup>`); return; }
+    pieces.push(`${cs === '1' ? '' : cs + '·'}${frac('z', zMinus(o.p) + (j > 1 ? `<sup>${j}</sup>` : ''))}`); }));
+  s += `<li><div>Nhân lại với z: X(z) = ${res.S.length && N.length > D.length ? polyZ(res.S) + ' + ' : ''}${pieces.join(' + ').replace(/\+ −/g, '− ')}</div></li>`;
+  s += `<li><div>Tra bảng từng mảnh theo ROC (${rocText(roc)}): ${roc.rin > 0 ? `cực có |z<sub>p</sub>| ≤ ${fmt(roc.rin)} cho mảnh nhân quả (… u(n))` : 'không có mảnh nhân quả'}; ${isFinite(roc.rout) ? `cực có |z<sub>p</sub>| ≥ ${fmt(roc.rout)} cho mảnh phản nhân quả (… u(−n−1))` : 'không có mảnh phản nhân quả'}. Mảnh hằng số (từ cực z = 0 của X(z)/z) cho xung δ.<div class="tbl-wrap" style="margin-top:6px"><table class="t"><tr><th>Miền z</th><th>ROC</th><th>Miền n</th></tr><tr><td class="m">z/(z − a)</td><td class="m">|z| &gt; |a|</td><td class="m">aⁿu(n)</td></tr><tr><td class="m">z/(z − a)</td><td class="m">|z| &lt; |a|</td><td class="m">−aⁿu(−n−1)</td></tr><tr><td class="m">z/(z − a)²</td><td class="m">|z| &gt; |a|</td><td class="m">n·aⁿ⁻¹u(n)</td></tr><tr><td class="m">z/(z − a)ᵐ⁺¹</td><td class="m">|z| &gt; |a|</td><td class="m">n(n−1)…(n−m+1)/m!·aⁿ⁻ᵐu(n)</td></tr></table></div></div></li>`;
+  return s + '</ol>';
+}
+function izPS(N, D, res, roc, rings){
+  const outer = !isFinite(roc.rout), inner = roc.rin === 0 && isFinite(roc.rout);
+  if (!outer && !inner) return `<div class="warn">ROC đang chọn là vành khăn nên x(n) có cả phần n ≥ 0 lẫn n &lt; 0. Phép chia một chiều chỉ cho được một phía, nên phương pháp này không áp dụng trực tiếp. Hãy dùng phân thức tối giản, hoặc chọn ROC ngoài cùng/trong cùng để thấy cách chia.</div>`;
+  const K = 7; let s = '';
+  if (outer){
+    const off = (D.length - 1) - (N.length - 1);
+    const {q, st} = divSteps(N, D, K);
+    s += `<p>ROC nằm ngoài vòng tròn (dãy phía phải) ⇒ khai triển theo <b>lũy thừa giảm dần của z</b>, tức theo z⁻¹. Viết X(z) = ${off ? `z<sup>${-off}</sup>·` : ''}${frac(polyW(N), polyW(D))} rồi chia tử cho mẫu:</p>`;
+    s += '<div class="tbl-wrap"><table class="t"><tr><th>Bước</th><th>Thương thêm</th><th>Dư còn lại (đầu)</th></tr>';
+    st.forEach(o => { const n = off + o.k; s += `<tr><td class="m">${o.k + 1}</td><td class="m">${fmt(o.qk)}·z<sup>−${n}</sup> ⇒ x(${n}) = ${fmt(o.qk)}</td><td class="m">${o.rem.map((v, i) => `${fmt(v)}·z<sup>−${off + o.k + 1 + i}</sup>`).join(' + ').replace(/\+ −/g, '− ')}</td></tr>`; });
+    s += `</table></div><div class="res math">X(z) = ${q.map((v, i) => `${fmt(v)}z<sup>−${off + i}</sup>`).join(' + ').replace(/\+ −/g, '− ')} + …</div>`;
+  } else {
+    const Na = N.slice().reverse(), Da = D.slice().reverse();
+    let a = 0; while (Math.abs(Na[a]) < 1e-14) a++; let b = 0; while (Math.abs(Da[b]) < 1e-14) b++;
+    const {q, st} = divSteps(Na.slice(a), Da.slice(b), K); const sh = a - b; // lũy thừa z^(k+sh) ↔ n = −(k+sh)
+    s += `<p>ROC nằm trong vòng tròn (dãy phía trái) ⇒ khai triển theo <b>lũy thừa tăng dần của z</b>. Sắp tử và mẫu theo z tăng dần rồi chia:</p>`;
+    s += '<div class="tbl-wrap"><table class="t"><tr><th>Bước</th><th>Thương thêm</th><th>Mẫu x(n)</th></tr>';
+    st.forEach(o => { const p = o.k + sh; s += `<tr><td class="m">${o.k + 1}</td><td class="m">${fmt(o.qk)}·z<sup>${p}</sup></td><td class="m">x(${-p}) = ${fmt(o.qk)}</td></tr>`; });
+    s += `</table></div><div class="res math">X(z) = ${q.map((v, i) => `${fmt(v)}z<sup>${i + sh}</sup>`).join(' + ').replace(/\+ −/g, '− ')} + …</div>`;
+  }
+  s += '<p class="key">Nhược điểm (đúng như bài giảng): phép chia thường không kết thúc và chỉ cho từng giá trị, khó thấy công thức tổng quát. Ưu điểm: máy tính làm rất nhanh, đây là cách MATLAB <span class="mono">impz</span> tính.</p>';
+  return s;
+}
+function izRes(N, D, res, roc, rings){
+  if (isFinite(roc.rout)) return `<div class="warn">Bảng thặng dư dưới đây làm cho trường hợp ROC ngoài cùng (dãy nhân quả, n ≥ 0) như ví dụ bài giảng. Với ROC khác, đường cong C chỉ bao các cực nằm trong vòng |z| = ${fmt(roc.rin)}, và phải xét thêm n &lt; 0 với cực bội tại z = 0. Kết quả cuối cùng vẫn là dãy ở ô bên dưới.</div>`;
+  let s = `<p>Với n ≥ 0: x(n) = Σ Res[X(z)·z<sup>n−1</sup>] tại mọi cực nằm trong C (C là vòng tròn bán kính lớn hơn ${fmt(roc.rin)}). Cực đơn: Res = (z − z<sub>p</sub>)·X(z)·z<sup>n−1</sup> tại z<sub>p</sub>. Cực bội bậc s: lấy đạo hàm bậc s − 1 rồi chia (s − 1)!.</p>`;
+  s += '<div class="tbl-wrap"><table class="t"><tr><th>n</th><th>Cực của X(z)·zⁿ⁻¹ và thặng dư</th><th>Tổng = x(n)</th></tr>';
+  for (let n = 0; n <= 5; n++){
+    const num = n >= 1 ? [...N, ...Array(n - 1).fill(0)] : N; const den = n >= 1 ? D : [...D, 0];
+    const pp = principalParts(num, den);
+    let tot = C(0); const cells = pp.map(o => { const r = o.coef[0]; tot = cadd(tot, r); return `z = ${fmtc(o.p)}${o.s > 1 ? ' (bội ' + o.s + ')' : ''}: ${fmtc(r)}`; });
+    s += `<tr><td class="m">${n}</td><td class="m">${cells.join('<br>')}</td><td class="m">${fmt(tot.re)}</td></tr>`;
+  }
+  s += '</table></div><p class="key">Hàng n = 0 có thêm cực tại z = 0 (do z⁻¹), đúng như phân tích “trường hợp n &lt; 0” trong bài giảng. Cột tổng trùng với các mẫu trên đồ thị.</p>';
+  return s;
+}
+
+/* =================== TAB 5: TÍNH CHẤT =================== */
+const BASES = {
+  an: {label: 'aⁿ·u(n)', f: (n, P) => n >= 0 ? Math.pow(P.a, n) : 0, R: P => ({B: [1], A: [1, -P.a], d: 0, rin: Math.abs(P.a), rout: Infinity}), name: P => `(${fmt(P.a)})<sup>n</sup>u(n)`, causal: true},
+  anm: {label: '−aⁿ·u(−n−1)', f: (n, P) => n <= -1 ? -Math.pow(P.a, n) : 0, R: P => ({B: [1], A: [1, -P.a], d: 0, rin: 0, rout: Math.abs(P.a)}), name: P => `−(${fmt(P.a)})<sup>n</sup>u(−n−1)`, causal: false},
+  u: {label: 'u(n)', f: n => n >= 0 ? 1 : 0, R: () => ({B: [1], A: [1, -1], d: 0, rin: 1, rout: Infinity}), name: () => 'u(n)', causal: true},
+  nu: {label: 'n·u(n)', f: n => n >= 0 ? n : 0, R: () => ({B: [0, 1], A: [1, -2, 1], d: 0, rin: 1, rout: Infinity}), name: () => 'n·u(n)', causal: true},
+  rect: {label: 'rect_N(n)', f: (n, P) => n >= 0 && n < P.N ? 1 : 0, R: P => ({B: Array(P.N).fill(1), A: [1], d: 0, rin: 0, rout: Infinity}), name: P => `rect<sub>${P.N}</sub>(n)`, causal: true},
+  delta: {label: 'δ(n)', f: n => n === 0 ? 1 : 0, R: () => ({B: [1], A: [1], d: 0, rin: 0, rout: Infinity}), name: () => 'δ(n)', causal: true},
+  cos: {label: 'cos(πn/4)·u(n)', f: n => n >= 0 ? Math.cos(Math.PI * n / 4) : 0, R: () => { const c = Math.cos(Math.PI / 4); return {B: [1, -c], A: [1, -2 * c, 1], d: 0, rin: 1, rout: Infinity}; }, name: () => 'cos(πn/4)u(n)', causal: true}
+};
+let prState = {p: 'lin'};
+function polyDerAsc(b){ return b.slice(1).map((v, i) => v * (i + 1)); }
+function shiftAsc(b, k){ return [...Array(k).fill(0), ...b]; }
+function ratEval(R, z){ const w = cdiv(C(1), z); const ev = arr => { let r = C(0); for (let i = arr.length - 1; i >= 0; i--) r = cadd(cmul(r, w), C(arr[i])); return r; }; return cmul(cpowi(w, R.d), cdiv(ev(R.B), ev(R.A))); }
+function ratToND(R){ // X = z^-d·B(z^-1)/A(z^-1) → N(z)/D(z) giảm dần
+  const B = R.B.slice(), A = R.A.slice(); while (B.length > 1 && Math.abs(B[B.length - 1]) < 1e-14) B.pop(); while (A.length > 1 && Math.abs(A[A.length - 1]) < 1e-14) A.pop();
+  const e = (A.length - 1) - (B.length - 1) - R.d;
+  return {N: e > 0 ? [...B, ...Array(e).fill(0)] : B, D: e < 0 ? [...A, ...Array(-e).fill(0)] : A};
+}
+function ratHTML(R){
+  const pre = R.d === 0 ? '' : (R.d > 0 ? `z<sup>−${R.d}</sup>·` : `z<sup>${-R.d}</sup>·`);
+  const A = R.A.slice(); while (A.length > 1 && Math.abs(A[A.length - 1]) < 1e-14) A.pop();
+  if (A.length === 1 && Math.abs(A[0] - 1) < 1e-12) return pre + '(' + polyW(R.B) + ')';
+  return pre + frac(polyW(R.B), polyW(R.A));
+}
+function prParams(i){ return {a: parseFloat($('pr-a' + i).value) || 0.5, N: Math.max(1, Math.min(10, parseInt($('pr-N' + i).value) || 1))}; }
+function renderProp(){
+  const p = prState.p;
+  document.querySelectorAll('#pr-props .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === p));
+  $('pr-x2box').hidden = !(p === 'lin' || p === 'conv'); $('pr-ab').hidden = p !== 'lin'; $('pr-n0box').hidden = p !== 'delay'; $('pr-bbox').hidden = p !== 'scale';
+  $('pr-corrbox').hidden = p !== 'corr'; $('pr-x1box').hidden = p === 'corr';
+  const USE = {lin: 'Tách dãy phức tạp thành các dãy có sẵn trong bảng rồi cộng X(z) lại.', delay: 'z⁻¹ chính là phần tử trễ của con chip. Dịch dãy sang phải n₀ nhịp = nhân X(z) với z⁻ⁿ⁰.', scale: 'Nhân với bⁿ làm mọi cực, không bị nhân với b: co hoặc giãn trên mặt phẳng z, dãy tắt nhanh hay chậm hơn.', nmul: 'Sinh ra cực bội. Từ aⁿu(n) suy ngay ra n·aⁿu(n) mà không cần lấy tổng.', conv: 'Tính chất quan trọng nhất: tích chập (khó) thành phép nhân (dễ). Đây là lý do có biến đổi Z.', corr: 'So khớp, dò một mẫu tín hiệu trong bản ghi có nhiễu (radar, nhịp tim).', init: 'Kiểm tra nhanh kết quả biến đổi: lấy giới hạn X(z) khi z → ∞ phải ra x(0).'};
+  const REF = {lin: 'Mục 3.3.1', delay: 'Mục 3.3.2', scale: 'Mục 3.3.3', nmul: 'Mục 3.3.4', conv: 'Mục 3.3.5', corr: 'Mục 3.3.6', init: 'Mục 3.3.8'};
+  $('pr-use').innerHTML = '<b>Ứng dụng</b>' + USE[p]; $('pr-ref').textContent = REF[p];
+  const nmin = -8, nmax = 14, ns = []; for (let n = nmin; n <= nmax; n++) ns.push(n);
+  if (p === 'corr') return renderCorr(ns);
+  const k1 = $('pr-x1').value, P1 = prParams(1), b1 = BASES[k1]; const R1 = b1.R(P1);
+  let f, R, nTxt, zTxt, leg, series;
+  const x1v = ns.map(n => b1.f(n, P1));
+  if (p === 'lin' || p === 'conv'){
+    const k2 = $('pr-x2').value, P2 = prParams(2), b2 = BASES[k2], R2 = b2.R(P2);
+    const x2v = ns.map(n => b2.f(n, P2));
+    if (p === 'lin'){
+      const al = parseFloat($('pr-al').value) || 0, be = parseFloat($('pr-be').value) || 0;
+      f = n => al * b1.f(n, P1) + be * b2.f(n, P2);
+      const d0 = Math.min(R1.d, R2.d);
+      const B = polyAdd(shiftAsc(conv(R1.B, R2.A).map(v => v * al), R1.d - d0), shiftAsc(conv(R2.B, R1.A).map(v => v * be), R2.d - d0));
+      R = {B, A: conv(R1.A, R2.A), d: d0, rin: Math.max(R1.rin, R2.rin), rout: Math.min(R1.rout, R2.rout)};
+      const cf = v => v === 1 ? '' : fmt(v) + '·';
+      nTxt = `y(n) = ${cf(al)}${b1.name(P1)} ${be < 0 ? '−' : '+'} ${cf(Math.abs(be))}${b2.name(P2)}`;
+      zTxt = `Y(z) = ${cf(al)}X₁(z) ${be < 0 ? '−' : '+'} ${cf(Math.abs(be))}X₂(z)<br>X₁(z) = ${ratHTML(R1)}, X₂(z) = ${ratHTML(R2)}`;
+    } else {
+      f = n => { let s = 0; for (let k = -200; k <= 200; k++){ const a = b1.f(k, P1); if (a) s += a * b2.f(n - k, P2); } return s; };
+      R = {B: conv(R1.B, R2.B), A: conv(R1.A, R2.A), d: R1.d + R2.d, rin: Math.max(R1.rin, R2.rin), rout: Math.min(R1.rout, R2.rout)};
+      nTxt = `y(n) = ${b1.name(P1)} * ${b2.name(P2)} (tích chập)`;
+      zTxt = `Y(z) = X₁(z)·X₂(z)<br>X₁(z) = ${ratHTML(R1)}, X₂(z) = ${ratHTML(R2)}`;
+    }
+    series = [{n: ns, v: x1v, color: CL.blue}, {n: ns, v: x2v, color: CL.amber}, {n: ns, v: ns.map(f), color: CL.green}];
+    leg = `<span><i style="background:var(--blue)"></i>x₁(n)</span><span><i style="background:var(--amber)"></i>x₂(n)</span><span><i style="background:var(--green)"></i>y(n)</span>`;
+  } else {
+    if (p === 'delay'){
+      const n0 = parseInt($('pr-n0').value) || 0; f = n => b1.f(n - n0, P1);
+      R = {...R1, d: R1.d + n0};
+      nTxt = `y(n) = x₁(n − ${n0}) = ${b1.name(P1)} dịch ${n0 >= 0 ? 'phải' : 'trái'} ${Math.abs(n0)} nhịp`;
+      zTxt = `Y(z) = z<sup>${n0 > 0 ? '−' + n0 : -n0}</sup>·X₁(z)<br>X₁(z) = ${ratHTML(R1)}`;
+      if (n0 > 0 && R1.rin === 0) zTxt += '<div class="key">Trễ sang phải làm xuất hiện cực tại z = 0, nên ROC mất điểm z = 0.</div>';
+      if (n0 < 0) zTxt += '<div class="key">Dịch sang trái làm xuất hiện z<sup>' + (-n0) + '</sup>, nên ROC mất điểm z = ∞.</div>';
+    } else if (p === 'scale'){
+      const b = parseFloat($('pr-b').value) || 1; f = n => Math.pow(b, n) * b1.f(n, P1);
+      R = {B: R1.B.map((v, k) => v * Math.pow(b, k + R1.d)), A: R1.A.map((v, k) => v * Math.pow(b, k)), d: R1.d, rin: R1.rin * Math.abs(b), rout: R1.rout * Math.abs(b)};
+      nTxt = `y(n) = (${fmt(b)})<sup>n</sup>·x₁(n), x₁(n) = ${b1.name(P1)}`;
+      zTxt = `Y(z) = X₁(z/${fmt(b)}): thay z⁻¹ bằng ${fmt(b)}·z⁻¹<br>X₁(z) = ${ratHTML(R1)}`;
+    } else if (p === 'nmul'){
+      f = n => n * b1.f(n, P1);
+      const Bp = polyDerAsc(R1.B), Ap = polyDerAsc(R1.A);
+      const term = polyAdd(conv(Bp, R1.A), conv(R1.B, Ap).map(v => -v));
+      R = {B: polyAdd(conv(R1.B, R1.A).map(v => v * R1.d), shiftAsc(term, 1)), A: conv(R1.A, R1.A), d: R1.d, rin: R1.rin, rout: R1.rout};
+      nTxt = `y(n) = n·x₁(n), x₁(n) = ${b1.name(P1)}`;
+      zTxt = `Y(z) = −z·dX₁(z)/dz<br>X₁(z) = ${ratHTML(R1)}`;
+    } else if (p === 'init'){
+      f = n => b1.f(n, P1); R = R1;
+      nTxt = `x₁(n) = ${b1.name(P1)}`;
+      if (!b1.causal) zTxt = `X₁(z) = ${ratHTML(R1)}<div class="warn">Định lý giá trị ban đầu chỉ áp dụng cho dãy nhân quả. Hãy chọn dãy khác.</div>`;
+      else { const lim = R1.d > 0 ? 0 : R1.B[0] / R1.A[0]; zTxt = `X₁(z) = ${ratHTML(R1)}<div class="res">x(0) = lim<sub>z→∞</sub> X₁(z) = ${R1.d > 0 ? '0' : `${fmt(R1.B[0])}/${fmt(R1.A[0])}`} = <b>${fmt(lim)}</b>. Trên đồ thị x₁(0) = <b>${fmt(b1.f(0, P1))}</b> ⇒ ${Math.abs(lim - b1.f(0, P1)) < 1e-9 ? '<span class="ok">khớp</span>' : '<span class="no-ok">khác</span>'}.</div><p class="key">Lý do: khi z → ∞ mọi số hạng z⁻ⁿ (n ≥ 1) → 0, chỉ còn x(0). Dùng để bắt lỗi nhanh: ví dụ bản gốc ghi ZT[u(n) + 2u(n − 1)] = (3z + 2)/(z − 1) thì giới hạn ra 3, nhưng x(0) = 1, nên công thức đó sai; đúng là (z + 2)/(z − 1).</p>`; }
+    }
+    series = [{n: ns, v: x1v, color: CL.blue}, ...(p === 'init' ? [] : [{n: ns, v: ns.map(f), color: CL.green}])];
+    leg = `<span><i style="background:var(--blue)"></i>x₁(n)</span>${p === 'init' ? '' : '<span><i style="background:var(--green)"></i>y(n)</span>'}`;
+  }
+  $('pr-n').innerHTML = nTxt;
+  stemPlot($('pr-nplot'), {nmin, nmax, series, label: 'Miền n'});
+  $('pr-leg').innerHTML = leg;
+  const empty = R.rin >= R.rout;
+  $('pr-z').innerHTML = zTxt + (p === 'init' ? '' : `<div class="res">Y(z) = ${ratHTML(R)}<br>ROC: ${empty ? 'rỗng ⇒ không tồn tại' : (p === 'lin' || p === 'conv' ? 'ít nhất là ' : '') + rocText({rin: R.rin, rout: R.rout})}</div>`);
+  const nd1 = ratToND(R1), ndY = ratToND(R); const pz1 = pzFromND(nd1.N, nd1.D), pzY = pzFromND(ndY.N, ndY.D);
+  $('pr-zz').innerHTML = `<div><div class="lbl">Trước: X₁(z)</div><div class="zbox plot" id="pr-z1"></div></div><div><div class="lbl">Sau: Y(z)</div><div class="zbox plot" id="pr-z2"></div></div>`;
+  zPlane($('pr-z1'), {poles: pz1.poles, zeros: pz1.zeros, roc: {rin: R1.rin, rout: R1.rout}, size: 240});
+  zPlane($('pr-z2'), {poles: pzY.poles, zeros: pzY.zeros, roc: empty ? 'empty' : {rin: R.rin, rout: R.rout}, size: 240});
+  if (p === 'init'){ $('pr-check').innerHTML = '<div class="key">Đã đối chiếu ở ô Miền z.</div>'; return; }
+  if (empty){ $('pr-check').innerHTML = '<div class="warn">ROC rỗng nên không có điểm z nào để so sánh. Hai ROC không giao nhau: ví dụ một dãy chỉ hội tụ khi |z| &lt; |a|, dãy kia chỉ hội tụ khi |z| &gt; 1.</div>'; return; }
+  const r0 = !isFinite(R.rout) ? Math.max(R.rin * 1.6, R.rin + 0.6, 0.9) : (R.rin === 0 ? R.rout * 0.6 : Math.sqrt(R.rin * R.rout));
+  const z0 = C(r0 * Math.cos(0.6), r0 * Math.sin(0.6));
+  let sum = C(0); for (let n = -150; n <= 150; n++){ const v = f(n); if (v) sum = cadd(sum, cscale(cpowi(z0, -n), v)); }
+  const Yz = ratEval(R, z0); const good = cabs(csub(sum, Yz)) < 1e-5 * Math.max(1, cabs(Yz));
+  $('pr-check').innerHTML = `<div class="${good ? 'res' : 'bad'}">Chọn z₀ = ${fmtc(z0, 3)} trong ROC. Lấy tổng trực tiếp từ miền n: Σ y(n)·z₀⁻ⁿ ≈ ${fmtc(sum, 5)}. Tính bằng tính chất trong miền z: Y(z₀) = ${fmtc(Yz, 5)} ⇒ ${good ? '<span class="ok">khớp</span>' : '<span class="no-ok">chưa khớp</span>'}.</div><p class="key">Ý nghĩa: hai cách cho cùng một số, nhưng cách dùng tính chất chỉ cần vài phép đại số.</p>`;
+}
+function renderCorr(ns){
+  const x = parseList($('pr-cx').value) || [1], y = parseList($('pr-cy').value) || [1];
+  // r(n) = Σ x(m) y(m − n), n từ −(Ly−1) … (Lx−1)
+  const n0 = -(y.length - 1), r = [];
+  for (let n = n0; n <= x.length - 1; n++){ let s = 0; for (let m = 0; m < x.length; m++){ const k = m - n; if (k >= 0 && k < y.length) s += x[m] * y[k]; } r.push(s); }
+  const rn = r.map((_, i) => n0 + i);
+  $('pr-n').innerHTML = `r<sub>xy</sub>(n) = Σ<sub>m</sub> x(m)·y(m − n) = {${r.map((v, i) => n0 + i === 0 ? '<u>' + fmt(v) + '</u>' : fmt(v)).join('; ')}}`;
+  stemPlot($('pr-nplot'), {nmin: Math.min(-8, n0 - 1), nmax: Math.max(8, x.length), series: [{n: rn, v: r, color: CL.green}], values: true, label: 'Tương quan'});
+  $('pr-leg').innerHTML = '<span><i style="background:var(--green)"></i>r<sub>xy</sub>(n)</span>';
+  const yRev = y.map((_, i) => y[y.length - 1 - i]);
+  $('pr-z').innerHTML = `X(z) = ${laurent(x, 0)}<br>Y(1/z) = ${laurent(yRev, -(y.length - 1))}<div class="res">R<sub>xy</sub>(z) = X(z)·Y(1/z) = ${laurent(r, n0)}</div><p class="key">Đọc hệ số của z⁻ⁿ là ra r<sub>xy</sub>(n). Giá trị lớn nhất cho biết hai dãy “trùng khít” nhau ở độ lệch nào.</p>`;
+  $('pr-zz').innerHTML = '';
+  const direct = conv(x, yRev); const same = direct.every((v, i) => Math.abs(v - r[i]) < 1e-9);
+  $('pr-check').innerHTML = `<div class="${same ? 'res' : 'bad'}">Nhân hai đa thức X(z)·Y(1/z) cho {${direct.map(v => fmt(v)).join('; ')}}, tính tổng trực tiếp cho {${r.map(v => fmt(v)).join('; ')}} ⇒ ${same ? '<span class="ok">khớp</span>' : '<span class="no-ok">khác</span>'}.</div>`;
+}
+
+/* =================== TAB 6: BÀI TẬP =================== */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Dãy hữu hạn', q: 'Tìm X(z) và ROC của x(n) = {1; 2; 3} với n = 0, 1, 2.', s: ['Theo định nghĩa: X(z) = 1·z⁰ + 2·z⁻¹ + 3·z⁻².', 'Tổng hữu hạn nên luôn tồn tại, trừ z = 0 (vì z⁻¹, z⁻² vô cùng).'], a: 'X(z) = 1 + 2z⁻¹ + 3z⁻², ROC: z ≠ 0.', m: 'Dãy hữu hạn luôn có ROC gần như cả mặt phẳng.', load: {tab: 'roc', preset: 'custom', c: '1 2 3', c0: 0}},
+ {g: 'A', id: 'A2', t: 'Hai phía và một phía', q: 'x(n) = 2δ(n + 2) + δ(n) + 3δ(n − 1). Tìm biến đổi Z hai phía và một phía.', s: ['Hai phía: lấy mọi n ⇒ X(z) = 2z² + 1 + 3z⁻¹.', 'z² vô cùng khi z → ∞, z⁻¹ vô cùng khi z = 0 ⇒ ROC 0 < |z| < ∞.', 'Một phía: bỏ mẫu n = −2 ⇒ X₁(z) = 1 + 3z⁻¹, ROC z ≠ 0.'], a: 'X(z) = 2z² + 1 + 3z⁻¹; X₁(z) = 1 + 3z⁻¹.', m: 'Biến đổi một phía làm mất thông tin phần n < 0; nó chỉ dùng cho dãy nhân quả và bài toán có điều kiện đầu (Buổi 4).', load: {tab: 'roc', preset: 'custom', c: '2 0 1 3', c0: -2}},
+ {g: 'A', id: 'A3', t: 'Cùng X(z), khác ROC', q: 'So sánh biến đổi Z của x₁(n) = (½)ⁿu(n) và x₂(n) = −(½)ⁿu(−n − 1).', s: ['x₁: X₁(z) = Σ(½z⁻¹)ⁿ = 1/(1 − ½z⁻¹), hội tụ khi |½z⁻¹| < 1 ⇔ |z| > ½.', 'x₂: X₂(z) = −Σ<sub>m≥1</sub>(2z)ᵐ = 1/(1 − ½z⁻¹), hội tụ khi |2z| < 1 ⇔ |z| < ½.'], a: 'Cùng công thức 1/(1 − ½z⁻¹); ROC lần lượt |z| > ½ và |z| < ½.', m: 'Chỉ ROC mới phân biệt được hai dãy. Vì vậy luôn ghi ROC kèm X(z).', load: {tab: 'roc', preset: 'anm', a: 0.5}},
+ {g: 'A', id: 'A4', t: 'Dãy hai phía', q: 'Tìm X(z) và ROC của x(n) = (2/3)^|n|. Còn y(n) = 2^|n| thì sao?', s: ['Phần n ≥ 0: Σ(⅔z⁻¹)ⁿ hội tụ khi |z| > 2/3.', 'Phần n < 0: Σ<sub>m≥1</sub>(⅔z)ᵐ = 1/(1 − ⅔z) − 1, hội tụ khi |z| < 3/2.', 'Cộng lại: X(z) = 1/(1 − ⅔z⁻¹) + 1/(1 − ⅔z) − 1 với 2/3 < |z| < 3/2.', 'Với 2^|n|: cần |z| > 2 và |z| < ½ cùng lúc, không có z nào thỏa.'], a: 'ROC là vành khăn 2/3 < |z| < 3/2; 2^|n| không có biến đổi Z.', m: 'Rx− ≥ Rx+ thì ROC rỗng (bài giảng mục 3.1.2.3). Lưu ý số hạng −1 mà bản gốc bỏ sót.', load: {tab: 'roc', preset: 'aabs', a: 0.65}},
+ {g: 'B', id: 'B1', t: 'Cực, không và các ROC', q: 'X(z) = (z + 2)/(z² − 3z + 2). Tìm cực, không và mọi ROC có thể.', s: ['Tử z + 2 = 0 ⇒ điểm không z = −2.', 'Mẫu z² − 3z + 2 = (z − 1)(z − 2) ⇒ điểm cực z = 1, z = 2.', 'Hai vòng |z| = 1 và |z| = 2 chia mặt phẳng thành ba miền.'], a: 'Không: −2. Cực: 1; 2. ROC: |z| < 1, 1 < |z| < 2 hoặc |z| > 2.', m: 'Ba ROC ứng với ba dãy khác nhau: phía trái, hai phía, phía phải (xem C6).', load: {tab: 'pz', N: '1 2', D: '1 -3 2'}},
+ {g: 'B', id: 'B2', t: 'Cực, không đối xứng', q: 'X(z) = (1 − z⁻²)/(1 − 0,25z⁻²), dãy nhân quả. Tìm cực, không, ROC.', s: ['Nhân tử và mẫu với z²: X(z) = (z² − 1)/(z² − 0,25).', 'Không tại z = ±1; cực tại z = ±0,5.', 'Dãy nhân quả ⇒ ROC ngoài cực xa nhất: |z| > 0,5.'], a: 'Không ±1, cực ±0,5, ROC |z| > 0,5.', m: 'Không nằm đúng trên vòng tròn đơn vị ⇒ (Buổi 6) bộ lọc này chặn hẳn tần số 0 và π.', load: {tab: 'pz', N: '1 0 -1', D: '1 0 -0,25'}},
+ {g: 'B', id: 'B3', t: 'Triệt tiêu cực – không', q: 'X(z) = (1 − z⁻⁴)/(1 − z⁻¹) (biến đổi Z của rect₄(n)). Tìm cực, không.', s: ['Viết theo z: X(z) = (z⁴ − 1)/(z³(z − 1)).', 'Tử có nghiệm 1, −1, j, −j; mẫu có nghiệm 1 và 0 (bội 3).', 'Cực và không tại z = 1 triệt tiêu nhau.'], a: 'Không tại −1, ±j; ba cực tại 0; ROC z ≠ 0.', m: 'Đúng chú ý cuối mục 3.1.2.3: triệt tiêu làm ROC rộng ra (không còn bị chặn bởi |z| = 1).', load: {tab: 'pz', N: '1 0 0 0 -1', D: '1 -1 0 0 0'}},
+ {g: 'C', id: 'C1', t: 'Thặng dư', q: 'Tìm x(n) của X(z) = z/(z − ½), |z| > ½ bằng thặng dư.', s: ['n ≥ 0: X(z)zⁿ⁻¹ = zⁿ/(z − ½), một cực đơn tại ½, thặng dư (½)ⁿ.', 'n < 0 (đặt n = −m): có cực ½ (thặng dư 2ᵐ) và cực bội m tại 0 (thặng dư −2ᵐ), tổng bằng 0.'], a: 'x(n) = (½)ⁿu(n).', m: 'Phương pháp gốc, dùng để chứng minh; khi làm bài thường dùng phân thức.', load: {tab: 'izt', N: '1 0', D: '1 -0,5', method: 'res'}},
+ {g: 'C', id: 'C2', t: 'Chia đa thức', q: 'X(z) = 1/(1 − 0,5z⁻¹), |z| > 0,5. Tìm 4 mẫu đầu bằng cách chia.', s: ['ROC ngoài vòng tròn ⇒ chia theo z⁻¹.', '1 : (1 − 0,5z⁻¹) = 1 + 0,5z⁻¹ + 0,25z⁻² + 0,125z⁻³ + …'], a: 'x(0..3) = 1; 0,5; 0,25; 0,125.', m: 'Cách máy tính làm (lệnh impz). Nhanh nhưng không cho công thức tổng quát.', load: {tab: 'izt', N: '1 0', D: '1 -0,5', method: 'ps'}},
+ {g: 'C', id: 'C3', t: 'Phân thức, hai ROC', q: 'X(z) = z²/[(z − 0,5)(z − 0,25)]. Tìm x(n) khi |z| > 0,5 và khi 0,25 < |z| < 0,5.', s: ['X(z)/z = z/[(z − 0,5)(z − 0,25)] = A₁/(z − 0,5) + A₂/(z − 0,25).', 'A₁ = 0,5/0,25 = 2; A₂ = 0,25/(−0,25) = −1.', 'X(z) = 2z/(z − 0,5) − z/(z − 0,25).', '|z| > 0,5: cả hai mảnh nhân quả. 0,25 < |z| < 0,5: mảnh cực 0,5 thành phản nhân quả.'], a: '|z| > 0,5: x(n) = [2(0,5)ⁿ − (0,25)ⁿ]u(n) (1; 0,75; 0,4375…). 0,25 < |z| < 0,5: x(n) = −2(0,5)ⁿu(−n − 1) − (0,25)ⁿu(n).', m: 'Cực nằm trong ROC-bán-kính-trong cho mảnh u(n); cực nằm ngoài cho mảnh u(−n − 1).', load: {tab: 'izt', N: '1 0 0', D: '1 -0,75 0,125', method: 'pf'}},
+ {g: 'C', id: 'C4', t: 'Cực bội', q: 'X(z) = z/(z − 0,5)², |z| > 0,5. Tìm x(n).', s: ['Tra bảng: z/(z − a)² ↔ n·aⁿ⁻¹u(n).'], a: 'x(n) = n(0,5)ⁿ⁻¹u(n): 0; 1; 1; 0,75; 0,5…', m: 'Cực bội sinh ra thừa số n: dãy tăng lên một chút rồi mới tắt.', load: {tab: 'izt', N: '1 0', D: '1 -1 0,25', method: 'pf'}},
+ {g: 'C', id: 'C5', t: 'Cực phức', q: 'X(z) = z²/(z² + 0,25), |z| > 0,5. Tìm x(n).', s: ['Cực ±0,5j. X(z)/z = z/[(z − 0,5j)(z + 0,5j)].', 'A₁ = 0,5j/(j) = 0,5; A₂ = −0,5j/(−j) = 0,5.', 'x(n) = 0,5(0,5j)ⁿ + 0,5(−0,5j)ⁿ = (0,5)ⁿcos(πn/2).'], a: 'x(n) = (0,5)ⁿcos(πn/2)·u(n): 1; 0; −0,25; 0; 0,0625…', m: 'Cặp cực phức liên hợp cho dao động tắt dần; góc π/2 cho chu kỳ 4 mẫu.', load: {tab: 'izt', N: '1 0 0', D: '1 0 0,25', method: 'pf'}},
+ {g: 'C', id: 'C6', t: 'Ví dụ bài giảng, ba ROC', q: 'X(z) = (z + 2)/(z² − 3z + 2). Tìm x(n) với cả ba ROC.', s: ['X(z)/z = 1/z − 3/(z − 1) + 2/(z − 2) (A = 1; −3; 2).', 'X(z) = 1 − 3z/(z − 1) + 2z/(z − 2).', '|z| > 2: δ(n) − 3u(n) + 2·2ⁿu(n). 1 < |z| < 2: δ(n) − 3u(n) − 2·2ⁿu(−n − 1). |z| < 1: δ(n) + 3u(−n − 1) − 2·2ⁿu(−n − 1).'], a: 'Ba dãy như trên; với |z| > 2: 0; 1; 5; 13; 29…', m: 'Bài giảng chỉ làm |z| > 2; hai ROC còn lại cho thấy vai trò của ROC.', load: {tab: 'izt', N: '1 2', D: '1 -3 2', method: 'pf'}},
+ {g: 'D', id: 'D1', t: 'Tuyến tính + trễ', q: 'Tìm X(z) của x(n) = u(n) + 2u(n − 1).', s: ['ZT[u(n)] = z/(z − 1).', 'ZT[u(n − 1)] = z⁻¹·z/(z − 1) = 1/(z − 1).', 'X(z) = z/(z − 1) + 2/(z − 1).'], a: 'X(z) = (z + 2)/(z − 1), |z| > 1.', m: 'Kiểm tra: lim X(z) khi z → ∞ = 1 = x(0). Bản gốc ghi (3z + 2)/(z − 1) là sai.', load: {tab: 'prop', p: 'lin', x1: 'u', x2: 'u', al: 1, be: 2}},
+ {g: 'D', id: 'D2', t: 'Trễ', q: 'Tìm X(z) của x(n) = (0,5)ⁿu(n − 2).', s: ['Viết lại: x(n) = 0,25·(0,5)ⁿ⁻²u(n − 2).', 'Trễ 2 nhịp của (0,5)ⁿu(n), nhân 0,25.'], a: 'X(z) = 0,25z⁻²/(1 − 0,5z⁻¹), |z| > 0,5.', m: 'Gặp u(n − k) thì đưa dãy về dạng “dãy gốc trễ k”.', load: {tab: 'prop', p: 'delay', x1: 'an', a1: 0.5, n0: 2}},
+ {g: 'D', id: 'D3', t: 'Nhân n', q: 'Tìm X(z) của x(n) = n(½)ⁿu(n).', s: ['Từ (½)ⁿu(n) ↔ z/(z − ½).', 'ZT[n·x(n)] = −z·d/dz[z/(z − ½)] = ½z/(z − ½)².'], a: 'X(z) = ½z/(z − ½)², |z| > ½.', m: 'Đạo hàm theo z sinh cực bội. Bản gốc ghi mẫu (z − 1)² là sai.', load: {tab: 'prop', p: 'nmul', x1: 'an', a1: 0.5}},
+ {g: 'D', id: 'D4', t: 'Chập dãy hữu hạn', q: 'Tính {1; 2; 1} * {1; −1} bằng biến đổi Z.', s: ['X(z) = 1 + 2z⁻¹ + z⁻², H(z) = 1 − z⁻¹.', 'Nhân: 1 + z⁻¹ − z⁻² − z⁻³.'], a: 'y(n) = {1; 1; −1; −1}.', m: 'Tích chập = nhân đa thức.', load: {tab: 'conv', x: '1 2 1', h: '1 -1'}},
+ {g: 'D', id: 'D5', t: 'Chập dãy vô hạn (nối Buổi 2)', q: 'Tính y(n) = (½)ⁿu(n) * u(n).', s: ['Y(z) = z/(z − ½) · z/(z − 1) = z²/[(z − ½)(z − 1)], |z| > 1.', 'Y(z)/z: A(1) = 1/0,5 = 2; A(½) = 0,5/(−0,5) = −1.', 'y(n) = 2u(n) − (½)ⁿu(n).'], a: 'y(n) = [2 − (½)ⁿ]u(n): 1; 1,5; 1,75; 1,875…', m: 'Chính là “bình rò nước” Buổi 2: đích 2, lúc đầu lệch 1, mỗi nhịp lệch còn một nửa. Ở Buổi 2 phải giải 4 bước, ở đây chỉ vài dòng đại số.', load: {tab: 'prop', p: 'conv', x1: 'an', a1: 0.5, x2: 'u'}},
+ {g: 'D', id: 'D6', t: 'Tương quan', q: 'Tìm r_xx(n) của x(n) = rect₃(n) bằng biến đổi Z.', s: ['X(z) = 1 + z⁻¹ + z⁻², X(1/z) = 1 + z + z².', 'Tích: z² + 2z + 3 + 2z⁻¹ + z⁻².'], a: 'r_xx(n) = {1; 2; 3; 2; 1}, giá trị 3 tại n = 0.', m: 'Tự tương quan lớn nhất khi tín hiệu trùng khít với chính nó (độ lệch 0).', load: {tab: 'prop', p: 'corr', cx: '1 1 1', cy: '1 1 1'}},
+ {g: 'D', id: 'D7', t: 'Giá trị ban đầu', q: 'Không biến đổi ngược, tìm x(0) của X(z) = z²/[(z − 0,5)(z − 0,25)].', s: ['x(0) = lim X(z) khi z → ∞.', 'Tử và mẫu cùng bậc 2, hệ số đầu đều bằng 1.'], a: 'x(0) = 1 (khớp với C3).', m: 'Dùng để kiểm tra nhanh mọi kết quả biến đổi Z ngược.', load: {tab: 'izt', N: '1 0 0', D: '1 -0,75 0,125', method: 'pf'}}
+];
+let exFilter = 'all';
+function renderEx(){
+  const cls = $('ex-class').checked; const names = {A: 'Nhóm A. Định nghĩa và miền hội tụ', B: 'Nhóm B. Điểm cực, điểm không', C: 'Nhóm C. Biến đổi Z ngược', D: 'Nhóm D. Tính chất'};
+  let h = ''; ['A', 'B', 'C', 'D'].forEach(g => {
+    if (exFilter !== 'all' && exFilter !== g) return;
+    h += `<div class="card ex-group"><h2>${names[g]}</h2>`;
+    EX.filter(e => e.g === g).forEach(e => {
+      h += `<div class="ex" data-id="${e.id}"><div class="hd"><div><span class="id">${e.id}</span><b>${e.t}</b></div></div><div class="q">${e.q}</div>`;
+      h += `<div class="sol">${e.s.map((st, i) => `<div class="stp" ${cls ? 'hidden' : ''}><b>Bước ${i + 1}.</b> ${st}</div>`).join('')}<div class="ans" ${cls ? 'hidden' : ''}><b>Đáp án:</b> ${e.a}</div><div class="mean" ${cls ? 'hidden' : ''}><b>Ý nghĩa:</b> ${e.m}</div></div>`;
+      h += `<div class="acts">${cls ? `<button class="btn ghost" data-next="${e.id}">Hiện bước tiếp</button><button class="btn ghost" data-all="${e.id}">Hiện hết</button>` : ''}<button class="btn" data-load="${e.id}">Mở trong phòng thí nghiệm</button></div></div>`;
+    });
+    h += '</div>';
+  });
+  $('ex-list').innerHTML = h;
+}
+function loadEx(id){
+  const e = EX.find(o => o.id === id); if (!e) return; const L = e.load;
+  if (L.tab === 'roc'){ $('rc-preset').value = L.preset; if (L.a !== undefined) $('rc-a').value = L.a; if (L.c !== undefined){ $('rc-c').value = L.c; $('rc-c0').value = L.c0; } }
+  if (L.tab === 'pz'){ $('pz-N').value = L.N; $('pz-D').value = L.D; }
+  if (L.tab === 'izt'){ $('iz-N').value = L.N; $('iz-D').value = L.D; izState.roc = -1; izState.method = L.method || 'pf'; setMethodChips(); }
+  if (L.tab === 'conv'){ $('cv-x').value = L.x; $('cv-h').value = L.h; $('cv-x0').value = 0; $('cv-h0').value = 0; }
+  if (L.tab === 'prop'){ prState.p = L.p; if (L.x1) $('pr-x1').value = L.x1; if (L.x2) $('pr-x2').value = L.x2; if (L.a1 !== undefined) $('pr-a1').value = L.a1; if (L.al !== undefined) $('pr-al').value = L.al; if (L.be !== undefined) $('pr-be').value = L.be; if (L.n0 !== undefined) $('pr-n0').value = L.n0; if (L.cx) $('pr-cx').value = L.cx; if (L.cy) $('pr-cy').value = L.cy; }
+  showTab(L.tab); window.scrollTo({top: 0});
+}
+
+/* =================== ĐIỀU HƯỚNG =================== */
+const RENDER = {conv: renderConv, roc: renderRoc, pz: renderPz, izt: renderIzt, prop: renderProp, ex: renderEx};
+let current = 'conv';
+function showTab(t){
+  current = t;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  document.querySelectorAll('.tabpanel').forEach(p => p.hidden = p.id !== 'p-' + t);
+  try { localStorage.setItem('ztlab-tab', t); } catch (e) {}
+  const tb = $('tb-' + t); if (tb && tb.scrollIntoView) tb.scrollIntoView({block: 'nearest', inline: 'nearest'});
+  RENDER[t]();
+}
+function setMethodChips(){ document.querySelectorAll('#iz-methods .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === izState.method)); }
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+$('toggleCtl').addEventListener('click', () => { const h = document.body.classList.toggle('hide-controls'); $('toggleTxt').textContent = h ? 'Hiện bảng điều khiển' : 'Ẩn bảng điều khiển'; $('toggleCtl').setAttribute('aria-pressed', h); RENDER[current](); });
+// tab 0
+['cv-x', 'cv-x0', 'cv-h', 'cv-h0'].forEach(id => $(id).addEventListener('input', renderConv));
+document.querySelectorAll('[data-cv]').forEach(b => b.addEventListener('click', () => { const [x, x0, h, h0] = b.dataset.cv.split('|'); $('cv-x').value = x; $('cv-x0').value = x0; $('cv-h').value = h; $('cv-h0').value = h0; renderConv(); }));
+// tab 1-2
+['rc-preset', 'rc-a', 'rc-k', 'rc-N', 'rc-w', 'rc-c', 'rc-c0', 'rc-r'].forEach(id => $(id).addEventListener('input', renderRoc));
+$('rc-preset').addEventListener('change', () => { const pr = rcPreset($('rc-preset').value, rcParams()); const target = pr.roc === 'empty' ? 1 : (isFinite(pr.roc.rout) ? (pr.roc.rin + Math.min(pr.roc.rout, 6)) / 2 : Math.max(pr.roc.rin * 1.5, 0.8)); $('rc-r').value = rcSliderFromR(Math.max(0.06, target)); renderRoc(); });
+// tab 3
+['pz-N', 'pz-D'].forEach(id => $(id).addEventListener('input', renderPz));
+['pz-r', 'pz-t'].forEach(id => $(id).addEventListener('input', renderPzDrag));
+document.querySelectorAll('[data-pz]').forEach(b => b.addEventListener('click', () => { const [n, d] = b.dataset.pz.split('|'); $('pz-N').value = n; $('pz-D').value = d; renderPz(); }));
+document.querySelectorAll('[data-pzp]').forEach(b => b.addEventListener('click', () => { const [r, t] = b.dataset.pzp.split('|'); $('pz-r').value = r; $('pz-t').value = t; renderPzDrag(); }));
+// tab 4
+['iz-N', 'iz-D'].forEach(id => $(id).addEventListener('input', () => { izState.roc = -1; renderIzt(); }));
+$('iz-preset').addEventListener('change', () => { const v = $('iz-preset').value; if (!v) return; const [n, d] = v.split('|'); $('iz-N').value = n; $('iz-D').value = d; izState.roc = -1; renderIzt(); });
+$('iz-rocs').addEventListener('click', e => { const b = e.target.closest('[data-roc]'); if (!b) return; izState.roc = +b.dataset.roc; renderIzt(); });
+$('iz-methods').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; izState.method = b.dataset.m; setMethodChips(); renderIzt(); });
+// tab 5
+const opts = Object.entries(BASES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+$('pr-x1').innerHTML = opts; $('pr-x2').innerHTML = opts; $('pr-x1').value = 'an'; $('pr-x2').value = 'u';
+$('pr-props').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; prState.p = b.dataset.p; if (prState.p === 'init' && !BASES[$('pr-x1').value].causal) $('pr-x1').value = 'an'; renderProp(); });
+['pr-x1', 'pr-x2', 'pr-a1', 'pr-a2', 'pr-N1', 'pr-N2', 'pr-al', 'pr-be', 'pr-n0', 'pr-b', 'pr-cx', 'pr-cy'].forEach(id => $(id).addEventListener('input', renderProp));
+// tab 6
+$('ex-class').addEventListener('change', renderEx);
+$('ex-filter').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; exFilter = b.dataset.g; document.querySelectorAll('#ex-filter .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.g === exFilter)); renderEx(); });
+$('ex-list').addEventListener('click', e => {
+  const n = e.target.closest('[data-next]'), a = e.target.closest('[data-all]'), l = e.target.closest('[data-load]');
+  if (n){ const box = n.closest('.ex'); const hid = [...box.querySelectorAll('.sol>[hidden]')]; if (hid.length) hid[0].hidden = false; }
+  if (a){ a.closest('.ex').querySelectorAll('.sol>[hidden]').forEach(x => x.hidden = false); }
+  if (l) loadEx(l.dataset.load);
+});
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => RENDER[current](), 150); });
+let start = 'conv'; try { const s = localStorage.getItem('ztlab-tab'); if (s && RENDER[s]) start = s; } catch (e) {}
+$('rc-r').value = rcSliderFromR(0.8);
+showTab(start);
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Xử lý tín hiệu số – NGUYỄN SỸ HIỆP</title>
+<meta name="description" content="Bộ phần mềm mô phỏng học phần Xử lý tín hiệu số. Giảng viên Nguyễn Sỹ Hiệp, Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên.">
 <link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="assets/theme.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#FAFAF8">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -14,122 +16,349 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <style>
-:root{--bg:#FAFAF8;--surface:#FFFFFE;--ink:#161616;--body:#3A3A37;--muted:#6B6B67;--line:#E2E2DE;--soft:#F1F1ED;--red:#C41E3A;--red-tint:#FBEBEE;--green:#1A7F4B;--green-tint:#E7F4EC;
---f:"Be Vietnam Pro","Segoe UI",Arial,sans-serif}
-*{box-sizing:border-box;margin:0}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f);-webkit-tap-highlight-color:rgba(196,30,58,.12)}
-.inst{background:#F4F4F0;border-bottom:1px solid var(--line);padding:8px max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left));padding-top:max(8px,env(safe-area-inset-top));display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:12.5px;letter-spacing:.01em}
-.inst::before{content:"";width:18px;height:3px;background:var(--red)}
-.inst b{font-weight:800}.inst span{color:var(--muted);font-weight:600}.inst span::before{content:"· "}
-main{max-width:880px;margin:0 auto;padding:28px 18px calc(40px + env(safe-area-inset-bottom))}
-.hero{border-left:6px solid var(--red);padding:4px 0 4px 18px;margin-bottom:28px}
-.kick{font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
-h1{font-size:clamp(28px,6vw,40px);line-height:1.15;font-weight:800;margin:6px 0 10px}
-.by{font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:600}
-.by b{color:var(--ink);font-size:17px;letter-spacing:.06em;font-weight:800;margin-left:6px}
-.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px}
-.app{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--red);border-radius:16px;padding:20px;color:inherit;text-decoration:none;min-height:44px;transition:border-color .15s,transform .15s}
-.app.g{border-top-color:var(--green)}
-.app:hover,.app:focus-visible{border-color:var(--red);transform:translateY(-2px)}
-.app .tag{font-size:12.5px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
-.app h2{font-size:21px;line-height:1.3;font-weight:800}
-.app p{color:var(--body);font-size:15px}
-.app .go{margin-top:auto;padding-top:6px;font-weight:700;color:var(--red)}
-.app.g .go{color:var(--green)}
-.status{display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:14px 16px;margin-bottom:24px;font-size:15px;background:var(--soft);border:1px solid var(--line);color:var(--body)}
-.status.ok{background:var(--green-tint);border-color:#BFE0CC;color:#145F39}
-.status .dot{flex:none;width:12px;height:12px;border-radius:50%;background:var(--muted);margin-top:6px}
-.status.ok .dot{background:var(--green)}
-.visits{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 16px;margin:-10px 0 24px;font-size:15px;color:var(--body)}
-.visits b{font-size:20px;color:var(--ink);font-weight:800}
-.visits .vt b{color:var(--red)}
-.visits small{flex-basis:100%;color:var(--muted);font-size:13px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
-.card h3{font-size:18px;font-weight:800;margin-bottom:10px}
-.card ol{padding-left:22px;color:var(--body)}
-.card li{margin:6px 0}
-.card li b{color:var(--ink)}
-.sym{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 6px;background:var(--soft);font-weight:700;color:var(--ink)}
-.note{color:var(--muted);font-size:14px;margin-top:18px}
-@media (max-width:620px){.inst::before{display:none}}
+/* Trang chủ kiểu trang sản phẩm công nghệ: thanh điều hướng → hero (giới thiệu + cửa sổ mô phỏng) → ba phần mềm → lộ trình 9 buổi → cài đặt offline. Nền sáng, nhấn đỏ – xanh lá. */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-size:16px;line-height:1.6}
+h1,h2,h3,p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.sitebar{position:sticky;top:0;backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:
+  radial-gradient(600px 300px at 12% 0%,rgba(196,30,58,.08),transparent 70%),
+  radial-gradient(520px 320px at 92% 30%,rgba(26,127,75,.09),transparent 70%),
+  var(--surface)}
+.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(15,17,21,.09) 1px,transparent 1px);background-size:22px 22px;-webkit-mask-image:linear-gradient(to bottom,#000 10%,transparent 85%);mask-image:linear-gradient(to bottom,#000 10%,transparent 85%);pointer-events:none}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:48px;align-items:center;padding-block:64px 72px}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px 5px 6px;font-size:13.5px;font-weight:600;color:var(--body);text-decoration:none;box-shadow:var(--shadow-sm)}
+.pill b{background:var(--green-tint);color:var(--green-ink);border-radius:999px;padding:1px 9px;font-size:12px;letter-spacing:.04em}
+.pill:hover{border-color:var(--line-2);color:var(--ink)}
+.hero h1{font-size:clamp(34px,5.2vw,58px);line-height:1.06;letter-spacing:-.025em;font-weight:800;margin:20px 0 18px;text-wrap:balance}
+.hero h1 .r{color:var(--red)}
+.hero h1 .g{color:var(--green)}
+.lead{font-size:clamp(16px,1.6vw,18.5px);color:var(--body);max-width:56ch}
+.lect{display:flex;align-items:center;gap:14px;margin-top:26px;padding:12px 16px 12px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);width:fit-content;max-width:100%;box-shadow:var(--shadow-sm)}
+.lect .av{flex:none;width:44px;height:44px;border-radius:12px;background:var(--red-tint);color:var(--red);display:grid;place-items:center;font-weight:800;font-size:16px;letter-spacing:.02em}
+.lect small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lect b{display:block;font-size:17px;letter-spacing:.05em;font-weight:800}
+.lect span{display:block;font-size:13.5px;color:var(--body)}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:12px;font:700 15px var(--f-body);text-decoration:none;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s}
+.b.pri{background:var(--red);color:#fff;box-shadow:0 1px 2px rgba(196,30,58,.3),0 8px 20px rgba(196,30,58,.22)}
+.b.pri:hover{background:var(--red-ink);transform:translateY(-1px)}
+.b.sec{background:var(--surface);color:var(--ink);border-color:var(--line-2);box-shadow:var(--shadow-sm)}
+.b.sec:hover{border-color:var(--ink)}
+.status{display:flex;gap:10px;align-items:center;margin-top:18px;font-size:14px;color:var(--muted)}
+.status .dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--line-2);box-shadow:0 0 0 4px var(--soft)}
+.status.ok{color:var(--green-ink)}
+.status.ok .dot{background:var(--green);box-shadow:0 0 0 4px var(--green-tint)}
+
+/* Cửa sổ mô phỏng ở hero */
+.win{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+.win-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--side)}
+.win-bar i{width:10px;height:10px;border-radius:50%;background:var(--line-2)}
+.win-bar span{margin-left:8px;font:600 12.5px var(--f-mono);color:var(--muted)}
+.win-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0}
+.win-body figure{margin:0;padding:16px;min-width:0}
+.win-body figure+figure{border-left:1px solid var(--line)}
+.win-body figcaption{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.win-body svg{display:block;width:100%;height:auto}
+.win-foot{border-top:1px solid var(--line);padding:12px 16px;font:500 14px var(--f-mono);color:var(--ink);display:flex;flex-wrap:wrap;gap:6px 18px;background:var(--surface)}
+.win-foot span{color:var(--muted)}
+.win-foot b{color:var(--green-ink);font-weight:600}
+.stem{transform-origin:bottom;animation:grow .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes grow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.stem{animation:none}.b{transition:none}}
+
+/* Dải đặc điểm */
+.feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.feat div{background:var(--surface);padding:22px 24px;display:flex;gap:14px;align-items:flex-start}
+.feat svg{flex:none;width:36px;height:36px}
+.feat b{display:block;font-size:15.5px}
+.feat span{font-size:14px;color:var(--muted)}
+
+/* Phần chung */
+section.blk{padding-block:72px 8px}
+.sh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:28px}
+.sh h2{font-size:clamp(26px,3.4vw,36px);line-height:1.15;letter-spacing:-.02em;font-weight:800;margin-top:8px;text-wrap:balance}
+.sh p{color:var(--body);max-width:52ch}
+
+/* Thẻ phần mềm */
+.apps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.app{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;color:inherit;text-decoration:none;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s,border-color .2s}
+.app:hover,.app:focus-visible{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--line-2)}
+.app .art{aspect-ratio:16/9;max-width:100%;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--side),var(--surface));position:relative}
+.app .art svg{position:absolute;inset:0;width:100%;height:100%}
+.app .bd{padding:20px 22px 22px;display:flex;flex-direction:column;gap:10px;flex:1}
+.app .tag{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.app .tag .new{color:var(--green-ink);background:var(--green-tint);border-radius:999px;padding:1px 8px;letter-spacing:.06em}
+.app h3{font-size:20px;line-height:1.3;font-weight:800;letter-spacing:-.01em}
+.app p{font-size:15px;color:var(--body)}
+.app ul{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.app li{font-size:12.5px;font-weight:600;color:var(--body);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.app .go{margin-top:auto;padding-top:8px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:6px}
+.app .go svg{width:16px;height:16px;transition:transform .2s}
+.app:hover .go svg{transform:translateX(3px)}
+
+/* Lộ trình */
+.road{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:b}
+.st{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:inherit;text-decoration:none;min-height:44px}
+.st .no{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font:700 14px var(--f-mono);background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.st b{display:block;font-size:15px;line-height:1.35}
+.st small{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:1px 9px}
+.st.on{box-shadow:var(--shadow-sm)}
+.st.on .no{background:var(--red-tint);color:var(--red);border-color:#F6C9D2}
+.st.on small{background:var(--green-tint);color:var(--green-ink)}
+.st.on:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.st.off{background:var(--side)}
+.st.off b{color:var(--body);font-weight:600}
+.st.off small{background:var(--soft);color:var(--muted)}
+
+/* Cài đặt */
+.install{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;align-items:start}
+.seg{display:inline-flex;gap:4px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;border-radius:9px;padding:0 16px;min-height:42px;font:600 14.5px var(--f-body);color:var(--body);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow-sm)}
+.steps li::before{content:counter(s);width:30px;height:30px;border-radius:9px;background:var(--red-tint);color:var(--red);display:grid;place-items:center;font:700 14px var(--f-mono)}
+.steps b{color:var(--ink)}
+.sym{display:inline-block;border:1px solid var(--line-2);border-radius:6px;padding:0 6px;background:var(--soft);font-weight:700;color:var(--ink)}
+.tip{margin-top:14px;font-size:14px;color:var(--muted)}
+.why{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow)}
+.why h3{font-size:18px;margin-bottom:12px}
+.why ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.why li{display:flex;gap:10px;color:var(--body);font-size:15px}
+.why li svg{flex:none;width:20px;height:20px;margin-top:2px}
+
+footer{margin-top:80px;border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:center;padding-block:24px calc(24px + env(safe-area-inset-bottom,0px));font-size:14px;color:var(--muted)}
+footer b{color:var(--ink)}
+
+@media (max-width:980px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr);gap:36px;padding-block:44px 52px}
+  .apps{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .road{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .install{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .apps,.road,.feat{grid-template-columns:minmax(0,1fr)}
+  .win-body{grid-template-columns:minmax(0,1fr)}
+  .win-body figure+figure{border-left:0;border-top:1px solid var(--line)}
+  section.blk{padding-block:52px 4px}
+  .b{flex:1 1 100%}
+}
 </style>
 </head>
 <body>
-<div class="inst" role="note" aria-label="Đơn vị"><b>Trường Đại học Công nghệ Thông tin và Truyền thông</b><span>Đại học Thái Nguyên</span></div>
-<main>
-  <header class="hero">
-    <p class="kick">Xử lý tín hiệu số</p>
-    <h1>Phòng thí nghiệm tín hiệu và hệ thống</h1>
-    <p class="by">GIẢNG VIÊN<b>NGUYỄN SỸ HIỆP</b></p>
-  </header>
-
-  <div class="status" id="status" role="status"><span class="dot"></span><span id="status-t">Đang kiểm tra khả năng dùng offline…</span></div>
-
-  <div class="visits" id="visits" hidden><span class="vt">Lượt truy cập: <b id="v-total">…</b></span><span>Buổi 1: <b id="v-b1">…</b></span><span>Buổi 2: <b id="v-b2">…</b></span><small id="v-note">Số liệu có thể chậm tối đa 4 giờ so với bảng thống kê.</small></div>
-
-  <nav class="apps" aria-label="Chọn phần mềm">
-    <a class="app" href="day-tin-hieu.html">
-      <span class="tag">Buổi 1</span>
-      <h2>Phòng thí nghiệm dãy tín hiệu</h2>
-      <p>Lấy mẫu, lượng tử hóa; các dãy δ, u, rect, aⁿ, sin; năng lượng, công suất; cộng, nhân, dịch, lật dãy.</p>
-      <span class="go">Mở phần mềm →</span>
-    </a>
-    <a class="app g" href="tich-chap.html">
-      <span class="tag">Buổi 2</span>
-      <h2>Mô phỏng tích chập và phương trình sai phân</h2>
-      <p>Tích chập từng bước, hệ đệ quy, đáp ứng xung h(n), giải phương trình sai phân và bài tập tính chất hệ.</p>
-      <span class="go">Mở phần mềm →</span>
-    </a>
+<header class="sitebar"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="XLTHS – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19" stroke="#98A2B3" stroke-width="1.4"/><path d="M5.5 20V6.5M10.5 20V10.5M15 20v-6M19 20v-3.5" stroke="#C41E3A" stroke-width="2" stroke-linecap="round"/><circle cx="5.5" cy="5.8" r="2.1" fill="#C41E3A"/><circle cx="10.5" cy="9.8" r="2.1" fill="#C41E3A"/><circle cx="15" cy="13.4" r="2.1" fill="#1A7F4B"/><circle cx="19" cy="15.9" r="1.9" fill="#1A7F4B"/></svg></span><span class="brand-t"><b>XLTHS</b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./" aria-current="page">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z <span class="new">Mới</span></a>
   </nav>
+</div></header>
 
-  <section class="card">
-    <h3>Cài lên iPhone (Safari)</h3>
-    <ol>
-      <li>Mở trang này bằng <b>Safari</b> khi có mạng.</li>
-      <li>Bấm nút <b>Chia sẻ</b> <span class="sym">⬆︎</span> ở thanh dưới.</li>
-      <li>Chọn <b>Thêm vào MH chính</b> rồi bấm <b>Thêm</b>.</li>
-      <li>Mở biểu tượng <b>XLTHS</b> trên màn hình chính <b>một lần khi còn mạng</b>. Từ lần sau dùng được khi không có mạng.</li>
-    </ol>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <a class="pill" href="bien-doi-z.html"><b>MỚI</b> Buổi 3: Biến đổi Z và miền hội tụ →</a>
+      <h1>Phòng thí nghiệm <span class="r">tín hiệu</span> và <span class="g">hệ thống</span></h1>
+      <p class="lead">Bộ phần mềm mô phỏng đi kèm học phần Xử lý tín hiệu số. Đổi số liệu, kéo thanh trượt và xem dãy số, tích chập, mặt phẳng z thay đổi ngay. Chạy trên máy tính và điện thoại, dùng được cả khi không có mạng.</p>
+      <div class="lect">
+        <span class="av" aria-hidden="true">SH</span>
+        <div><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</span></div>
+      </div>
+      <div class="ctas">
+        <a class="b pri" href="bien-doi-z.html">Mở Buổi 3: Biến đổi Z <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="b sec" href="#cai-dat">Cài để dùng offline</a>
+      </div>
+      <div class="status" id="status" role="status"><span class="dot"></span><span id="status-t">Đang kiểm tra khả năng dùng offline…</span></div>
+    </div>
+
+    <div class="win" aria-label="Minh họa: cực của X(z) và dãy x(n) tương ứng">
+      <div class="win-bar"><i></i><i></i><i></i><span>bien-doi-z · X(z) = z / (z − 0,8)</span></div>
+      <div class="win-body">
+        <figure>
+          <figcaption>Mặt phẳng z</figcaption>
+          <svg viewBox="0 0 200 200" role="img" aria-label="Mặt phẳng z: cực tại 0,8, ROC ngoài vòng tròn bán kính 0,8">
+            <defs><clipPath id="hc"><rect x="4" y="4" width="192" height="192" rx="10"/></clipPath></defs>
+            <rect x="4" y="4" width="192" height="192" rx="10" fill="#FAFBFC" stroke="#E4E7EC"/>
+            <g clip-path="url(#hc)"><path d="M0 0H200V200H0zM154 100a54 54 0 1 0-108 0a54 54 0 1 0 108 0z" fill="#E8F5EE" fill-rule="evenodd"/></g>
+            <circle cx="100" cy="100" r="54" fill="none" stroke="#1A7F4B" stroke-width="1.3" stroke-dasharray="5 3"/>
+            <circle cx="100" cy="100" r="68" fill="none" stroke="#0F1115" stroke-width="1" stroke-dasharray="2 3"/>
+            <line x1="12" x2="188" y1="100" y2="100" stroke="#98A2B3"/><line x1="100" x2="100" y1="12" y2="188" stroke="#98A2B3"/>
+            <circle cx="100" cy="100" r="6" fill="#FFF" stroke="#1A7F4B" stroke-width="2.2"/>
+            <path d="M148 94l12 12M148 106l12-12" stroke="#C41E3A" stroke-width="2.6"/>
+            <text x="182" y="94" text-anchor="end" font-size="11" fill="#667085" font-family="Be Vietnam Pro, sans-serif">Re</text>
+            <text x="106" y="22" font-size="11" fill="#667085" font-family="Be Vietnam Pro, sans-serif">Im</text>
+            <text x="20" y="186" font-size="11" fill="#145F39" font-weight="700" font-family="Be Vietnam Pro, sans-serif">ROC: |z| &gt; 0,8</text>
+          </svg>
+        </figure>
+        <figure>
+          <figcaption>Dãy x(n) = (0,8)ⁿ·u(n)</figcaption>
+          <svg viewBox="0 0 240 200" role="img" aria-label="Dãy tắt dần theo hàm mũ">
+            <rect x="4" y="4" width="232" height="192" rx="10" fill="#FAFBFC" stroke="#E4E7EC"/>
+            <line x1="18" x2="226" y1="160" y2="160" stroke="#0F1115"/>
+            <g id="stems"></g>
+            <text x="222" y="180" text-anchor="end" font-size="11" fill="#667085" font-family="Be Vietnam Pro, sans-serif">n</text>
+          </svg>
+        </figure>
+      </div>
+      <div class="win-foot"><span>Cực trong vòng tròn đơn vị</span><b>⇒ dãy tắt dần</b></div>
+    </div>
+  </div>
+</section>
+
+<div class="feat">
+  <div><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="10" fill="#FDECEF"/><path d="M10 24l5-7 4 4 7-10" fill="none" stroke="#C41E3A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><p><b>Tương tác tức thì</b><span>Đổi số liệu là đồ thị, công thức, lời giải cập nhật ngay.</span></p></div>
+  <div><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="10" fill="#E8F5EE"/><rect x="12" y="8" width="12" height="20" rx="3" fill="none" stroke="#1A7F4B" stroke-width="2.2"/><path d="M16.5 24.5h3" stroke="#1A7F4B" stroke-width="2.2" stroke-linecap="round"/></svg><p><b>Máy tính và điện thoại</b><span>Bố cục tự co giãn; cài lên màn hình chính như ứng dụng.</span></p></div>
+  <div><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="10" fill="#EAF1FB"/><path d="M10 21a8 8 0 0 1 16 0M14 21a4 4 0 0 1 8 0" fill="none" stroke="#1F4E8C" stroke-width="2.2" stroke-linecap="round"/><path d="M9 9l18 18" stroke="#1F4E8C" stroke-width="2.2" stroke-linecap="round"/></svg><p><b>Dùng không cần mạng</b><span>Mở một lần khi có mạng, sau đó chạy offline.</span></p></div>
+</div>
+
+<main>
+  <section class="blk wrap" id="phan-mem">
+    <div class="sh">
+      <div><span class="eyebrow">Phần mềm theo buổi học</span><h2>Ba phòng thí nghiệm, đi đúng thứ tự bài giảng</h2></div>
+      <p>Mỗi phần mềm trả lời câu hỏi buổi trước để lại: dãy tín hiệu → hệ thống và tích chập → biến đổi Z để tính nhanh hơn.</p>
+    </div>
+    <div class="apps">
+      <a class="app" href="day-tin-hieu.html">
+        <div class="art"><svg viewBox="0 0 320 180" aria-hidden="true" preserveAspectRatio="xMidYMid meet"><path d="M20 90c25-60 50-60 70 0s45 60 70 0 45-60 70 0 45 60 70 0" fill="none" stroke="#D0D5DD" stroke-width="2"/><line x1="16" x2="304" y1="90" y2="90" stroke="#98A2B3"/>
+          <g stroke="#C41E3A" stroke-width="2.4"><line x1="20" y1="90" x2="20" y2="90"/><line x1="43" y1="90" x2="43" y2="51"/><line x1="66" y1="90" x2="66" y2="54"/><line x1="89" y1="90" x2="89" y2="88"/><line x1="112" y1="90" x2="112" y2="127"/><line x1="135" y1="90" x2="135" y2="128"/><line x1="158" y1="90" x2="158" y2="93"/><line x1="181" y1="90" x2="181" y2="52"/><line x1="204" y1="90" x2="204" y2="53"/><line x1="227" y1="90" x2="227" y2="85"/><line x1="250" y1="90" x2="250" y2="126"/><line x1="273" y1="90" x2="273" y2="129"/><line x1="296" y1="90" x2="296" y2="97"/></g>
+          <g fill="#C41E3A"><circle cx="43" cy="51" r="4"/><circle cx="66" cy="54" r="4"/><circle cx="89" cy="88" r="4"/><circle cx="112" cy="127" r="4"/><circle cx="135" cy="128" r="4"/><circle cx="158" cy="93" r="4"/><circle cx="181" cy="52" r="4"/><circle cx="204" cy="53" r="4"/><circle cx="227" cy="85" r="4"/><circle cx="250" cy="126" r="4"/><circle cx="273" cy="129" r="4"/><circle cx="296" cy="97" r="4"/><circle cx="20" cy="90" r="4"/></g></svg></div>
+        <div class="bd">
+          <span class="tag">Buổi 1</span>
+          <h3>Phòng thí nghiệm dãy tín hiệu</h3>
+          <p>Từ tín hiệu tương tự đến dãy số: lấy mẫu, lượng tử hóa, các dãy cơ bản và phép toán trên dãy.</p>
+          <ul><li>Lấy mẫu</li><li>δ, u, rect, aⁿ</li><li>Năng lượng, công suất</li><li>Dịch, lật dãy</li></ul>
+          <span class="go">Mở phần mềm <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+      </a>
+      <a class="app" href="tich-chap.html">
+        <div class="art"><svg viewBox="0 0 320 180" aria-hidden="true"><line x1="16" x2="304" y1="120" y2="120" stroke="#98A2B3"/>
+          <g fill="#FDECEF" stroke="#C41E3A" stroke-width="1.4"><rect x="30" y="80" width="18" height="40" rx="3"/><rect x="54" y="60" width="18" height="60" rx="3"/><rect x="78" y="40" width="18" height="80" rx="3"/></g>
+          <text x="112" y="92" font-size="22" fill="#667085" font-family="Be Vietnam Pro, sans-serif">∗</text>
+          <g fill="#FFF4DE" stroke="#9A5B00" stroke-width="1.4"><rect x="134" y="80" width="18" height="40" rx="3"/><rect x="158" y="80" width="18" height="40" rx="3"/></g>
+          <text x="190" y="92" font-size="20" fill="#667085" font-family="Be Vietnam Pro, sans-serif">=</text>
+          <g fill="#E8F5EE" stroke="#1A7F4B" stroke-width="1.4"><rect x="214" y="100" width="18" height="20" rx="3"/><rect x="236" y="60" width="18" height="60" rx="3"/><rect x="258" y="20" width="18" height="100" rx="3"/><rect x="280" y="60" width="18" height="60" rx="3"/></g>
+          <text x="30" y="150" font-size="12" fill="#667085" font-family="JetBrains Mono, monospace">x(n)</text><text x="134" y="150" font-size="12" fill="#667085" font-family="JetBrains Mono, monospace">h(n)</text><text x="214" y="150" font-size="12" fill="#667085" font-family="JetBrains Mono, monospace">y(n)</text></svg></div>
+        <div class="bd">
+          <span class="tag">Buổi 2</span>
+          <h3>Mô phỏng tích chập và phương trình sai phân</h3>
+          <p>Hệ tuyến tính bất biến, đáp ứng xung, tích chập từng bước và giải phương trình sai phân.</p>
+          <ul><li>Lật – dịch – nhân – cộng</li><li>Hệ đệ quy</li><li>Bài tập tính chất hệ</li></ul>
+          <span class="go">Mở phần mềm <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+      </a>
+      <a class="app" href="bien-doi-z.html">
+        <div class="art"><svg viewBox="0 0 320 180" aria-hidden="true"><path d="M0 0H320V180H0zM208 90a48 48 0 1 0-96 0a48 48 0 1 0 96 0z" fill="#E8F5EE" fill-rule="evenodd" opacity=".75"/><circle cx="160" cy="90" r="48" fill="none" stroke="#1A7F4B" stroke-width="1.4" stroke-dasharray="5 3"/><circle cx="160" cy="90" r="64" fill="none" stroke="#0F1115" stroke-dasharray="2 3"/><line x1="70" x2="250" y1="90" y2="90" stroke="#98A2B3"/><line x1="160" x2="160" y1="14" y2="166" stroke="#98A2B3"/>
+          <g stroke="#C41E3A" stroke-width="2.6"><path d="M187 51l10 10M187 61l10-10"/><path d="M187 119l10 10M187 129l10-10"/></g><circle cx="160" cy="90" r="5.5" fill="#FFF" stroke="#1A7F4B" stroke-width="2.2"/><circle cx="119" cy="90" r="5.5" fill="#FFF" stroke="#1A7F4B" stroke-width="2.2"/></svg></div>
+        <div class="bd">
+          <span class="tag">Buổi 3 <span class="new">Mới</span></span>
+          <h3>Phòng thí nghiệm biến đổi Z</h3>
+          <p>Tích chập thành phép nhân: biến đổi Z, miền hội tụ, điểm cực – không, Z ngược và các tính chất.</p>
+          <ul><li>ROC và Cauchy</li><li>Z ngược 3 cách</li><li>Tính chất</li><li>20 bài tập</li></ul>
+          <span class="go">Mở phần mềm <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+      </a>
+    </div>
   </section>
-  <section class="card">
-    <h3>Cài lên Android (Chrome)</h3>
-    <ol>
-      <li>Mở trang này bằng <b>Chrome</b> khi có mạng.</li>
-      <li>Bấm <span class="sym">⋮</span> ở góc trên, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</li>
-      <li>Mở biểu tượng <b>XLTHS</b> một lần khi còn mạng. Sau đó dùng offline.</li>
-    </ol>
+
+  <section class="blk wrap" id="lo-trinh">
+    <div class="sh">
+      <div><span class="eyebrow">Lộ trình học phần</span><h2>9 buổi, từ dãy số đến thiết kế bộ lọc</h2></div>
+      <p>Các buổi đã có phần mềm được đánh dấu xanh. Phần mềm các buổi sau sẽ được bổ sung dần.</p>
+    </div>
+    <div class="road">
+      <a class="st on" href="day-tin-hieu.html"><span class="no">01</span><div><b>Tín hiệu rời rạc và biểu diễn tín hiệu rời rạc trong MATLAB</b><small>Có phần mềm</small></div></a>
+      <a class="st on" href="tich-chap.html"><span class="no">02</span><div><b>Hệ thống tuyến tính và phương trình sai phân tuyến tính hệ số hằng</b><small>Có phần mềm</small></div></a>
+      <a class="st on" href="bien-doi-z.html"><span class="no">03</span><div><b>Biến đổi Z và các tính chất của biến đổi Z</b><small>Có phần mềm</small></div></a>
+      <div class="st off"><span class="no">04</span><div><b>Biểu diễn hệ thống trong miền Z và thực hiện trên MATLAB</b><small>Sắp có</small></div></div>
+      <div class="st off"><span class="no">05</span><div><b>Biến đổi Fourier và tính chất</b><small>Sắp có</small></div></div>
+      <div class="st off"><span class="no">06</span><div><b>Biểu diễn hệ thống trên miền tần số, vẽ đáp ứng tần số bằng MATLAB</b><small>Sắp có</small></div></div>
+      <div class="st off"><span class="no">07</span><div><b>Bộ lọc số lý tưởng và cấu trúc bộ lọc số</b><small>Sắp có</small></div></div>
+      <div class="st off"><span class="no">08</span><div><b>Thiết kế bộ lọc FIR</b><small>Sắp có</small></div></div>
+      <div class="st off"><span class="no">09</span><div><b>Thiết kế bộ lọc IIR</b><small>Sắp có</small></div></div>
+    </div>
   </section>
-  <section class="card">
-    <h3>Trên máy tính (Chrome, Edge)</h3>
-    <ol>
-      <li>Mở trang này một lần khi có mạng; lần sau mở lại vẫn chạy khi mất mạng.</li>
-      <li>Muốn có biểu tượng riêng: bấm biểu tượng <b>Cài đặt</b> ở cuối thanh địa chỉ.</li>
-    </ol>
+
+  <section class="blk wrap" id="cai-dat">
+    <div class="sh">
+      <div><span class="eyebrow">Cài đặt</span><h2>Dùng như một ứng dụng, kể cả khi mất mạng</h2></div>
+    </div>
+    <div class="install">
+      <div class="why">
+        <h3>Sau khi cài</h3>
+        <ul>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#E8F5EE"/><path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="#1A7F4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Có biểu tượng <b>XLTHS</b> trên màn hình chính, mở toàn màn hình.</span></li>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#E8F5EE"/><path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="#1A7F4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Cả ba phần mềm chạy được khi không có mạng.</span></li>
+          <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#E8F5EE"/><path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="#1A7F4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Khi có bản mới, mở lúc có mạng là tự cập nhật.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="seg" role="tablist" aria-label="Chọn thiết bị">
+          <button role="tab" id="t-ios" aria-selected="true" aria-controls="p-ios">iPhone (Safari)</button>
+          <button role="tab" id="t-and" aria-selected="false" aria-controls="p-and">Android (Chrome)</button>
+          <button role="tab" id="t-pc" aria-selected="false" aria-controls="p-pc">Máy tính</button>
+        </div>
+        <ol class="steps" id="p-ios" role="tabpanel" aria-labelledby="t-ios">
+          <li><div>Mở trang này bằng <b>Safari</b> khi có mạng.</div></li>
+          <li><div>Bấm nút <b>Chia sẻ</b> <span class="sym">⬆︎</span> ở thanh dưới.</div></li>
+          <li><div>Chọn <b>Thêm vào MH chính</b> rồi bấm <b>Thêm</b>.</div></li>
+          <li><div>Mở biểu tượng <b>XLTHS</b> <b>một lần khi còn mạng</b>. Từ lần sau dùng được khi không có mạng.</div></li>
+        </ol>
+        <ol class="steps" id="p-and" role="tabpanel" aria-labelledby="t-and" hidden>
+          <li><div>Mở trang này bằng <b>Chrome</b> khi có mạng.</div></li>
+          <li><div>Bấm <span class="sym">⋮</span> ở góc trên, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</div></li>
+          <li><div>Mở biểu tượng <b>XLTHS</b> một lần khi còn mạng. Sau đó dùng offline.</div></li>
+        </ol>
+        <ol class="steps" id="p-pc" role="tabpanel" aria-labelledby="t-pc" hidden>
+          <li><div>Mở trang này bằng Chrome hoặc Edge một lần khi có mạng; lần sau mở lại vẫn chạy khi mất mạng.</div></li>
+          <li><div>Muốn có biểu tượng riêng: bấm biểu tượng <b>Cài đặt</b> ở cuối thanh địa chỉ.</div></li>
+        </ol>
+        <p class="tip">Mẹo: nếu mở link trong Zalo hoặc Messenger, bấm <span class="sym">⋯</span> rồi chọn <b>Mở bằng trình duyệt</b> trước khi cài.</p>
+      </div>
+    </div>
   </section>
-  <p class="note">Mẹo: nếu mở link trong Zalo hoặc Messenger, bấm <span class="sym">⋯</span> rồi chọn <b>Mở bằng trình duyệt</b> trước khi cài.</p>
 </main>
+
+<footer><div class="wrap"><span>Xử lý tín hiệu số · Giảng viên <b>NGUYỄN SỸ HIỆP</b></span><span>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</span></div></footer>
+
 <script>
 (function(){
+  // Dãy (0,8)^n ở cửa sổ minh họa
+  var g=document.getElementById('stems'), s='';
+  for(var n=0;n<12;n++){var x=28+n*17.5,y=160-120*Math.pow(0.8,n),d=(n*0.06).toFixed(2);
+    s+='<g class="stem" style="animation-delay:'+d+'s"><line x1="'+x+'" x2="'+x+'" y1="160" y2="'+y.toFixed(1)+'" stroke="#1A7F4B" stroke-width="2.2"/><circle cx="'+x+'" cy="'+y.toFixed(1)+'" r="3.6" fill="#1A7F4B"/></g>';}
+  g.innerHTML=s;
+  // Thẻ chọn thiết bị
+  var tabs=[].slice.call(document.querySelectorAll('.seg [role=tab]'));
+  tabs.forEach(function(t){t.addEventListener('click',function(){tabs.forEach(function(o){var on=o===t;o.setAttribute('aria-selected',on);document.getElementById(o.getAttribute('aria-controls')).hidden=!on;});});});
+  if(/android/i.test(navigator.userAgent)) tabs[1].click(); else if(!/iphone|ipad|ipod/i.test(navigator.userAgent)) tabs[2].click();
+  // Trạng thái offline
   var box=document.getElementById('status'), t=document.getElementById('status-t');
   function set(ok,msg){box.classList.toggle('ok',ok);t.textContent=msg;}
   if(!('serviceWorker' in navigator)){set(false,'Trình duyệt này không hỗ trợ chạy offline. Hãy dùng Safari (iPhone) hoặc Chrome.');return;}
-  if(location.protocol==='file:'){set(false,'Đang mở từ tệp trong máy. Để dùng offline trên điện thoại, hãy mở bằng đường link GitHub Pages.');return;}
+  if(location.protocol==='file:'){set(false,'Đang mở từ tệp trong máy. Để dùng offline, hãy mở bằng đường link của trang.');return;}
   function check(){
     caches.keys().then(function(k){
       if(!k.length) return false;
-      return caches.open(k[k.length-1]).then(function(c){return Promise.all(['tich-chap.html','day-tin-hieu.html','fonts/fonts.css'].map(function(u){return c.match(u);}));}).then(function(r){return r.every(Boolean);});
+      return caches.open(k[k.length-1]).then(function(c){return Promise.all(['tich-chap.html','day-tin-hieu.html','bien-doi-z.html','assets/theme.css'].map(function(u){return c.match(u);}));}).then(function(r){return r.every(Boolean);});
     }).then(function(ok){
-      if(ok) set(true,'Đã lưu vào máy: dùng được khi không có mạng.');
+      if(ok) set(true,'Đã lưu vào máy: cả ba phần mềm dùng được khi không có mạng.');
       else set(false,'Đang lưu phần mềm vào máy để dùng offline…');
     }).catch(function(){});
   }
   addEventListener('load',function(){
-    navigator.serviceWorker.register('sw.js').then(function(){return navigator.serviceWorker.ready;}).then(function(){setTimeout(check,300);}).catch(function(){set(false,'Chưa lưu được để dùng offline. Hãy tải lại trang khi có mạng.');});
+    navigator.serviceWorker.register('sw.js').then(function(){return navigator.serviceWorker.ready;}).then(function(){setTimeout(check,400);}).catch(function(){set(false,'Chưa lưu được để dùng offline. Hãy tải lại trang khi có mạng.');});
     check();
   });
 })();
 </script>
-<script src="stats.js" defer></script>
 </body>
 </html>

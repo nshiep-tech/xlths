@@ -3,14 +3,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#FAFAF8">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="XLTHS">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
-<style>.inst .home-link{margin-left:auto;display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-weight:700;text-decoration:none}.inst .home-link::before{content:none}@media (pointer:coarse){.inst .home-link{min-height:40px}}</style>
 <style>
 /* Layout: phòng thí nghiệm một trang — hai bảng nhập x, h cạnh nhau; kết quả y; rồi hai cách giải (bảng cộng chồng, thanh trượt lật–dịch) */
 :root {
@@ -286,8 +285,11 @@ button, input, select, label, a { -webkit-tap-highlight-color: rgba(196, 30, 58,
   .byline small, .author small { font-size: 12px; }
 }
 </style>
+<link rel="stylesheet" href="assets/theme.css">
+<style>.app-page .top{top:env(safe-area-inset-top,0px)}</style>
+<body class="app-page">
 
-<div class="inst" role="note" aria-label="Đơn vị"><b>Trường Đại học Công nghệ Thông tin và Truyền thông</b><span>Đại học Thái Nguyên</span><a class="home-link" href="./">‹ Trang chủ</a></div>
+<header class="sitebar"><div class="sitebar-in"><a class="brand" href="./" aria-label="XLTHS – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19" stroke="#98A2B3" stroke-width="1.4"/><path d="M5.5 20V6.5M10.5 20V10.5M15 20v-6M19 20v-3.5" stroke="#C41E3A" stroke-width="2" stroke-linecap="round"/><circle cx="5.5" cy="5.8" r="2.1" fill="#C41E3A"/><circle cx="10.5" cy="9.8" r="2.1" fill="#C41E3A"/><circle cx="15" cy="13.4" r="2.1" fill="#1A7F4B"/><circle cx="19" cy="15.9" r="1.9" fill="#1A7F4B"/></svg></span><span class="brand-t"><b>XLTHS</b><small>ICTU · Đại học Thái Nguyên</small></span></a><nav class="sitenav" aria-label="Các phần mềm"><a class="home" href="./">Trang chủ</a><a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a><a href="tich-chap.html" aria-current="page"><span class="n">02</span>Tích chập</a><a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z <span class="new">Mới</span></a></nav></div></header>
 <noscript><style>#side,#scrim,.side,.scrim{display:none!important}</style></noscript>
 <noscript><div style="margin:12px;padding:14px 16px;border:2px solid #C41E3A;border-radius:12px;background:#FFF5F6;color:#161616;font:16px/1.5 Arial,sans-serif"><b style="color:#C41E3A">Trình xem này không chạy được phần mềm.</b><br>Zalo, Messenger và trình xem tệp chỉ hiện trang tĩnh, không chạy JavaScript. Hãy mở bằng <b>đường link</b> trong Safari hoặc Chrome, hoặc dùng ứng dụng đã thêm vào Màn hình chính.</div></noscript>
 
@@ -1728,5 +1730,4 @@ renderEx(false);
 let lastVW = vwNow();
 window.addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(() => { const v = vwNow(); if (Math.abs(v - lastVW) < 30) return; lastVW = v; try { renderAll(); renderDE(); renderDemo(); } catch (_) {} }, 200); });
 </script>
-<script src="stats.js" defer></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>

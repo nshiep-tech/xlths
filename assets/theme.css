@@ -1,0 +1,84 @@
+/* =====================================================================
+   XLTHS – hệ thiết kế chung cho trang chủ và các phần mềm Buổi 1, 2, 3.
+   Nền sáng duy nhất (không đổi sang nền tối), nhấn đỏ – xanh lá.
+   Nạp SAU CSS riêng của từng trang để đồng bộ giao diện.
+   ===================================================================== */
+:root {
+  --bg: #F6F7F9; --surface: #FFFFFF; --side: #FAFBFC; --ink: #0F1115; --body: #3B4048; --muted: #667085;
+  --line: #E4E7EC; --line-2: #D0D5DD; --soft: #F2F4F7;
+  --red: #C41E3A; --red-ink: #9E1830; --red-tint: #FDECEF;
+  --green: #1A7F4B; --green-ink: #145F39; --green-tint: #E8F5EE;
+  --blue: #1F4E8C; --blue-tint: #EAF1FB; --amber: #9A5B00; --amber-tint: #FFF4DE;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 12px rgba(16, 24, 40, .06);
+  --shadow-lg: 0 2px 4px rgba(16, 24, 40, .04), 0 16px 40px rgba(16, 24, 40, .10);
+  --r-sm: 10px; --r: 14px; --r-lg: 20px;
+  --f-body: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); -webkit-font-smoothing: antialiased; }
+
+/* ---------- Thanh điều hướng chung của cả trang ---------- */
+.sitebar { position: relative; z-index: 25; background: rgba(255, 255, 255, .92); border-bottom: 1px solid var(--line); }
+.sitebar-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 14px; min-height: 56px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; flex: none; min-height: 44px; }
+.brand-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
+.brand-mark svg { width: 22px; height: 22px; display: block; }
+.brand-t { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-t b { font-size: 15px; font-weight: 800; letter-spacing: .02em; }
+.brand-t small { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.sitenav { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; justify-content: flex-end; }
+.sitenav::-webkit-scrollbar { display: none; }
+.sitenav a { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; color: var(--body); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.sitenav a:hover { background: var(--soft); color: var(--ink); }
+.sitenav a[aria-current="page"] { background: var(--red-tint); color: var(--red-ink); }
+.sitenav a .n { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.sitenav a[aria-current="page"] .n { color: var(--red); }
+.sitenav .new { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--green-ink); background: var(--green-tint); border-radius: 999px; padding: 1px 7px; }
+.uni-line { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .01em; }
+@media (max-width: 760px) { .brand-t small { display: none; } .sitenav .new { display: none; } }
+@media (max-width: 600px) {
+  .sitebar-in { gap: 8px; }
+  .brand-t { display: none; }
+  .sitenav { gap: 0; }
+  .sitenav a { padding: 0 9px; font-size: 13.5px; }
+  .sitenav a .n, .sitenav a.home { display: none; }
+}
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(196, 30, 58, .35); outline-offset: 2px; }
+
+/* ---------- Làm mới các thành phần của phần mềm Buổi 1, 2 ---------- */
+.app-page .inst { display: none !important; }
+.app-page .top { background: rgba(255, 255, 255, .96); box-shadow: var(--shadow-sm); }
+.app-page .eyebrow::before { width: 16px; height: 3px; border-radius: 2px; }
+.app-page .author { border-color: var(--line); }
+.app-page .side-btn, .app-page .icon-btn { border: 1px solid var(--line-2); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); }
+.app-page .side-btn[aria-expanded="true"] { background: var(--surface); border-color: var(--line-2); color: var(--ink); }
+.app-page .modes { background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
+.app-page .mode-tab { border: 0; border-radius: 9px; background: transparent; color: var(--body); padding: 7px 12px; box-shadow: none; }
+.app-page .mode-tab:hover { background: rgba(255, 255, 255, .7); color: var(--ink); }
+.app-page .mode-tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.app-page .mode-tab b { background: var(--surface); border: 1px solid var(--line-2); }
+.app-page .mode-tab[aria-selected="true"] b { background: var(--red); border-color: var(--red); color: #fff; }
+.app-page .side { background: var(--side); }
+.app-page .card { border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+.app-page .card.r, .app-page .card.g, .app-page .card.k { border-top-width: 1px; border-top-color: var(--line); position: relative; overflow: hidden; }
+.app-page .card.r::before, .app-page .card.g::before, .app-page .card.k::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--red); }
+.app-page .card.g::before { background: var(--green); }
+.app-page .card.k::before { background: var(--line-2); }
+.app-page .side .card { box-shadow: var(--shadow-sm); }
+.app-page .chip { border-color: var(--line-2); }
+.app-page .chip[aria-pressed="true"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); }
+.app-page .seg { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
+.app-page .seg button { border: 0; background: transparent; border-radius: 8px; }
+.app-page .seg button:hover { background: rgba(255, 255, 255, .7); }
+.app-page .seg button[aria-pressed="true"] { background: var(--surface); color: var(--red-ink); box-shadow: var(--shadow); }
+.app-page .btn { border: 1px solid var(--line-2); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); }
+.app-page .btn:hover { background: var(--soft); border-color: var(--ink); }
+.app-page .plot, .app-page .tbl-wrap { border-color: var(--line); border-radius: 12px; }
+.app-page input[type=number], .app-page input[type=text], .app-page select { border: 1px solid var(--line-2); border-radius: 9px; }
+.app-page .note { border: 1px solid #CDE8D8; }
+.app-page pre.code { background: var(--soft); border-color: var(--line); }
