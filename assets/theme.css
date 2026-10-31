@@ -82,3 +82,80 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .app-page input[type=number], .app-page input[type=text], .app-page select { border: 1px solid var(--line-2); border-radius: 9px; }
 .app-page .note { border: 1px solid #CDE8D8; }
 .app-page pre.code { background: var(--soft); border-color: var(--line); }
+
+/* =====================================================================
+   LIQUID GLASS (cảm hứng iOS 26) – nền sáng, kính mờ, chuyển động nhẹ.
+   Bật bằng class "glass" trên <html>. Không dùng nền tối.
+   ===================================================================== */
+html.glass {
+  --glass: rgba(255, 255, 255, .56);
+  --glass-strong: rgba(255, 255, 255, .74);
+  --glass-edge: rgba(255, 255, 255, .78);
+  --glass-line: rgba(15, 17, 21, .07);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, .95) inset, 0 0 0 1px rgba(15, 17, 21, .04), 0 12px 32px rgba(31, 41, 70, .09);
+  --glass-blur: blur(22px) saturate(175%);
+  background: #EEF1F6;
+}
+/* Nền lưới màu chuyển động chậm */
+html.glass::before {
+  content: ""; position: fixed; inset: -18%; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(38% 34% at 14% 18%, rgba(196, 30, 58, .22), transparent 70%),
+    radial-gradient(34% 34% at 86% 14%, rgba(26, 127, 75, .22), transparent 70%),
+    radial-gradient(44% 40% at 72% 86%, rgba(31, 78, 140, .20), transparent 70%),
+    radial-gradient(30% 30% at 22% 84%, rgba(241, 166, 40, .16), transparent 70%),
+    radial-gradient(26% 26% at 52% 46%, rgba(124, 92, 255, .10), transparent 70%);
+  animation: glass-drift 28s ease-in-out infinite alternate;
+}
+/* Lưới kỹ thuật mờ phía trên */
+html.glass::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(15, 17, 21, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 17, 21, .04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(120% 70% at 50% 0%, #000 25%, transparent 75%);
+}
+@keyframes glass-drift {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(4%, -3%, 0) rotate(5deg) scale(1.05); }
+  100% { transform: translate3d(-3%, 4%, 0) rotate(-4deg) scale(1); }
+}
+html.glass body { background: transparent; }
+html.glass body::before { background: rgba(255, 255, 255, .7) !important; }
+
+/* Lớp kính dùng chung */
+.glass-card, html.glass .sitebar {
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow);
+}
+html.glass .sitebar { border-width: 0 0 1px; border-bottom-color: rgba(15, 17, 21, .06); box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 6px 24px rgba(31, 41, 70, .06); }
+html.glass .brand-mark { background: rgba(255, 255, 255, .8); }
+html.glass .sitenav a:hover { background: rgba(255, 255, 255, .7); }
+html.glass .sitenav a[aria-current="page"] { background: rgba(255, 255, 255, .85); color: var(--red-ink); box-shadow: 0 1px 0 #fff inset, 0 2px 10px rgba(196, 30, 58, .15); }
+
+/* Phần mềm Buổi 1, 2 trên nền kính */
+html.glass .app-page .top { position: sticky; background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-bottom: 1px solid rgba(15, 17, 21, .06); }
+html.glass .app-page .side { background: rgba(255, 255, 255, .45); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-right: 1px solid rgba(255, 255, 255, .7); }
+html.glass .app-page .card { background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); border-radius: 20px; }
+html.glass .app-page .modes, html.glass .app-page .seg { background: rgba(255, 255, 255, .5); border-color: rgba(255, 255, 255, .8); }
+html.glass .app-page .plot, html.glass .app-page .tbl-wrap { background: rgba(255, 255, 255, .7); }
+
+/* Phần mềm Buổi 3, 4 (bố cục bảng điều khiển + thẻ) */
+html.glass .pagehead { background: transparent; border-bottom: 0; }
+html.glass nav.tabs { background: rgba(255, 255, 255, .5); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-bottom: 1px solid rgba(255, 255, 255, .7); }
+html.glass .tablist { background: rgba(255, 255, 255, .45); border-color: rgba(255, 255, 255, .8); }
+html.glass aside.controls, html.glass main .card { background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); border-radius: 22px; }
+html.glass .ex { background: rgba(255, 255, 255, .62); border-color: rgba(255, 255, 255, .85); }
+html.glass input[type=text], html.glass input[type=number], html.glass select { background: rgba(255, 255, 255, .78); }
+html.glass .chip { background: rgba(255, 255, 255, .7); }
+
+/* Hiện dần khi cuộn tới (trạng thái nghỉ vẫn hiển thị đầy đủ) */
+.reveal { animation: glass-rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes glass-rise { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.985); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 700px) {
+  html.glass { --glass-blur: blur(14px) saturate(160%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.glass::before, .reveal { animation: none !important; }
+}

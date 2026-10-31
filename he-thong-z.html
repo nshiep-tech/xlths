@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="vi" class="glass">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hệ thống trong miền Z</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="XLTHS">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<style>
+/* Bố cục: đầu trang (trường + giảng viên) → thanh tab dính theo 6 phần của Buổi 3 → mỗi tab: bảng điều khiển (ẩn/hiện) + vùng kết quả. Một giao diện nền sáng duy nhất theo yêu cầu, không đổi sang nền tối. */
+:root{
+  --paper:#F6F7F9; --card:#FFFFFF; --ink:#0F1115; --ink2:#3B4048; --muted:#667085; --line:#E4E7EC; --line2:#D0D5DD; --soft:#F2F4F7;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05); --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px rgba(16,24,40,.06);
+  --red:#C41E3A; --red-t:#FDECEF; --green:#145F39; --green-t:#E8F5EE; --amber:#9A5B00; --amber-t:#FFF3DC;
+  --blue:#1F4E8C; --blue-t:#EAF1FB;
+  --f-body:"Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.pagehead{background:var(--card);border-bottom:1px solid var(--line)}
+.pagehead .wrap{padding-block:18px 14px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:flex-end;justify-content:space-between}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.eyebrow::before{content:"";width:16px;height:3px;border-radius:2px;background:currentColor}
+h1{margin:4px 0 0;font-size:clamp(22px,3.6vw,30px);font-weight:800;letter-spacing:-.015em;line-height:1.15;text-wrap:balance}
+h1 .z{color:var(--green)}
+.author{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right}
+.author small{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.author b{font-size:15px;font-weight:800;letter-spacing:.08em}
+.author span{font-size:12.5px;color:var(--muted)}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm)}
+nav.tabs .wrap{display:flex;gap:8px;align-items:center}
+.tablist{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;margin-block:8px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tablist::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:0;background:none;font:600 14px var(--f-body);color:var(--ink2);padding:8px 14px;border-radius:9px;cursor:pointer;min-height:40px;white-space:nowrap}
+.tab .no{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-right:6px}
+.tab:hover{background:rgba(255,255,255,.7);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.tab[aria-selected="true"] .no{color:var(--red)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.toggle{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;border:1px solid var(--line2);background:var(--card);box-shadow:var(--shadow-sm);border-radius:10px;font:600 13px var(--f-body);padding:8px 12px;min-height:44px;cursor:pointer;color:var(--ink)}
+main .wrap{padding-block:18px 40px}
+.panel-grid{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:18px;align-items:start}
+body.hide-controls .panel-grid{grid-template-columns:minmax(0,1fr)}
+body.hide-controls aside.controls{display:none}
+aside.controls{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);max-height:calc(100vh - 100px);overflow:auto}
+.out{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0;box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px;font-size:17px;font-weight:700;text-wrap:balance}
+.card h3{margin:14px 0 6px;font-size:14.5px;font-weight:700}
+.intro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.intro div{border-radius:12px;padding:12px 14px;font-size:14px}
+.intro .why{background:var(--red-t)}
+.intro .what{background:var(--blue-t)}
+.intro .use{background:var(--green-t)}
+.intro b{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.intro .why b{color:var(--red)} .intro .what b{color:var(--blue)} .intro .use b{color:var(--green)}
+.ref{font-size:12.5px;color:var(--muted);margin-top:8px}
+.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field small{color:var(--muted);font-size:12.5px;line-height:1.4}
+input[type=text],input[type=number],select{font:500 15px var(--f-mono);padding:9px 10px;border:1px solid var(--line2);border-radius:9px;background:#fff;color:var(--ink);min-height:44px;width:100%}
+select{font-family:var(--f-body)}
+input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:7px 12px;font:500 13.5px var(--f-body);cursor:pointer;min-height:40px;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--green-t);border-color:var(--green);color:var(--green);font-weight:700}
+.chip.small{min-height:36px;padding:5px 10px;font-size:13px}
+.btn{border:1px solid var(--red);background:var(--red);color:#fff;box-shadow:0 1px 2px rgba(196,30,58,.25);border-radius:10px;font:600 14px var(--f-body);padding:9px 14px;min-height:44px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line2);box-shadow:var(--shadow-sm)}
+.math{font-family:var(--f-mono);font-size:15px}
+.big{font-size:17px;line-height:2.1}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span{white-space:nowrap}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px 2px}
+.frac>span:last-child{padding:2px 4px 0}
+sup{font-size:.72em;line-height:0}
+.res{background:var(--green-t);border-radius:10px;padding:10px 14px;margin-top:10px;overflow-x:auto}
+.warn{background:var(--amber-t);border-radius:10px;padding:10px 14px;margin-top:10px;color:#4a3000}
+.bad{background:var(--red-t);border-radius:10px;padding:10px 14px;margin-top:10px}
+.ok{color:var(--green);font-weight:700}
+.no-ok{color:var(--red);font-weight:700}
+.plot{width:100%;overflow:hidden}
+.plot svg{display:block}
+.zbox{display:flex;justify-content:center}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tbl-wrap{overflow-x:auto}
+table.t{border-collapse:collapse;font-size:14px;width:100%}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-variant-numeric:tabular-nums}
+table.t th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.t td.m{font-family:var(--f-mono)}
+.grid-mul{border-collapse:separate;border-spacing:4px;font-family:var(--f-mono);font-size:14px}
+.grid-mul td,.grid-mul th{padding:8px 10px;border-radius:8px;text-align:center;white-space:nowrap}
+.grid-mul th{background:var(--soft);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--ink2);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.key{font-size:13.5px;color:var(--ink2)}
+.close{border-left:4px solid var(--green);background:var(--green-t);padding:10px 14px;border-radius:0 10px 10px 0;font-weight:600}
+.next{border-left:4px solid var(--red);background:var(--red-t);padding:10px 14px;border-radius:0 10px 10px 0;margin-top:8px}
+.steps{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{content:counter(s);width:28px;height:28px;border-radius:8px;background:var(--red-t);color:var(--red);display:grid;place-items:center;font:700 13px var(--f-mono)}
+.steps li>div{min-width:0;overflow-x:auto}
+.ex-group{margin-top:6px}
+.ex{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;box-shadow:var(--shadow-sm)}
+.ex+.ex{margin-top:10px}
+.ex .hd{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between}
+.ex .id{font:700 13px var(--f-mono);color:var(--red);margin-right:8px}
+.ex .q{margin:6px 0 8px}
+.ex .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ex .sol{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.ex .sol>div{background:var(--soft);border-radius:9px;padding:8px 12px;overflow-x:auto}
+.ex .mean{background:var(--green-t)!important}
+.switch{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;cursor:pointer;min-height:44px}
+.switch input{width:20px;height:20px;accent-color:var(--green)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+footer{color:var(--muted);font-size:12.5px;padding-block:6px 30px}
+@media (max-width: 900px){
+  .panel-grid{grid-template-columns:minmax(0,1fr)}
+  aside.controls{position:static;max-height:none}
+  .intro{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width: 600px){
+  .toggle span{display:none}
+  .author{align-items:flex-start;text-align:left}
+  .author span{display:none}
+  .pagehead .wrap{flex-direction:column;align-items:flex-start}
+}
+@media (max-width: 520px){
+  body{font-size:15px}
+  .card{padding:14px}
+  .big{font-size:15.5px}
+  .tab{padding:8px 11px;font-size:13.5px}
+  .toggle{font-size:12.5px;padding:8px 10px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>
+/* Thành phần riêng của Buổi 4 */
+.legend3{display:flex;flex-direction:column;gap:8px}
+.legend3>div{display:flex;align-items:center;gap:10px;font-size:14px}
+.diag{overflow-x:auto;border-radius:14px;background:rgba(255,255,255,.72);border:1px solid rgba(15,17,21,.06)}
+.diag svg{display:block;width:100%;min-width:600px;height:auto}
+.tri svg{display:block;width:100%;height:auto;max-width:460px}
+pre.code{margin:0;font:500 13.5px/1.6 var(--f-mono);background:rgba(246,247,249,.85);border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow-x:auto;white-space:pre;color:var(--ink)}
+.hd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.hd-row h2{margin:0}
+.steps li .math.big{margin:4px 0}
+input:disabled{opacity:.45}
+</style>
+<link rel="stylesheet" href="assets/theme.css">
+<style>html.glass .sitebar{position:relative}</style>
+</head>
+<body>
+<header class="sitebar"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="XLTHS – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19" stroke="#98A2B3" stroke-width="1.4"/><path d="M5.5 20V6.5M10.5 20V10.5M15 20v-6M19 20v-3.5" stroke="#C41E3A" stroke-width="2" stroke-linecap="round"/><circle cx="5.5" cy="5.8" r="2.1" fill="#C41E3A"/><circle cx="10.5" cy="9.8" r="2.1" fill="#C41E3A"/><circle cx="15" cy="13.4" r="2.1" fill="#1A7F4B"/><circle cx="19" cy="15.9" r="1.9" fill="#1A7F4B"/></svg></span><span class="brand-t"><b>XLTHS</b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
+    <a href="he-thong-z.html" aria-current="page"><span class="n">04</span>Hệ thống miền Z</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 4</div>
+      <h1>Hệ thống trong <span class="z">miền Z</span></h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của Buổi 4">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="ht" id="tb-ht"><span class="no">1</span>Hàm truyền H(z)</button>
+      <button class="tab" role="tab" data-tab="sd" id="tb-sd"><span class="no">2</span>Sơ đồ thực hiện</button>
+      <button class="tab" role="tab" data-tab="gh" id="tb-gh"><span class="no">3</span>Ghép hệ</button>
+      <button class="tab" role="tab" data-tab="gp" id="tb-gp"><span class="no">4</span>Giải PT sai phân</button>
+      <button class="tab" role="tab" data-tab="od" id="tb-od"><span class="no">5</span>Ổn định</button>
+      <button class="tab" role="tab" data-tab="ml" id="tb-ml"><span class="no">6</span>MATLAB</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ============ 1. HÀM TRUYỀN ============ -->
+<section class="tabpanel" id="p-ht" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Phương trình sai phân dạng</span>
+        <div class="math" style="font-size:14px">Σ a<sub>k</sub>·y(n−k) = Σ b<sub>r</sub>·x(n−r)</div></div>
+      <div class="field"><span class="lbl">Hệ số a<sub>0</sub>, a<sub>1</sub>, a<sub>2</sub>… (của y)</span>
+        <input type="text" id="ht-a" value="1 -2"><small>Ví dụ “1 -2” nghĩa là y(n) − 2y(n−1).</small></div>
+      <div class="field"><span class="lbl">Hệ số b<sub>0</sub>, b<sub>1</sub>, b<sub>2</sub>… (của x)</span>
+        <input type="text" id="ht-b" value="1 -3"><small>Ví dụ “1 -3” nghĩa là x(n) − 3x(n−1).</small></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips" id="ht-presets">
+          <button class="chip small" data-sys="1 -2|1 -3">Bài giảng 4.1.2</button>
+          <button class="chip small" data-sys="1 0,5|2 3">Bài giảng 4.1.3</button>
+          <button class="chip small" data-sys="1 -0,5|1">Chip vang (Buổi 2)</button>
+          <button class="chip small" data-sys="1 -0,9 0,2|1 1">Bậc 2 ổn định</button>
+          <button class="chip small" data-sys="1 -1|1">Bộ cộng dồn</button>
+          <button class="chip small" data-sys="1 -1,6 1|1">Máy phát sóng</button>
+          <button class="chip small" data-sys="1|1 2 1">FIR</button>
+        </div></div>
+      <small class="muted">Hệ đang chọn ở đây cũng được dùng cho tab 2 (Sơ đồ) và tab 6 (MATLAB).</small>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Hàm truyền đạt H(z): “chân dung” của hệ trong miền z</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Buổi 2 mô tả hệ bằng h(n) và tích chập. Buổi 3 cho biết sang miền z thì tích chập thành phép nhân: Y(z) = X(z)·H(z).</div>
+          <div class="what"><b>Là gì</b>H(z) = ZT[h(n)] = Y(z)/X(z). Từ phương trình sai phân, chỉ cần biến đổi Z hai vế là đọc ra H(z).</div>
+          <div class="use"><b>Ứng dụng</b>Nhìn mẫu số của H(z) là biết hệ có ổn định không, không cần chạy thử. Mọi bộ lọc số đều được mô tả bằng H(z).</div>
+        </div>
+        <div class="ref">Mục 4.1.1, 4.1.2 · Bảng so sánh: miền n: y = x * h ⟷ miền z: Y = X·H</div>
+      </div>
+      <div class="card">
+        <h2>Từng bước: từ phương trình sai phân đến H(z)</h2>
+        <ol class="steps" id="ht-steps"></ol>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Điểm cực, điểm không</h2><div id="ht-pz"></div><div class="zbox plot" id="ht-z"></div></div>
+        <div class="card"><h2>Đáp ứng xung h(n)</h2><div class="plot" id="ht-h"></div><div id="ht-hinfo"></div></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: biến đổi Z hai vế phương trình sai phân, gom Y(z) và X(z) về hai phía, H(z) = Y(z)/X(z). Hệ số của y nằm ở mẫu số, hệ số của x nằm ở tử số.</div>
+        <div class="next"><b>Còn vướng →</b> có H(z) rồi, lắp mạch hoặc viết code thế nào cho gọn nhất? (tab 2)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. SƠ ĐỒ ============ -->
+<section class="tabpanel" id="p-sd" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Dạng sơ đồ</span>
+        <div class="chips" id="sd-forms">
+          <button class="chip small" data-f="2" aria-pressed="true">Trực tiếp 2</button>
+          <button class="chip small" data-f="1" aria-pressed="false">Trực tiếp 1</button>
+        </div></div>
+      <div class="field"><span class="lbl">Hệ đang vẽ (sửa ở tab 1)</span><div class="math" id="sd-sys" style="font-size:14px"></div>
+        <button class="btn ghost" data-go="ht">Đổi hệ ở tab 1</button></div>
+      <div class="field"><span class="lbl">Ba phần tử thực hiện</span>
+        <div class="legend3">
+          <div><svg viewBox="0 0 44 44" width="40" height="40" aria-hidden="true"><circle cx="22" cy="22" r="15" fill="#fff" stroke="#161616" stroke-width="2"/><path d="M22 14v16M14 22h16" stroke="#161616" stroke-width="2"/></svg><span><b>Cộng</b>: Y = X₁ + X₂</span></div>
+          <div><svg viewBox="0 0 44 44" width="40" height="40" aria-hidden="true"><path d="M8 8L36 22L8 36z" fill="#fff" stroke="#145F39" stroke-width="2"/></svg><span><b>Nhân hằng số</b>: Y = a·X</span></div>
+          <div><svg viewBox="0 0 44 44" width="40" height="40" aria-hidden="true"><rect x="6" y="10" width="32" height="24" rx="5" fill="#FDECEF" stroke="#C41E3A" stroke-width="2"/><text x="22" y="27" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#9E1830">z⁻¹</text></svg><span><b>Trễ đơn vị</b>: Y = z⁻¹·X</span></div>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Sơ đồ cấu trúc: biến H(z) thành mạch hoặc code</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>H(z) mới là công thức. Muốn chạy trên chip DSP, vi điều khiển hay FPGA thì phải biết lắp từ những linh kiện nào.</div>
+          <div class="what"><b>Là gì</b>Chỉ ba loại phần tử: cộng, nhân hằng số, trễ z⁻¹. Mỗi “z⁻¹” là một ô nhớ lưu giá trị của nhịp trước.</div>
+          <div class="use"><b>Ứng dụng</b>Sơ đồ trực tiếp 2 dùng ít ô nhớ nhất (dạng chính tắc), nên tiết kiệm bộ nhớ khi nạp vào ESP32, STM32, chip DSP.</div>
+        </div>
+        <div class="ref">Mục 4.1.3 (phần tử cộng, trễ đơn vị, nhân hằng số) · Kỹ năng: vẽ được sơ đồ trực tiếp 2</div>
+      </div>
+      <div class="card">
+        <h2 id="sd-title"></h2>
+        <div class="diag" id="sd-svg"></div>
+        <div id="sd-eq"></div>
+      </div>
+      <div class="card">
+        <h2>So sánh hai dạng sơ đồ</h2>
+        <div class="tbl-wrap" id="sd-cmp"></div>
+        <p class="key" id="sd-why"></p>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: mỗi dấu “+” là một bộ cộng, mỗi hệ số là một bộ nhân, mỗi z⁻¹ là một ô nhớ. Trực tiếp 2 dùng chung một dãy ô nhớ cho cả hai nhánh.</div>
+        <div class="next"><b>Còn vướng →</b> hệ thật thường ghép từ nhiều khối nhỏ. Tính H(z) tổng thế nào? (tab 3)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. GHÉP HỆ ============ -->
+<section class="tabpanel" id="p-gh" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Cách ghép</span>
+        <div class="chips" id="gh-modes">
+          <button class="chip small" data-m="nt" aria-pressed="true">Nối tiếp</button>
+          <button class="chip small" data-m="ss" aria-pressed="false">Song song</button>
+          <button class="chip small" data-m="ht" aria-pressed="false">Hồi tiếp</button>
+        </div></div>
+      <div class="field"><span class="lbl">Khối H₁(z) = k₁ / (1 − p₁z⁻¹)</span>
+        <div class="row2"><input type="text" id="gh-k1" value="1" aria-label="k1"><input type="text" id="gh-p1" value="0,5" aria-label="p1"></div>
+        <small>Ô trái: k₁ (hệ số khuếch đại). Ô phải: p₁ (điểm cực).</small></div>
+      <div class="field"><span class="lbl">Khối H₂(z) = k₂ / (1 − p₂z⁻¹)</span>
+        <div class="row2"><input type="text" id="gh-k2" value="1" aria-label="k2"><input type="text" id="gh-p2" value="0,2" aria-label="p2"></div></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips">
+          <button class="chip small" data-gh="nt|1|0,5|1|0,2">Nối tiếp ổn định</button>
+          <button class="chip small" data-gh="ss|1|0,5|1|0,2">Song song</button>
+          <button class="chip small" data-gh="ht|1|0,5|0,6|0,5">Hồi tiếp gây hú</button>
+          <button class="chip small" data-gh="ht|1|0,5|0,1|0,5">Hồi tiếp nhẹ</button>
+          <button class="chip small" data-gh="nt|1|0,5|1|1,1">Một khối hỏng</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Phân tích hệ thống: chia nhỏ rồi ghép lại</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Hệ thật gồm nhiều khối: cảm biến → bộ lọc → bộ khuếch đại, hoặc có vòng phản hồi như micro đặt gần loa.</div>
+          <div class="what"><b>Quy tắc</b>Nối tiếp: <b>nhân</b> các H. Song song: <b>cộng</b> các H. Hồi tiếp: H = H₁ / (1 − H₁·H₂).</div>
+          <div class="use"><b>Ứng dụng</b>Biết trước hệ ghép có ổn định không. Hai khối tốt ghép hồi tiếp vẫn có thể gây hú.</div>
+        </div>
+        <div class="ref">Mục 4.1.4 · Nguyên tắc: chia hệ lớn thành hệ nhỏ → tìm cách ghép → tìm H của từng khối → tổng hợp</div>
+      </div>
+      <div class="card">
+        <h2 id="gh-title"></h2>
+        <div class="diag" id="gh-svg"></div>
+        <ol class="steps" id="gh-steps"></ol>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Điểm cực của hệ tổng</h2><div id="gh-pz"></div><div class="zbox plot" id="gh-z"></div></div>
+        <div class="card"><h2>Đáp ứng xung h(n) của hệ tổng</h2><div class="plot" id="gh-h"></div></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: nối tiếp thì nhân, song song thì cộng, hồi tiếp thì H₁/(1 − H₁H₂). Nối tiếp hay song song: cực của hệ tổng là cực của từng khối. Hồi tiếp: cực bị dịch đi, có thể ra ngoài vòng tròn.</div>
+        <div class="next"><b>Còn vướng →</b> H(z) cho biết hệ, nhưng muốn biết đầu ra cụ thể khi có điều kiện đầu thì sao? (tab 4)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. GIẢI PT SAI PHÂN ============ -->
+<section class="tabpanel" id="p-gp" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Phương trình</span>
+        <div class="math" style="font-size:14px">y(n) + a₁·y(n−1) + a₂·y(n−2) = x(n)</div>
+        <div class="row2"><input type="text" id="gp-a1" value="-3" aria-label="a1"><input type="text" id="gp-a2" value="2" aria-label="a2"></div>
+        <small>Ô trái a₁, ô phải a₂ (nhập 0 nếu là phương trình bậc 1).</small></div>
+      <div class="field"><span class="lbl">Tín hiệu vào x(n)</span>
+        <select id="gp-xt"><option value="exp">C·αⁿ·u(n)</option><option value="delta">C·δ(n)</option></select>
+        <div class="row2" style="margin-top:8px"><input type="text" id="gp-C" value="1/9" aria-label="C"><input type="text" id="gp-al" value="3" aria-label="alpha"></div>
+        <small>Ô trái C, ô phải α. Nhập được phân số như 1/9. Bài giảng: x(n) = 3ⁿ⁻² = (1/9)·3ⁿ.</small></div>
+      <div class="field"><span class="lbl">Điều kiện đầu</span>
+        <div class="row2"><input type="text" id="gp-y1" value="0" aria-label="y(-1)"><input type="text" id="gp-y2" value="0" aria-label="y(-2)"></div>
+        <small>Ô trái y(−1), ô phải y(−2).</small></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips">
+          <button class="chip small" data-gp="-3|2|exp|1/9|3|0|0">Bài giảng 4.1.5</button>
+          <button class="chip small" data-gp="-0,5|0|exp|1|1|0|0">Bình rò nước</button>
+          <button class="chip small" data-gp="-0,5|0|exp|1|1|1|0">Bình có sẵn nước</button>
+          <button class="chip small" data-gp="0,1|-0,2|delta|1|0|0|0">Đáp ứng xung bậc 2</button>
+          <button class="chip small" data-gp="-1|0,5|exp|1|0,5|0|0">Cực phức</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Giải phương trình sai phân bằng biến đổi Z một phía</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Buổi 2 phải giải 4 bước (thuần nhất, riêng, ghép, tìm hằng số). Có điều kiện đầu khác 0 thì càng rối.</div>
+          <div class="what"><b>Ý tưởng</b>Biến đổi Z một phía hai vế → giải Y₁(z) như phương trình đại số → biến đổi Z ngược (phân thức tối giản) ra y(n).</div>
+          <div class="use"><b>Ứng dụng</b>Biết đầu ra của mạch khi bật nguồn mà tụ, bộ nhớ đã có sẵn giá trị (điều kiện đầu), ví dụ bộ lọc cảm biến khởi động lại.</div>
+        </div>
+        <div class="ref">Mục 4.1.5 · Tính chất trễ một phía: ZT₁[x(n−k)] = z⁻ᵏ·X₁(z) + z⁻ᵏ·Σ<sub>m=−k…−1</sub> x(m)·z⁻ᵐ</div>
+      </div>
+      <div class="card"><h2>Lời giải từng bước</h2><ol class="steps" id="gp-steps"></ol></div>
+      <div class="card">
+        <h2>Kết quả và kiểm tra</h2>
+        <div class="res math" id="gp-res"></div>
+        <div class="plot" id="gp-plot"></div>
+        <div class="tbl-wrap" id="gp-tbl"></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: Z một phía mang điều kiện đầu vào thẳng phương trình, nên chỉ còn giải đại số rồi tra bảng. Không cần đoán nghiệm riêng.</div>
+        <div class="next"><b>Còn vướng →</b> nghiệm có các số hạng 2ⁿ, 3ⁿ to dần mãi. Làm sao biết trước điều đó chỉ từ H(z)? (tab 5)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. ỔN ĐỊNH ============ -->
+<section class="tabpanel" id="p-od" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Mẫu số D(z), lũy thừa giảm dần của z</span>
+        <input type="text" id="od-D" value="1 -1,3 0,4"><small>“1 -1,3 0,4” nghĩa là z² − 1,3z + 0,4.</small></div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips">
+          <button class="chip small" data-od="1 -0,5">z − 0,5</button>
+          <button class="chip small" data-od="1 1,2">z + 1,2</button>
+          <button class="chip small" data-od="1 -1,3 0,4">Bẫy hệ số 1,3</button>
+          <button class="chip small" data-od="1 0,5 -0,5">Cực −1</button>
+          <button class="chip small" data-od="1 -1,2 0,72">Phức ổn định</button>
+          <button class="chip small" data-od="1 -1,6 1">Phức trên vòng</button>
+          <button class="chip small" data-od="1 -2 2">Phức ngoài vòng</button>
+          <button class="chip small" data-od="1 -0,5 0,81 -0,405">Bậc 3</button>
+        </div></div>
+      <small class="muted">Ổn định là tính chất của hệ, nên chỉ xét mẫu số của H(z). Tử số chỉ đổi hình dạng đáp ứng.</small>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Ổn định: mọi điểm cực phải nằm trong vòng tròn đơn vị</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Hệ mất ổn định: đầu vào nhỏ cũng cho đầu ra lớn vô hạn. Ngoài đời là loa hú, drone rơi, chip tràn số.</div>
+          <div class="what"><b>Định lý</b>Hệ tuyến tính bất biến nhân quả ổn định ⇔ tất cả điểm cực của H(z) có |z| &lt; 1. Chỉ một cực trên hoặc ngoài vòng tròn là hỏng.</div>
+          <div class="use"><b>Ứng dụng</b>Kiểm tra bộ lọc trên giấy trước khi nạp vào thiết bị. Bộ lọc IIR bắt buộc phải kiểm tra, FIR thì luôn ổn định.</div>
+        </div>
+        <div class="ref">Mục 4.2 · Miền n: Σ|h(n)| &lt; ∞ ⟺ Miền z: ROC chứa vòng tròn đơn vị ⟺ Nhân quả: mọi cực |z| &lt; 1</div>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Các điểm cực</h2><div id="od-list"></div><div class="zbox plot" id="od-z"></div></div>
+        <div class="card"><h2>Đáp ứng xung tương ứng</h2><div class="plot" id="od-h"></div><div id="od-say"></div></div>
+      </div>
+      <div class="card">
+        <h2>Tam giác ổn định của hệ bậc 2: D(z) = z² + a₁z + a₂</h2>
+        <p class="key" style="margin-top:0">Bấm hoặc kéo chấm tròn trong hình. Vùng xanh là ổn định. Phía trên đường cong: cặp cực phức (dao động). Phía dưới: hai cực thực.</p>
+        <div class="two">
+          <div class="tri" id="od-tri"></div>
+          <div><div class="zbox plot" id="od-tz"></div><div id="od-tsay"></div></div>
+        </div>
+        <div class="plot" id="od-th"></div>
+      </div>
+      <div class="card">
+        <div class="close">Câu chốt: giải mẫu số, tính khoảng cách từng cực tới gốc. Tất cả nhỏ hơn 1 thì ổn định. Đừng nhìn hệ số mà đoán.</div>
+        <div class="next"><b>Còn vướng →</b> hệ bậc cao giải tay rất mệt. MATLAB làm thế nào? (tab 6)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. MATLAB ============ -->
+<section class="tabpanel" id="p-ml" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Hệ đang dùng (sửa ở tab 1)</span><div class="math" id="ml-sys" style="font-size:14px"></div>
+        <button class="btn ghost" data-go="ht">Đổi hệ ở tab 1</button></div>
+      <div class="field"><span class="lbl">Bảng lệnh hay dùng</span>
+        <div class="tbl-wrap"><table class="t">
+          <tr><th>Lệnh</th><th>Làm gì</th></tr>
+          <tr><td class="m">roots(a)</td><td>điểm cực</td></tr>
+          <tr><td class="m">zplane(b,a)</td><td>vẽ cực – không</td></tr>
+          <tr><td class="m">impz(b,a,N)</td><td>đáp ứng xung</td></tr>
+          <tr><td class="m">filter(b,a,x)</td><td>tính đầu ra y</td></tr>
+          <tr><td class="m">residuez(b,a)</td><td>phân thức tối giản</td></tr>
+          <tr><td class="m">conv(b1,b2)</td><td>nhân đa thức (nối tiếp)</td></tr>
+          <tr><td class="m">tf2zp, zp2tf</td><td>đổi hệ số ↔ cực, không</td></tr>
+          <tr><td class="m">ztrans, iztrans</td><td>biến đổi Z dạng ký hiệu (cần Symbolic)</td></tr>
+        </table></div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Biểu diễn hệ thống trong miền Z bằng MATLAB</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Hệ bậc 3 trở lên giải nghiệm, khai triển phân thức bằng tay rất mệt và dễ sai.</div>
+          <div class="what"><b>Quy ước</b>MATLAB lưu hệ bằng hai vectơ: <span class="mono">b</span> (tử, hệ số của x) và <span class="mono">a</span> (mẫu, hệ số của y), theo lũy thừa z⁻¹ tăng dần.</div>
+          <div class="use"><b>Ứng dụng</b>Kiểm tra lời giải tay, vẽ nhanh, rồi chuyển sang Buổi 6: <span class="mono">freqz(b,a)</span> vẽ đáp ứng tần số.</div>
+        </div>
+        <div class="ref">Mục 4.3 · Chạy được cả trên GNU Octave (miễn phí)</div>
+      </div>
+      <div class="card">
+        <div class="hd-row"><h2>Đoạn lệnh cho hệ đang chọn</h2><button class="btn ghost" id="ml-copy">Sao chép</button></div>
+        <pre class="code" id="ml-code"></pre>
+      </div>
+      <div class="card"><h2>Kết quả MATLAB sẽ in ra (phần mềm tính sẵn để đối chiếu)</h2><div id="ml-out"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải. Bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Hàm truyền</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. Sơ đồ</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Ghép hệ</button>
+          <button class="chip small" data-g="D" aria-pressed="false">D. PT sai phân</button>
+          <button class="chip small" data-g="E" aria-pressed="false">E. Ổn định</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Bài tập Buổi 4 có lời giải</h2>
+        <p class="key" style="margin:0">Theo đúng thứ tự mục 4.1 → 4.2. Đáp án đã đối chiếu bằng máy. Nút “Mở trong phòng thí nghiệm” nạp sẵn số liệu vào tab tương ứng.</p>
+      </div>
+      <div id="ex-list"></div>
+    </div>
+  </div>
+</section>
+
+<footer>Hệ thống trong miền Z · Xử lý tín hiệu số, Buổi 4 · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+
+<script src="assets/zcore.js"></script>
+<script>
+"use strict";
+/* ===== Phần mềm Buổi 4 – Hệ thống trong miền Z. Dùng các hàm chung trong assets/zcore.js ===== */
+const zeros = n => Array(Math.max(0, n)).fill(0);
+const isZero = v => Math.abs(v) < 1e-12;
+function eqSide(c, v){
+  let s = '';
+  c.forEach((a, k) => {
+    if (isZero(a)) return; const A = Math.abs(a);
+    const co = Math.abs(A - 1) < 1e-12 ? '' : fmt(A) + '·';
+    const t = k === 0 ? `${v}(n)` : `${v}(n−${k})`;
+    s += (s ? (a < 0 ? ' − ' : ' + ') : (a < 0 ? '−' : '')) + co + t;
+  });
+  return s || '0';
+}
+function impulse(bn, an, L){
+  const h = [];
+  for (let n = 0; n < L; n++){ let v = n < bn.length ? bn[n] : 0; for (let k = 1; k < an.length; k++) v -= an[k] * (h[n - k] || 0); h.push(v); }
+  return h;
+}
+/* Phân tích một hệ cho bởi b, a (theo z^-1) */
+function analyze(b, a){
+  a = a.slice(); b = b.slice();
+  while (a.length > 1 && isZero(a[a.length - 1])) a.pop();
+  while (b.length > 1 && isZero(b[b.length - 1])) b.pop();
+  const a0 = a[0];
+  const an = a.map(v => v / a0), bn = b.map(v => v / a0);
+  const L = Math.max(an.length, bn.length) - 1;
+  let Nd = [...bn, ...zeros(L - (bn.length - 1))], Dd = [...an, ...zeros(L - (an.length - 1))];
+  while (Nd.length > 1 && Dd.length > 1 && isZero(Nd[Nd.length - 1]) && isZero(Dd[Dd.length - 1])){ Nd.pop(); Dd.pop(); }
+  const pz = pzFromND(Nd, Dd);
+  const rmax = pz.poles.length ? Math.max(...pz.poles.map(p => cabs(p.z))) : 0;
+  const stable = pz.poles.every(p => cabs(p.z) < 1 - 1e-9);
+  const h = impulse(bn, an, 400);
+  let res = null; try { res = izt(Nd, Dd); } catch (e) { res = null; }
+  return {an, bn, Nd, Dd, pz, rmax, stable, h, res, roc: {rin: rmax, rout: Infinity}};
+}
+function poleTable(pz, withZeros = true){
+  const row = (o, t) => `<tr><td>${t}</td><td class="m">${fmtc(o.z)}</td><td class="m">${o.m}</td><td class="m">${fmt(cabs(o.z))}</td><td>${cabs(o.z) < 1 - 1e-9 ? '<span class="ok">trong</span>' : (Math.abs(cabs(o.z) - 1) < 1e-9 ? '<span class="no-ok">trên vòng</span>' : '<span class="no-ok">ngoài</span>')}</td></tr>`;
+  let t = '<div class="tbl-wrap"><table class="t"><tr><th>Loại</th><th>Vị trí</th><th>Bội</th><th>r = |z|</th><th>So với vòng tròn</th></tr>';
+  pz.poles.forEach(o => t += row(o, '<span style="color:var(--red);font-weight:700">× Cực</span>'));
+  if (withZeros) pz.zeros.forEach(o => t += `<tr><td><span style="color:var(--green);font-weight:700">○ Không</span></td><td class="m">${fmtc(o.z)}</td><td class="m">${o.m}</td><td class="m">${fmt(cabs(o.z))}</td><td class="muted">không ảnh hưởng ổn định</td></tr>`);
+  return t + '</table></div>';
+}
+function verdict(A){
+  if (!A.pz.poles.length) return '<div class="res"><span class="ok">Ổn định</span>: không có điểm cực nào ngoài gốc tọa độ (hệ FIR luôn ổn định).</div>';
+  const bad = A.pz.poles.filter(p => cabs(p.z) >= 1 - 1e-9);
+  if (!bad.length) return `<div class="res"><span class="ok">Ổn định</span>: mọi điểm cực đều có r &lt; 1 (lớn nhất r = ${fmt(A.rmax)}).</div>`;
+  return `<div class="bad"><span class="no-ok">Không ổn định</span>: cực ${bad.map(p => fmtc(p.z)).join('; ')} có r = ${bad.map(p => fmt(cabs(p.z))).join('; ')} ≥ 1.</div>`;
+}
+function sumAbs(h){ let s = 0; for (const v of h){ s += Math.abs(v); if (!isFinite(s) || s > 1e9) return Infinity; } return s; }
+function hPlot(el, h, stable, L = 30){
+  const n = h.slice(0, L + 1).map((_, i) => i);
+  stemPlot(el, {nmin: 0, nmax: L, series: [{n, v: h.slice(0, L + 1), color: stable ? CL.green : CL.red}], label: 'Đáp ứng xung'});
+}
+const oneMinusW = al => isZero(al) ? '1' : `1 ${al > 0 ? '−' : '+'} ${Math.abs(Math.abs(al) - 1) < 1e-12 ? '' : fmt(Math.abs(al))}z<sup>−1</sup>`;
+
+/* =================== TAB 1: HÀM TRUYỀN =================== */
+let SYS = {b: [1, -3], a: [1, -2]};
+function readSys(){
+  const a = parseList($('ht-a').value), b = parseList($('ht-b').value);
+  if (!a || !b || isZero(a[0])) return null;
+  return {a, b};
+}
+function renderHt(){
+  const s = readSys();
+  if (!s){ $('ht-steps').innerHTML = '<li><div class="bad">Hệ số chưa hợp lệ. Hệ số a₀ (của y(n)) phải khác 0.</div></li>'; return; }
+  SYS = s; const A = analyze(s.b, s.a); const {a, b} = s;
+  const norm = !isZero(a[0] - 1);
+  let st = '';
+  st += `<li><div><b>Phương trình sai phân:</b><div class="math big">${eqSide(a, 'y')} = ${eqSide(b, 'x')}</div></div></li>`;
+  st += `<li><div><b>Biến đổi Z hai vế</b>, dùng tính chất trễ ZT[y(n−k)] = z<sup>−k</sup>·Y(z):<div class="math big">(${polyW(a)})·Y(z) = (${polyW(b)})·X(z)</div></div></li>`;
+  st += `<li><div><b>Lập tỷ số</b> H(z) = Y(z)/X(z):<div class="math big">H(z) = ${frac(polyW(b), polyW(a))}${norm ? ` = ${frac(polyW(A.bn), polyW(A.an))}` : ''}</div>${norm ? '<small class="muted">Chia cả tử và mẫu cho a₀ để hệ số đầu của mẫu bằng 1.</small>' : ''}</div></li>`;
+  const L = A.Dd.length - 1;
+  st += `<li><div><b>Đổi về lũy thừa dương</b> (nhân tử và mẫu với z<sup>${L}</sup>) để tìm cực, không:<div class="math big">H(z) = ${frac(polyZ(A.Nd), polyZ(A.Dd))}</div></div></li>`;
+  st += `<li><div><b>Kết luận ổn định</b> (xét mẫu số):${verdict(A)}</div></li>`;
+  $('ht-steps').innerHTML = st;
+  $('ht-pz').innerHTML = poleTable(A.pz);
+  zPlane($('ht-z'), {poles: A.pz.poles, zeros: A.pz.zeros, roc: {rin: A.rmax, rout: Infinity}, size: 320});
+  hPlot($('ht-h'), A.h, A.stable);
+  const S = sumAbs(A.h);
+  $('ht-hinfo').innerHTML = (A.res ? `<div class="res math">h(n) = ${termsHTML(A.res, A.roc)}</div>` : '') +
+    `<p class="key">Kiểm tra theo Buổi 2: Σ|h(n)| ${isFinite(S) ? `≈ <b>${fmt(S, 3)}</b> (hữu hạn ⇒ ổn định)` : '<b>tăng mãi tới ∞</b> (⇒ không ổn định)'}. Hai cách xét cho cùng kết quả.</p>`;
+}
+
+/* =================== TAB 2: SƠ ĐỒ =================== */
+let sdForm = '2';
+const svgT = (x, y, t, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" font-size="${o.s || 14}" font-family="${o.mono ? 'JetBrains Mono, monospace' : 'Be Vietnam Pro, sans-serif'}" font-weight="${o.w || 500}" fill="${o.c || '#161616'}">${t}</text>`;
+const arrowDef = '<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3A3A37"/></marker></defs>';
+const ln = (x1, y1, x2, y2, arrow = true) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3A3A37" stroke-width="1.6"${arrow ? ' marker-end="url(#ah)"' : ''}/>`;
+const adder = (x, y, r = 15) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#161616" stroke-width="1.8"/><path d="M${x} ${y - r + 5}v${2 * r - 10}M${x - r + 5} ${y}h${2 * r - 10}" stroke="#161616" stroke-width="1.6"/>`;
+const delayBox = (x, y) => `<rect x="${x - 26}" y="${y - 15}" width="52" height="30" rx="7" fill="#FDECEF" stroke="#C41E3A" stroke-width="1.6"/>` + svgT(x, y + 5, 'z⁻¹', {mono: true, c: '#9E1830', w: 700});
+const gain = (x, y, dir, val) => { const w = 20; const pts = dir > 0 ? `${x - w},${y - 13} ${x + w},${y} ${x - w},${y + 13}` : `${x + w},${y - 13} ${x - w},${y} ${x + w},${y + 13}`; return `<polygon points="${pts}" fill="#E7F4EC" stroke="#145F39" stroke-width="1.6"/>` + svgT(x, y - 19, val, {mono: true, c: '#145F39', w: 700, s: 13}); };
+const dot = (x, y) => `<circle cx="${x}" cy="${y}" r="4" fill="#161616"/>`;
+function df2(an, bn){
+  const N = an.length - 1, M = bn.length - 1, K = Math.max(N, M);
+  const xL = 175, xW = 370, xR = 565, y0 = 60, dy = 92, W = 760, H = y0 + K * dy + 50;
+  const Y = k => y0 + k * dy;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ trực tiếp 2">${arrowDef}`;
+  s += svgT(18, y0 - 12, 'x(n)', {a: 'start', mono: true, w: 700}) + ln(20, y0, xL - 16, y0);
+  s += adder(xL, y0) + ln(xL + 15, y0, xW - 5, y0) + dot(xW, y0) + svgT(xW + 8, y0 - 12, 'w(n)', {a: 'start', mono: true, s: 13, c: '#6B6B67'});
+  // nhánh b0
+  if (!isZero(bn[0])){ s += ln(xW, y0, (xW + xR) / 2 - 22, y0, false) + gain((xW + xR) / 2, y0, 1, fmt(bn[0])) + ln((xW + xR) / 2 + 20, y0, xR - 16, y0); }
+  s += adder(xR, y0) + ln(xR + 15, y0, W - 70, y0) + svgT(W - 60, y0 + 5, 'y(n)', {a: 'start', mono: true, w: 700});
+  // chuỗi trễ
+  for (let k = 1; k <= K; k++){
+    const ym = (Y(k - 1) + Y(k)) / 2;
+    s += ln(xW, Y(k - 1) + 4, xW, ym - 16) + delayBox(xW, ym) + ln(xW, ym + 15, xW, Y(k), false) + dot(xW, Y(k));
+    s += svgT(xW + 8, Y(k) + 18, `w(n−${k})`, {a: 'start', mono: true, s: 12, c: '#6B6B67'});
+  }
+  // nhánh hồi tiếp −a_k
+  let lowL = 0;
+  for (let k = 1; k <= N; k++) if (!isZero(an[k])) lowL = k;
+  for (let k = 1; k <= lowL; k++){
+    if (!isZero(an[k])){ s += ln(xW, Y(k), (xW + xL) / 2 + 22, Y(k), false) + gain((xW + xL) / 2, Y(k), -1, fmt(-an[k])) + ln((xW + xL) / 2 - 20, Y(k), xL + (k === lowL ? 0 : 13), Y(k), k !== lowL); }
+    if (k < lowL) s += adder(xL, Y(k), 12);
+  }
+  if (lowL){ for (let k = lowL; k >= 1; k--){ const top = k === 1 ? y0 + 15 : Y(k - 1) + 12; s += ln(xL, Y(k) - (k === lowL ? 0 : 12), xL, top); } }
+  // nhánh tiến b_k
+  let lowR = 0;
+  for (let k = 1; k <= M; k++) if (!isZero(bn[k])) lowR = k;
+  for (let k = 1; k <= lowR; k++){
+    if (!isZero(bn[k])){ s += ln(xW, Y(k), (xW + xR) / 2 - 22, Y(k), false) + gain((xW + xR) / 2, Y(k), 1, fmt(bn[k])) + ln((xW + xR) / 2 + 20, Y(k), xR - (k === lowR ? 0 : 13), Y(k), k !== lowR); }
+    if (k < lowR) s += adder(xR, Y(k), 12);
+  }
+  if (lowR){ for (let k = lowR; k >= 1; k--){ const top = k === 1 ? y0 + 15 : Y(k - 1) + 12; s += ln(xR, Y(k) - (k === lowR ? 0 : 12), xR, top); } }
+  return s + '</svg>';
+}
+function df1(an, bn){
+  const N = an.length - 1, M = bn.length - 1, K = Math.max(N, M);
+  const xX = 120, xC = 380, xY = 640, y0 = 60, dy = 92, W = 820, H = y0 + K * dy + 50;
+  const Y = k => y0 + k * dy;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ trực tiếp 1">${arrowDef}`;
+  s += svgT(18, y0 - 12, 'x(n)', {a: 'start', mono: true, w: 700}) + ln(20, y0, xX - 4, y0, false) + dot(xX, y0);
+  for (let k = 1; k <= M; k++){ const ym = (Y(k - 1) + Y(k)) / 2; s += ln(xX, Y(k - 1) + 4, xX, ym - 16) + delayBox(xX, ym) + ln(xX, ym + 15, xX, Y(k), false) + dot(xX, Y(k)) + svgT(xX - 10, Y(k) + 18, `x(n−${k})`, {a: 'end', mono: true, s: 12, c: '#6B6B67'}); }
+  let lowB = 0; for (let k = 0; k <= M; k++) if (!isZero(bn[k])) lowB = k;
+  let lowA = 0; for (let k = 1; k <= N; k++) if (!isZero(an[k])) lowA = k;
+  const low = Math.max(lowB, lowA);
+  for (let k = 0; k <= M; k++){
+    if (isZero(bn[k])) continue; const gx = (xX + xC) / 2;
+    s += ln(xX, Y(k), gx - 22, Y(k), false) + gain(gx, Y(k), 1, fmt(bn[k])) + ln(gx + 20, Y(k), xC - (k === 0 ? 16 : (k === low ? 0 : 13)), Y(k), k !== low || k === 0);
+  }
+  for (let k = 1; k <= N; k++){
+    if (isZero(an[k])) continue; const gx = (xC + xY) / 2;
+    s += ln(xY, Y(k), gx + 22, Y(k), false) + gain(gx, Y(k), -1, fmt(-an[k])) + ln(gx - 20, Y(k), xC + (k === low ? 0 : 13), Y(k), k !== low);
+  }
+  s += adder(xC, y0);
+  for (let k = 1; k < low; k++) s += adder(xC, Y(k), 12);
+  for (let k = low; k >= 1; k--){ const top = k === 1 ? y0 + 15 : Y(k - 1) + 12; s += ln(xC, Y(k) - (k === low ? 0 : 12), xC, top); }
+  s += ln(xC + 15, y0, xY - 5, y0) + dot(xY, y0) + ln(xY, y0, W - 70, y0) + svgT(W - 60, y0 + 5, 'y(n)', {a: 'start', mono: true, w: 700});
+  for (let k = 1; k <= N; k++){ const ym = (Y(k - 1) + Y(k)) / 2; s += ln(xY, Y(k - 1) + 4, xY, ym - 16) + delayBox(xY, ym) + ln(xY, ym + 15, xY, Y(k), false) + dot(xY, Y(k)) + svgT(xY + 10, Y(k) + 18, `y(n−${k})`, {a: 'start', mono: true, s: 12, c: '#6B6B67'}); }
+  return s + '</svg>';
+}
+function counts(an, bn){
+  const N = an.length - 1, M = bn.length - 1;
+  const mul = bn.filter(v => !isZero(v) && !isZero(v - 1)).length + an.slice(1).filter(v => !isZero(v)).length;
+  return {N, M, d1: N + M, d2: Math.max(N, M), mul};
+}
+function renderSd(){
+  const A = analyze(SYS.b, SYS.a); const an = A.an, bn = A.bn;
+  document.querySelectorAll('#sd-forms .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.f === sdForm));
+  $('sd-sys').innerHTML = `${eqSide(SYS.a, 'y')} = ${eqSide(SYS.b, 'x')}<br>H(z) = ${frac(polyW(bn), polyW(an))}`;
+  $('sd-title').textContent = sdForm === '2' ? 'Sơ đồ trực tiếp 2 (dạng chính tắc)' : 'Sơ đồ trực tiếp 1';
+  $('sd-svg').innerHTML = sdForm === '2' ? df2(an, bn) : df1(an, bn);
+  const fb = an.slice(1).map((v, i) => isZero(v) ? '' : ` ${v > 0 ? '−' : '+'} ${fmt(Math.abs(v))}·w(n−${i + 1})`).join('');
+  const ff = bn.map((v, i) => isZero(v) ? '' : ` ${v < 0 ? '−' : '+'} ${fmt(Math.abs(v))}·${i ? `w(n−${i})` : 'w(n)'}`).join('').replace(/^ \+ /, '').replace(/^ − /, '−');
+  const fb1 = an.slice(1).map((v, i) => isZero(v) ? '' : ` ${v > 0 ? '−' : '+'} ${fmt(Math.abs(v))}·y(n−${i + 1})`).join('');
+  const ff1 = bn.map((v, i) => isZero(v) ? '' : ` ${v < 0 ? '−' : '+'} ${fmt(Math.abs(v))}·${i ? `x(n−${i})` : 'x(n)'}`).join('').replace(/^ \+ /, '').replace(/^ − /, '−');
+  $('sd-eq').innerHTML = sdForm === '2'
+    ? `<div class="res math">Nửa trái (hồi tiếp): w(n) = x(n)${fb}<br>Nửa phải (tiến): y(n) = ${ff || '0'}</div><p class="key">Ý tưởng: H(z) = [1/A(z)]·B(z). Tính w(n) bằng phần đệ quy trước, rồi lấy tổ hợp các w trễ. Vì cùng một dãy w nên hai nhánh <b>dùng chung</b> các ô nhớ z⁻¹.</p>`
+    : `<div class="res math">y(n) = ${ff1 || '0'}${fb1}</div><p class="key">Đọc thẳng từ phương trình sai phân: một dãy ô nhớ cho x (bên trái), một dãy ô nhớ cho y (bên phải), cộng tất cả ở giữa. Đây là sơ đồ đã học ở Buổi 2.</p>`;
+  const c = counts(an, bn);
+  $('sd-cmp').innerHTML = `<table class="t"><tr><th>Dạng</th><th>Số ô nhớ z⁻¹</th><th>Số bộ nhân</th><th>Ghi chú</th></tr>
+    <tr><td>Trực tiếp 1</td><td class="m">M + N = ${c.M} + ${c.N} = <b>${c.d1}</b></td><td class="m">${c.mul}</td><td>dễ đọc từ phương trình</td></tr>
+    <tr><td>Trực tiếp 2</td><td class="m">max(M, N) = <b>${c.d2}</b></td><td class="m">${c.mul}</td><td>ít ô nhớ nhất (chính tắc)</td></tr></table>`;
+  $('sd-why').innerHTML = c.d1 > c.d2 ? `Trực tiếp 2 tiết kiệm <b>${c.d1 - c.d2}</b> ô nhớ. Với bộ lọc bậc cao (ví dụ bậc 8 cho cả tử và mẫu: 16 so với 8 ô nhớ), khoản tiết kiệm này đáng kể trên vi điều khiển.` : 'Hệ này chỉ có một nhánh nên hai dạng dùng số ô nhớ bằng nhau.';
+}
+
+/* =================== TAB 3: GHÉP HỆ =================== */
+let ghMode = 'nt';
+function blockSvg(mode){
+  const W = 760; let s;
+  const box = (x, y, t) => `<rect x="${x - 70}" y="${y - 26}" width="140" height="52" rx="12" fill="#fff" stroke="#1F4E8C" stroke-width="1.8"/>` + svgT(x, y + 6, t, {mono: true, w: 700, c: '#1F4E8C', s: 16});
+  if (mode === 'nt'){
+    s = `<svg viewBox="0 0 ${W} 110" role="img" aria-label="Hai khối nối tiếp">${arrowDef}` + svgT(20, 50, 'X(z)', {a: 'start', mono: true, w: 700}) + ln(70, 55, 198, 55) + box(270, 55, 'H₁(z)') + ln(340, 55, 418, 55) + box(490, 55, 'H₂(z)') + ln(560, 55, 680, 55) + svgT(690, 60, 'Y(z)', {a: 'start', mono: true, w: 700}) + '</svg>';
+  } else if (mode === 'ss'){
+    s = `<svg viewBox="0 0 ${W} 200" role="img" aria-label="Hai khối song song">${arrowDef}` + svgT(20, 105, 'X(z)', {a: 'start', mono: true, w: 700}) + ln(70, 100, 150, 100, false) + dot(150, 100) +
+      ln(150, 100, 150, 50, false) + ln(150, 50, 268, 50) + box(340, 50, 'H₁(z)') + ln(410, 50, 540, 50, false) + ln(540, 50, 540, 85) +
+      ln(150, 100, 150, 150, false) + ln(150, 150, 268, 150) + box(340, 150, 'H₂(z)') + ln(410, 150, 540, 150, false) + ln(540, 150, 540, 115) +
+      adder(540, 100) + ln(555, 100, 680, 100) + svgT(690, 105, 'Y(z)', {a: 'start', mono: true, w: 700}) + '</svg>';
+  } else {
+    s = `<svg viewBox="0 0 ${W} 210" role="img" aria-label="Vòng hồi tiếp">${arrowDef}` + svgT(20, 55, 'X(z)', {a: 'start', mono: true, w: 700}) + ln(70, 55, 165, 55) + adder(180, 55) + ln(195, 55, 338, 55) + box(410, 55, 'H₁(z)') +
+      ln(480, 55, 600, 55, false) + dot(600, 55) + ln(600, 55, 680, 55) + svgT(690, 60, 'Y(z)', {a: 'start', mono: true, w: 700}) +
+      ln(600, 55, 600, 160, false) + ln(600, 160, 482, 160) + box(410, 160, 'H₂(z)') + ln(340, 160, 180, 160, false) + ln(180, 160, 180, 72) + svgT(192, 120, '+', {a: 'start', w: 700}) + '</svg>';
+  }
+  return s;
+}
+function renderGh(){
+  document.querySelectorAll('#gh-modes .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.m === ghMode));
+  const k1 = parseNum($('gh-k1').value), p1 = parseNum($('gh-p1').value), k2 = parseNum($('gh-k2').value), p2 = parseNum($('gh-p2').value);
+  if (![k1, p1, k2, p2].every(isFinite)){ $('gh-steps').innerHTML = '<li><div class="bad">Thông số chưa hợp lệ.</div></li>'; return; }
+  const A1 = [1, -p1], A2 = [1, -p2];
+  let B, A, rule, title;
+  if (ghMode === 'nt'){ B = [k1 * k2]; A = conv(A1, A2); rule = 'H(z) = H₁(z)·H₂(z)'; title = 'Hai khối nối tiếp: nhân'; }
+  else if (ghMode === 'ss'){ B = polyAdd(A2.map(v => v * k1), A1.map(v => v * k2)); A = conv(A1, A2); rule = 'H(z) = H₁(z) + H₂(z)'; title = 'Hai khối song song: cộng'; }
+  else { B = A2.map(v => v * k1); A = conv(A1, A2); A[0] -= k1 * k2; rule = 'H(z) = H₁(z) / [1 − H₁(z)·H₂(z)]'; title = 'Vòng hồi tiếp (công thức 4.5)'; }
+  $('gh-title').textContent = title;
+  $('gh-svg').innerHTML = blockSvg(ghMode);
+  const H1 = frac(fmt(k1), oneMinusW(p1)), H2 = frac(fmt(k2), oneMinusW(p2));
+  const Aa = analyze(B, A);
+  let st = `<li><div>H₁(z) = ${H1}, &nbsp; H₂(z) = ${H2}. Cực riêng của từng khối: p₁ = ${fmt(p1)}, p₂ = ${fmt(p2)}${Math.abs(p1) < 1 && Math.abs(p2) < 1 ? ' (cả hai khối đều ổn định)' : ''}.</div></li>`;
+  st += `<li><div>Quy tắc: <b>${rule}</b></div></li>`;
+  if (ghMode === 'ht') st += `<li><div>Thay vào và nhân tử, mẫu với (1 − p₁z⁻¹)(1 − p₂z⁻¹):<div class="math">H(z) = ${frac(`${fmt(k1)}·(${polyW(A2)})`, `(${polyW(A1)})(${polyW(A2)}) − ${fmt(k1 * k2)}`)}</div></div></li>`;
+  st += `<li><div>Kết quả:<div class="math big">H(z) = ${frac(polyW(B), polyW(A))}${isZero(A[0] - 1) ? '' : ` = ${frac(polyW(Aa.bn), polyW(Aa.an))}`}</div></div></li>`;
+  st += `<li><div>${verdict(Aa)}${ghMode === 'ht' && Math.abs(p1) < 1 && Math.abs(p2) < 1 && !Aa.stable ? '<p class="key"><b>Bài học:</b> hai khối riêng lẻ đều ổn định, nhưng vòng hồi tiếp đẩy một cực ra ngoài vòng tròn. Giống micro đặt quá gần loa: tiếng từ loa lọt lại vào micro và gây hú.</p>' : ''}</div></li>`;
+  $('gh-steps').innerHTML = st;
+  $('gh-pz').innerHTML = poleTable(Aa.pz, false);
+  zPlane($('gh-z'), {poles: Aa.pz.poles, zeros: Aa.pz.zeros, roc: {rin: Aa.rmax, rout: Infinity}, size: 300});
+  hPlot($('gh-h'), Aa.h, Aa.stable);
+}
+
+/* =================== TAB 4: GIẢI PT SAI PHÂN =================== */
+let GP = null;
+function renderGp(){
+  const a1 = parseNum($('gp-a1').value), a2 = parseNum($('gp-a2').value) || 0, C0 = parseNum($('gp-C').value), al = parseNum($('gp-al').value) || 0;
+  const y1 = parseNum($('gp-y1').value) || 0, y2 = parseNum($('gp-y2').value) || 0, xt = $('gp-xt').value;
+  $('gp-al').disabled = xt === 'delta';
+  if (![a1, C0].every(isFinite)){ $('gp-steps').innerHTML = '<li><div class="bad">Thông số chưa hợp lệ.</div></li>'; return; }
+  const Apoly = isZero(a2) ? [1, a1] : [1, a1, a2];
+  const p0 = -a1 * y1 - a2 * y2, p1 = -a2 * y1;
+  let Nw, Dw;
+  if (xt === 'exp'){ Nw = [C0 + p0, p1 - al * p0, -al * p1]; Dw = conv([1, -al], Apoly); }
+  else { Nw = [C0 + p0, p1]; Dw = Apoly.slice(); }
+  const L = Math.max(Nw.length, Dw.length) - 1;
+  let Nd = [...Nw, ...zeros(L - Nw.length + 1)], Dd = [...Dw, ...zeros(L - Dw.length + 1)];
+  while (Nd.length > 1 && isZero(Nd[Nd.length - 1]) && isZero(Dd[Dd.length - 1])){ Nd.pop(); Dd.pop(); }
+  while (Nw.length > 1 && isZero(Nw[Nw.length - 1])) Nw.pop();
+  const res = izt(Nd, Dd);
+  const poles = rootsG(trimLead(Dd)).filter(p => cabs(p.z) > 1e-12);
+  const roc = {rin: poles.length ? Math.max(...poles.map(p => cabs(p.z))) : 0, rout: Infinity};
+  const order2 = !isZero(a2);
+  const eq = `y(n)${eqSide([0, a1, a2], 'y').replace(/^0$/, '').replace(/^([^−])/, ' + $1').replace(/^−/, ' − ')} = x(n)`;
+  const xs = xt === 'exp' ? `${fmt(C0) === '1' ? '' : fmt(C0) + '·'}${isZero(al - 1) ? '' : `(${fmt(al)})<sup>n</sup>·`}u(n)` : `${fmt(C0) === '1' ? '' : fmt(C0) + '·'}δ(n)`;
+  const X1 = xt === 'exp' ? frac(fmt(C0), oneMinusW(al)) : fmt(C0);
+  let st = '';
+  st += `<li><div><b>Đề:</b> <span class="math">${eq}</span>, x(n) = <span class="math">${xs}</span>, y(−1) = ${fmt(y1)}${order2 ? `, y(−2) = ${fmt(y2)}` : ''}.</div></li>`;
+  st += `<li><div><b>Biến đổi Z một phía hai vế.</b> Tính chất trễ một phía (khác hai phía ở chỗ <b>mang theo điều kiện đầu</b>):<div class="math">ZT₁[y(n−1)] = z<sup>−1</sup>·Y₁(z) + y(−1)</div>${order2 ? '<div class="math">ZT₁[y(n−2)] = z<sup>−2</sup>·Y₁(z) + y(−1)·z<sup>−1</sup> + y(−2)</div>' : ''}</div></li>`;
+  const extra = polyW([p0, p1].slice(0, order2 ? 2 : 1));
+  st += `<li><div><b>Thay vào và gom Y₁(z):</b><div class="math big">(${polyW(Apoly)})·Y₁(z) = X₁(z)${isZero(p0) && isZero(p1) ? '' : ` + (${extra})`}</div>${isZero(p0) && isZero(p1) ? '<small class="muted">Điều kiện đầu bằng 0 nên phần điều kiện đầu biến mất (như ví dụ bài giảng).</small>' : '<small class="muted">Phần trong ngoặc sau X₁(z) đến từ điều kiện đầu.</small>'}</div></li>`;
+  st += `<li><div><b>Biến đổi Z của đầu vào:</b> X₁(z) = <span class="math">${X1}</span></div></li>`;
+  st += `<li><div><b>Giải ra Y₁(z)</b>, rồi đổi về lũy thừa dương:<div class="math big">Y₁(z) = ${frac(polyW(Nw), polyW(Dw))} = ${frac(polyZ(Nd), polyZ(Dd))}</div></div></li>`;
+  const pf = res.pp.flatMap(o => o.coef.map((c, i) => ({p: o.p, j: i + 1, c}))).filter(o => cabs(o.c) > 1e-10);
+  st += `<li><div><b>Phân thức tối giản</b> Y₁(z)/z (che mẫu tại từng cực):<div class="tbl-wrap"><table class="t"><tr><th>Cực</th><th>Mảnh</th><th>Hệ số</th></tr>${pf.map(o => `<tr><td class="m">${fmtc(o.p)}</td><td class="m">${frac('A', zMinus(o.p) + (o.j > 1 ? `<sup>${o.j}</sup>` : ''))}</td><td class="m">${fmtc(o.c)}</td></tr>`).join('')}</table></div></div></li>`;
+  st += `<li><div><b>Nhân lại với z, tra bảng</b> z/(z − a) ⟷ aⁿu(n) (hệ nhân quả):<div class="res math">y(n) = ${termsHTML(res, roc)}</div></div></li>`;
+  $('gp-steps').innerHTML = st;
+  // đệ quy kiểm tra
+  const N = 12, yr = [], xf = n => xt === 'exp' ? C0 * Math.pow(al, n) : (n === 0 ? C0 : 0);
+  const get = n => n === -1 ? y1 : n === -2 ? y2 : yr[n];
+  for (let n = 0; n <= N; n++) yr.push(xf(n) - a1 * get(n - 1) - a2 * get(n - 2));
+  const yf = yr.map((_, n) => izEval(res, roc, n));
+  const ok = yr.every((v, n) => Math.abs(v - yf[n]) < 1e-6 * Math.max(1, Math.abs(v)));
+  $('gp-res').innerHTML = `y(n) = ${termsHTML(res, roc)}`;
+  const ns = yr.map((_, i) => i);
+  stemPlot($('gp-plot'), {nmin: -2, nmax: N, series: [{n: [-2, -1, ...ns], v: [y2, y1, ...yr], color: n => n < 0 ? CL.amber : CL.green}], values: true, label: 'y(n)'});
+  $('gp-tbl').innerHTML = `<table class="t"><tr><th>n</th>${ns.slice(0, 8).map(n => `<th>${n}</th>`).join('')}</tr><tr><td>Công thức</td>${yf.slice(0, 8).map(v => `<td class="m">${fmt(v, 4)}</td>`).join('')}</tr><tr><td>Tính lần lượt</td>${yr.slice(0, 8).map(v => `<td class="m">${fmt(v, 4)}</td>`).join('')}</tr></table><p class="key">${ok ? '<span class="ok">Khớp</span>: công thức tìm bằng biến đổi Z trùng với cách tính lần lượt từng nhịp (Buổi 2). Mẫu màu cam là điều kiện đầu.' : '<span class="no-ok">Chưa khớp</span>: kiểm tra lại thông số.'}</p>`;
+}
+
+/* =================== TAB 5: ỔN ĐỊNH =================== */
+let TRI = {a1: -1.3, a2: 0.4};
+function renderOd(){
+  const D = parseList($('od-D').value);
+  if (!D || isZero(D[0]) || D.length < 2){ $('od-list').innerHTML = '<div class="bad">Nhập ít nhất 2 hệ số, hệ số đầu khác 0.</div>'; }
+  else {
+    const Dn = D.map(v => v / D[0]);
+    const A = analyze([1], Dn);
+    let tip = '';
+    if (Dn.length === 3){
+      const disc = Dn[1] * Dn[1] - 4 * Dn[2];
+      if (disc < 0) tip = `<p class="key"><b>Mẹo nhanh:</b> bậc 2 có Δ = ${fmt(disc)} &lt; 0 nên hai cực phức có cùng r = √c = √${fmt(Dn[2])} = ${fmt(Math.sqrt(Dn[2]))}.</p>`;
+      else tip = `<p class="key">Bậc 2 có Δ = ${fmt(disc)} ≥ 0 nên hai cực thực: z = (${fmt(-Dn[1])} ± √${fmt(disc)})/2.</p>`;
+    }
+    if (Dn.slice(1).some(v => Math.abs(v) > 1) && A.stable) tip += '<p class="key"><b>Bẫy:</b> có hệ số lớn hơn 1 nhưng hệ vẫn ổn định. Phải giải ra cực, không nhìn hệ số mà đoán.</p>';
+    $('od-list').innerHTML = `<div class="math">D(z) = ${polyZ(Dn)}</div>` + poleTable(A.pz, false) + verdict(A) + tip;
+    zPlane($('od-z'), {poles: A.pz.poles, zeros: [], roc: {rin: A.rmax, rout: Infinity}, size: 300});
+    hPlot($('od-h'), A.h, A.stable);
+    const S = sumAbs(A.h);
+    $('od-say').innerHTML = `<p class="key">h(n) của H(z) = z<sup>${Dn.length - 1}</sup>/D(z). Σ|h(n)| ${isFinite(S) ? `≈ ${fmt(S, 3)}: hữu hạn` : 'tăng mãi'}.</p>`;
+  }
+  renderTri();
+}
+function renderTri(){
+  const W = 420, H = 300, X = a1 => 30 + (a1 + 2.5) / 5 * 360, Y = a2 => 270 - (a2 + 1.5) / 3 * 240;
+  let par = ''; for (let i = 0; i <= 40; i++){ const a1 = -2 + 4 * i / 40; par += (i ? 'L' : 'M') + X(a1).toFixed(1) + ' ' + Y(a1 * a1 / 4).toFixed(1); }
+  const {a1, a2} = TRI;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tam giác ổn định bậc 2" style="touch-action:none;cursor:crosshair">`;
+  s += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="12" fill="rgba(255,255,255,.75)" stroke="#E4E7EC"/>`;
+  s += `<polygon points="${X(-2)},${Y(1)} ${X(2)},${Y(1)} ${X(0)},${Y(-1)}" fill="#E7F4EC" stroke="#145F39" stroke-width="2"/>`;
+  s += `<path d="${par}" fill="none" stroke="#1F4E8C" stroke-width="1.8" stroke-dasharray="6 4"/>`;
+  s += `<line x1="${X(-2.5)}" x2="${X(2.5)}" y1="${Y(0)}" y2="${Y(0)}" stroke="#98A2B3"/><line x1="${X(0)}" x2="${X(0)}" y1="${Y(1.5)}" y2="${Y(-1.5)}" stroke="#98A2B3"/>`;
+  s += svgT(X(2.45), Y(0) - 8, 'a₁', {a: 'end', mono: true, c: '#6B6B67'}) + svgT(X(0) + 8, Y(1.42), 'a₂', {a: 'start', mono: true, c: '#6B6B67'});
+  s += svgT(X(0), Y(0.72), 'cực phức', {s: 12, c: '#1F4E8C', w: 700}) + svgT(X(0), Y(-0.45), 'cực thực', {s: 12, c: '#145F39', w: 700});
+  [-2, -1, 1, 2].forEach(v => s += svgT(X(v), Y(0) + 16, String(v).replace('-', '−'), {s: 11, c: '#6B6B67', mono: true}));
+  [-1, 1].forEach(v => s += svgT(X(0) - 6, Y(v) + 4, String(v).replace('-', '−'), {a: 'end', s: 11, c: '#6B6B67', mono: true}));
+  const inside = Math.abs(a2) < 1 && Math.abs(a1) < 1 + a2;
+  s += `<circle cx="${X(a1)}" cy="${Y(a2)}" r="10" fill="${inside ? '#1A7F4B' : '#C41E3A'}" stroke="#fff" stroke-width="3"/>`;
+  $('od-tri').innerHTML = s + '</svg>';
+  const A = analyze([1], [1, a1, a2]);
+  zPlane($('od-tz'), {poles: A.pz.poles, zeros: [], roc: {rin: A.rmax, rout: Infinity}, size: 260});
+  const disc = a1 * a1 - 4 * a2;
+  $('od-tsay').innerHTML = `<div class="math">D(z) = ${polyZ([1, a1, a2])} &nbsp;(a₁ = ${fmt(a1, 2)}, a₂ = ${fmt(a2, 2)})</div>` + verdict(A) + `<p class="key">${disc < 0 ? `Cặp cực phức, r = √a₂ = ${fmt(Math.sqrt(Math.max(a2, 0)), 3)}: tín hiệu dao động.` : 'Hai cực thực: tín hiệu không dao động (có thể đổi dấu nếu cực âm).'}</p>`;
+  hPlot($('od-th'), A.h, A.stable, 40);
+}
+function triPick(e){
+  const svg = $('od-tri').querySelector('svg'); if (!svg) return;
+  const r = svg.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width * 420, py = (e.clientY - r.top) / r.height * 300;
+  TRI.a1 = Math.max(-2.5, Math.min(2.5, (px - 30) / 360 * 5 - 2.5));
+  TRI.a2 = Math.max(-1.5, Math.min(1.5, (270 - py) / 240 * 3 - 1.5));
+  TRI.a1 = Math.round(TRI.a1 * 100) / 100; TRI.a2 = Math.round(TRI.a2 * 100) / 100;
+  renderTri();
+}
+
+/* =================== TAB 6: MATLAB =================== */
+const mvec = v => '[' + v.map(x => +x.toFixed(6)).join(' ') + ']';
+function renderMl(){
+  const A = analyze(SYS.b, SYS.a);
+  $('ml-sys').innerHTML = `${eqSide(SYS.a, 'y')} = ${eqSide(SYS.b, 'x')}`;
+  const code = `% Buổi 4 – Hệ thống trong miền Z (MATLAB / GNU Octave)
+% Phương trình: ${eqSide(SYS.a, 'y')} = ${eqSide(SYS.b, 'x')}
+b = ${mvec(SYS.b)};   % hệ số của x  -> tử số của H(z)
+a = ${mvec(SYS.a)};   % hệ số của y  -> mẫu số của H(z)
+
+% 1) Điểm cực, điểm không và xét ổn định
+p = roots(a)            % điểm cực
+r = abs(p)              % khoảng cách tới gốc
+on_dinh = all(r < 1)    % 1 = ổn định, 0 = không ổn định
+zplane(b, a); title('Cuc - khong');
+
+% 2) Đáp ứng xung h(n)
+figure; impz(b, a, 30); title('Dap ung xung h(n)');
+
+% 3) Phân thức tối giản: H(z) = sum r_i/(1 - p_i z^-1) + k
+[rr, pp, kk] = residuez(b, a)
+
+% 4) Đầu ra với x(n) = u(n) (dùng phương trình sai phân)
+n = 0:29;  x = ones(size(n));
+y = filter(b, a, x);
+figure; stem(n, y, 'filled'); title('Dau ra y(n) voi x(n) = u(n)');
+
+% 5) Ghép hệ: nối tiếp = conv, song song = cộng phân thức
+% b_nt = conv(b1, b2);  a_nt = conv(a1, a2);`;
+  $('ml-code').textContent = code;
+  const an0 = trimLead(SYS.a.map(v => v / SYS.a[0]));
+  const p = an0.length > 1 ? rootsG(an0) : [];
+  let out = `<div class="tbl-wrap"><table class="t"><tr><th>Lệnh</th><th>Kết quả</th></tr>`;
+  out += `<tr><td class="m">p = roots(a)</td><td class="m">${p.length ? p.flatMap(o => Array(o.m).fill(fmtc(o.z))).join('; ') : '[] (rỗng: a chỉ có một hệ số, hệ FIR)'}</td></tr>`;
+  out += `<tr><td class="m">r = abs(p)</td><td class="m">${p.length ? p.flatMap(o => Array(o.m).fill(fmt(cabs(o.z)))).join('; ') : '—'}</td></tr>`;
+  out += `<tr><td class="m">on_dinh</td><td class="m">${p.every(o => cabs(o.z) < 1 - 1e-9) ? '1 (ổn định)' : '0 (không ổn định)'}</td></tr>`;
+  out += `<tr><td class="m">impz(b,a) – 6 mẫu đầu</td><td class="m">${A.h.slice(0, 6).map(v => fmt(v)).join('; ')}</td></tr>`;
+  if (A.res){
+    const simple = A.res.terms.every(t => t.m === 0);
+    if (simple && A.res.terms.length){
+      out += `<tr><td class="m">rr (thặng dư)</td><td class="m">${A.res.terms.map(t => fmtc(t.C)).join('; ')}</td></tr><tr><td class="m">pp (cực)</td><td class="m">${A.res.terms.map(t => fmtc(t.p)).join('; ')}</td></tr>`;
+      const ks = Object.keys(A.res.deltas).map(Number).filter(n => n >= 0).sort((x, y) => x - y);
+      out += `<tr><td class="m">kk</td><td class="m">${ks.length ? '[' + Array.from({length: Math.max(...ks) + 1}, (_, i) => fmt(A.res.deltas[i] || 0)).join(' ') + ']' : '[] (rỗng)'}</td></tr>`;
+    } else if (A.res.terms.length) out += `<tr><td class="m">residuez</td><td>Có cực bội: MATLAB trả thêm số hạng 1/(1 − p z⁻¹)² … (thứ tự có thể khác).</td></tr>`;
+  }
+  const yv = (() => { const y = []; for (let n = 0; n < 6; n++){ let v = 0; for (let r = 0; r < A.bn.length; r++) if (n - r >= 0) v += A.bn[r]; for (let k = 1; k < A.an.length; k++) v -= A.an[k] * (y[n - k] || 0); y.push(v); } return y; })();
+  out += `<tr><td class="m">filter(b,a,u) – 6 mẫu đầu</td><td class="m">${yv.map(v => fmt(v)).join('; ')}</td></tr></table></div>`;
+  out += '<p class="key">MATLAB in số dạng thập phân và có thể sắp các cực theo thứ tự khác. Thứ tự không quan trọng, chỉ cần cùng tập giá trị.</p>';
+  $('ml-out').innerHTML = out;
+}
+
+/* =================== BÀI TẬP =================== */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Hàm truyền (bài giảng 4.1.2)', q: 'Tìm H(z) của hệ y(n) − 2y(n−1) = x(n) − 3x(n−1). Hệ có ổn định không?', s: ['Biến đổi Z hai vế: Y(z) − 2z⁻¹Y(z) = X(z) − 3z⁻¹X(z).', 'H(z) = (1 − 3z⁻¹)/(1 − 2z⁻¹) = (z − 3)/(z − 2).', 'Cực z = 2, r = 2 > 1.'], a: 'H(z) = (z − 3)/(z − 2); không ổn định.', m: 'Hệ số của y lên mẫu số, của x lên tử số. Điểm không z = 3 nằm ngoài vòng tròn nhưng không ảnh hưởng ổn định.', load: {tab: 'ht', a: '1 -2', b: '1 -3'}},
+ {g: 'A', id: 'A2', t: 'Hàm truyền (bài giảng 4.1.3)', q: 'Tìm H(z) của hệ y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1).', s: ['Chuyển các số hạng y sang trái: y(n) + 0,5y(n−1) = 2x(n) + 3x(n−1).', 'H(z) = (2 + 3z⁻¹)/(1 + 0,5z⁻¹) = (2z + 3)/(z + 0,5).'], a: 'H(z) = (2z + 3)/(z + 0,5); cực −0,5, ổn định.', m: 'Phải chuyển hết y về một vế trước, dấu của 0,5 đổi thành “+”.', load: {tab: 'ht', a: '1 0,5', b: '2 3'}},
+ {g: 'A', id: 'A3', t: 'Hệ bậc 2', q: 'Tìm H(z), cực và h(n) của y(n) − 0,9y(n−1) + 0,2y(n−2) = x(n) + x(n−1).', s: ['H(z) = (1 + z⁻¹)/(1 − 0,9z⁻¹ + 0,2z⁻²) = (z² + z)/(z² − 0,9z + 0,2).', 'Δ = 0,81 − 0,8 = 0,01 ⇒ cực 0,5 và 0,4.', 'H(z)/z = (z + 1)/[(z − 0,5)(z − 0,4)]: A(0,5) = 1,5/0,1 = 15; A(0,4) = 1,4/(−0,1) = −14.'], a: 'h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n): 1; 1,9; 1,51…; ổn định.', m: 'Đủ chuỗi kỹ năng: phương trình → H(z) → cực → h(n).', load: {tab: 'ht', a: '1 -0,9 0,2', b: '1 1'}},
+ {g: 'A', id: 'A4', t: 'Ngược lại: từ H(z) ra phương trình', q: 'Cho H(z) = (1 + 2z⁻¹)/(1 − 0,25z⁻²). Viết phương trình sai phân.', s: ['Y(z)(1 − 0,25z⁻²) = X(z)(1 + 2z⁻¹).', 'Biến đổi Z ngược từng số hạng: z⁻ᵏ ↔ trễ k nhịp.'], a: 'y(n) − 0,25y(n−2) = x(n) + 2x(n−1).', m: 'Tử số cho phần x, mẫu số cho phần y.', load: {tab: 'ht', a: '1 0 -0,25', b: '1 2'}},
+ {g: 'B', id: 'B1', t: 'Sơ đồ trực tiếp 1 và 2', q: 'Vẽ sơ đồ trực tiếp 1 và 2 cho y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1). Mỗi dạng cần bao nhiêu phần tử trễ?', s: ['a = [1; 0,5], b = [2; 3] ⇒ M = 1, N = 1.', 'Trực tiếp 1: M + N = 2 ô nhớ. Trực tiếp 2: max(M, N) = 1 ô nhớ.', 'Trực tiếp 2: w(n) = x(n) − 0,5w(n−1); y(n) = 2w(n) + 3w(n−1).'], a: 'DF1: 2 trễ; DF2: 1 trễ.', m: 'Hình 4.4 của bài giảng là dạng trực tiếp 1.', load: {tab: 'sd', a: '1 0,5', b: '2 3'}},
+ {g: 'B', id: 'B2', t: 'Sơ đồ hệ bậc 2', q: 'Hệ ở bài A3 cần bao nhiêu ô nhớ với mỗi dạng sơ đồ?', s: ['M = 1 (b có 2 hệ số), N = 2 (a có 3 hệ số).', 'DF1: 1 + 2 = 3; DF2: max(1, 2) = 2.'], a: 'DF1: 3 ô nhớ; DF2: 2 ô nhớ.', m: 'Bậc càng cao, trực tiếp 2 càng tiết kiệm bộ nhớ.', load: {tab: 'sd', a: '1 -0,9 0,2', b: '1 1'}},
+ {g: 'C', id: 'C1', t: 'Nối tiếp', q: 'H₁ = 1/(1 − 0,5z⁻¹), H₂ = 1/(1 − 0,2z⁻¹) mắc nối tiếp. Tìm H(z).', s: ['Nối tiếp: H = H₁·H₂.', 'Mẫu: (1 − 0,5z⁻¹)(1 − 0,2z⁻¹) = 1 − 0,7z⁻¹ + 0,1z⁻².'], a: 'H(z) = 1/(1 − 0,7z⁻¹ + 0,1z⁻²); cực 0,5; 0,2; ổn định.', m: 'Cực của hệ nối tiếp là cực của từng khối.', load: {tab: 'gh', m: 'nt', k1: '1', p1: '0,5', k2: '1', p2: '0,2'}},
+ {g: 'C', id: 'C2', t: 'Song song', q: 'Hai khối ở C1 mắc song song. Tìm H(z).', s: ['Song song: H = H₁ + H₂.', 'Quy đồng: [(1 − 0,2z⁻¹) + (1 − 0,5z⁻¹)]/[(1 − 0,5z⁻¹)(1 − 0,2z⁻¹)].'], a: 'H(z) = (2 − 0,7z⁻¹)/(1 − 0,7z⁻¹ + 0,1z⁻²).', m: 'Cùng mẫu số với C1, chỉ khác tử số: cùng cực nên cùng tính ổn định.', load: {tab: 'gh', m: 'ss', k1: '1', p1: '0,5', k2: '1', p2: '0,2'}},
+ {g: 'C', id: 'C3', t: 'Hồi tiếp gây hú', q: 'H₁ = 1/(1 − 0,5z⁻¹), H₂ = 0,6/(1 − 0,5z⁻¹), ghép hồi tiếp H = H₁/(1 − H₁H₂). Hệ có ổn định không?', s: ['H = (1 − 0,5z⁻¹)/[(1 − 0,5z⁻¹)² − 0,6] = (1 − 0,5z⁻¹)/(0,4 − z⁻¹ + 0,25z⁻²).', 'Mẫu theo z: 0,4z² − z + 0,25 = 0 ⇒ z = (1 ± √0,6)/0,8.', 'Hai cực ≈ 2,218 và 0,282.'], a: 'Không ổn định (cực 2,218 nằm ngoài vòng tròn).', m: 'Hai khối riêng đều ổn định, ghép hồi tiếp lại mất ổn định: micro đặt gần loa.', load: {tab: 'gh', m: 'ht', k1: '1', p1: '0,5', k2: '0,6', p2: '0,5'}},
+ {g: 'D', id: 'D1', t: 'Bài giảng 4.1.5', q: 'Giải y(n) − 3y(n−1) + 2y(n−2) = x(n), x(n) = 3ⁿ⁻²u(n), y(−1) = y(−2) = 0.', s: ['X₁(z) = (1/9)·z/(z − 3).', 'Y₁(z) = z³/[9(z − 1)(z − 2)(z − 3)].', 'B₁ = 1/18, B₂ = −4/9, B₃ = 1/2.'], a: 'y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n).', m: 'Kiểm tra: y(0) = 1/18 − 8/18 + 9/18 = 1/9 = x(0).', load: {tab: 'gp', v: '-3|2|exp|1/9|3|0|0'}},
+ {g: 'D', id: 'D2', t: 'Bình rò nước', q: 'Giải y(n) − 0,5y(n−1) = u(n) với y(−1) = 0.', s: ['(1 − 0,5z⁻¹)Y₁ = 1/(1 − z⁻¹).', 'Y₁/z = z/[(z − 0,5)(z − 1)]: A(1) = 2, A(0,5) = −1.'], a: 'y(n) = 2 − (0,5)ⁿ, n ≥ 0.', m: 'Cùng đáp án với Buổi 3 (chập (0,5)ⁿu(n) với u(n)).', load: {tab: 'gp', v: '-0,5|0|exp|1|1|0|0'}},
+ {g: 'D', id: 'D3', t: 'Có điều kiện đầu', q: 'Giải y(n) − 0,5y(n−1) = u(n) với y(−1) = 1.', s: ['ZT₁[y(n−1)] = z⁻¹Y₁ + y(−1) = z⁻¹Y₁ + 1.', '(1 − 0,5z⁻¹)Y₁ = 1/(1 − z⁻¹) + 0,5.', 'Y₁/z = (1,5z − 0,5)/[(z − 0,5)(z − 1)]: A(1) = 2, A(0,5) = −0,5.'], a: 'y(n) = 2 − 0,5·(0,5)ⁿ: 1,5; 1,75; 1,875…', m: 'Bình có sẵn nước nên đầy nhanh hơn D2, nhưng vẫn tiến về cùng mức 2.', load: {tab: 'gp', v: '-0,5|0|exp|1|1|1|0'}},
+ {g: 'D', id: 'D4', t: 'Đáp ứng xung bậc 2', q: 'Tìm h(n) của y(n) + 0,1y(n−1) − 0,2y(n−2) = x(n).', s: ['H(z) = z²/(z² + 0,1z − 0,2), cực 0,4 và −0,5.', 'H/z = z/[(z − 0,4)(z + 0,5)]: A(0,4) = 4/9, A(−0,5) = 5/9.'], a: 'h(n) = [(4/9)(0,4)ⁿ + (5/9)(−0,5)ⁿ]·u(n): 1; −0,1; 0,21…', m: 'Cực âm làm dãy đổi dấu xen kẽ.', load: {tab: 'gp', v: '0,1|-0,2|delta|1|0|0|0'}},
+ {g: 'E', id: 'E1', t: 'Bài giảng 4.2.2', q: 'Hệ y(n) = A·y(n−1) + x(n). Tìm H(z), h(n) và điều kiện ổn định.', s: ['H(z) = 1/(1 − Az⁻¹) = z/(z − A), cực z = A.', 'h(n) = Aⁿu(n).'], a: 'Ổn định ⇔ |A| < 1.', m: 'Bài giảng viết nhầm y(n) = Ay(n) + x(n); đúng phải là A·y(n−1).', load: {tab: 'od', D: '1 -0,8'}},
+ {g: 'E', id: 'E2', t: 'Cực trên vòng tròn', q: 'D(z) = z² − 1,6z + 1. Hệ có ổn định không?', s: ['Δ = 2,56 − 4 < 0 ⇒ cực phức, r = √1 = 1.'], a: 'Không ổn định (cực 0,8 ± 0,6j nằm trên vòng tròn).', m: 'Dao động mãi không tắt: cách làm máy phát sóng sin.', load: {tab: 'od', D: '1 -1,6 1'}},
+ {g: 'E', id: 'E3', t: 'Bẫy hệ số', q: 'D(z) = z² − 1,3z + 0,4. Hệ có ổn định không?', s: ['Δ = 1,69 − 1,6 = 0,09 ⇒ cực (1,3 ± 0,3)/2.', 'Cực 0,8 và 0,5.'], a: 'Ổn định.', m: 'Hệ số 1,3 > 1 không có nghĩa là mất ổn định. Điểm (a₁, a₂) = (−1,3; 0,4) nằm trong tam giác ổn định.', load: {tab: 'od', D: '1 -1,3 0,4'}}
+];
+let exFilter = 'all';
+function renderEx(){
+  const cls = $('ex-class').checked; const names = {A: 'Nhóm A. Hàm truyền đạt', B: 'Nhóm B. Sơ đồ thực hiện', C: 'Nhóm C. Ghép hệ', D: 'Nhóm D. Giải PT sai phân bằng Z một phía', E: 'Nhóm E. Ổn định'};
+  let h = ''; Object.keys(names).forEach(g => {
+    if (exFilter !== 'all' && exFilter !== g) return;
+    h += `<div class="card ex-group"><h2>${names[g]}</h2>`;
+    EX.filter(e => e.g === g).forEach(e => {
+      h += `<div class="ex"><div class="hd"><div><span class="id">${e.id}</span><b>${e.t}</b></div></div><div class="q">${e.q}</div>`;
+      h += `<div class="sol">${e.s.map((st, i) => `<div ${cls ? 'hidden' : ''}><b>Bước ${i + 1}.</b> ${st}</div>`).join('')}<div ${cls ? 'hidden' : ''}><b>Đáp án:</b> ${e.a}</div><div class="mean" ${cls ? 'hidden' : ''}><b>Ý nghĩa:</b> ${e.m}</div></div>`;
+      h += `<div class="acts">${cls ? `<button class="btn ghost" data-next="1">Hiện bước tiếp</button><button class="btn ghost" data-all="1">Hiện hết</button>` : ''}<button class="btn" data-load="${e.id}">Mở trong phòng thí nghiệm</button></div></div>`;
+    });
+    h += '</div>';
+  });
+  $('ex-list').innerHTML = h;
+}
+function loadEx(id){
+  const e = EX.find(o => o.id === id); if (!e) return; const L = e.load;
+  if (L.tab === 'ht' || L.tab === 'sd'){ $('ht-a').value = L.a; $('ht-b').value = L.b; const s = readSys(); if (s) SYS = s; }
+  if (L.tab === 'gh'){ ghMode = L.m; $('gh-k1').value = L.k1; $('gh-p1').value = L.p1; $('gh-k2').value = L.k2; $('gh-p2').value = L.p2; }
+  if (L.tab === 'gp') setGp(L.v);
+  if (L.tab === 'od') $('od-D').value = L.D;
+  showTab(L.tab); window.scrollTo({top: 0});
+}
+function setGp(v){ const [a1, a2, xt, C0, al, y1, y2] = v.split('|'); $('gp-a1').value = a1; $('gp-a2').value = a2; $('gp-xt').value = xt; $('gp-C').value = C0; $('gp-al').value = al; $('gp-y1').value = y1; $('gp-y2').value = y2; }
+
+/* =================== ĐIỀU HƯỚNG =================== */
+const RENDER = {ht: renderHt, sd: renderSd, gh: renderGh, gp: renderGp, od: renderOd, ml: renderMl, ex: renderEx};
+let current = 'ht';
+function showTab(t){
+  current = t;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  document.querySelectorAll('.tabpanel').forEach(p => { const on = p.id === 'p-' + t; p.hidden = !on; if (on){ p.classList.remove('reveal'); void p.offsetWidth; p.classList.add('reveal'); } });
+  try { localStorage.setItem('htz-tab', t); } catch (e) {}
+  const tb = $('tb-' + t); if (tb && tb.scrollIntoView) tb.scrollIntoView({block: 'nearest', inline: 'nearest'});
+  RENDER[t]();
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.go)));
+$('toggleCtl').addEventListener('click', () => { const h = document.body.classList.toggle('hide-controls'); $('toggleTxt').textContent = h ? 'Hiện bảng điều khiển' : 'Ẩn bảng điều khiển'; $('toggleCtl').setAttribute('aria-pressed', h); RENDER[current](); });
+['ht-a', 'ht-b'].forEach(id => $(id).addEventListener('input', renderHt));
+document.querySelectorAll('[data-sys]').forEach(b => b.addEventListener('click', () => { const [a, bb] = b.dataset.sys.split('|'); $('ht-a').value = a; $('ht-b').value = bb; renderHt(); }));
+$('sd-forms').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sdForm = b.dataset.f; renderSd(); });
+$('gh-modes').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; ghMode = b.dataset.m; renderGh(); });
+['gh-k1', 'gh-p1', 'gh-k2', 'gh-p2'].forEach(id => $(id).addEventListener('input', renderGh));
+document.querySelectorAll('[data-gh]').forEach(b => b.addEventListener('click', () => { const [m, k1, p1, k2, p2] = b.dataset.gh.split('|'); ghMode = m; $('gh-k1').value = k1; $('gh-p1').value = p1; $('gh-k2').value = k2; $('gh-p2').value = p2; renderGh(); }));
+['gp-a1', 'gp-a2', 'gp-xt', 'gp-C', 'gp-al', 'gp-y1', 'gp-y2'].forEach(id => $(id).addEventListener('input', renderGp));
+document.querySelectorAll('[data-gp]').forEach(b => b.addEventListener('click', () => { setGp(b.dataset.gp); renderGp(); }));
+$('od-D').addEventListener('input', renderOd);
+document.querySelectorAll('[data-od]').forEach(b => b.addEventListener('click', () => { $('od-D').value = b.dataset.od; renderOd(); }));
+$('od-tri').addEventListener('pointerdown', e => { $('od-tri').setPointerCapture && $('od-tri').setPointerCapture(e.pointerId); triPick(e); });
+$('od-tri').addEventListener('pointermove', e => { if (e.buttons) triPick(e); });
+$('ml-copy').addEventListener('click', () => {
+  const t = $('ml-code').textContent;
+  const done = () => { $('ml-copy').textContent = 'Đã sao chép'; setTimeout(() => $('ml-copy').textContent = 'Sao chép', 1600); };
+  try { navigator.clipboard.writeText(t).then(done, () => { const r = document.createRange(); r.selectNodeContents($('ml-code')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }); } catch (e) {}
+});
+$('ex-class').addEventListener('change', renderEx);
+$('ex-filter').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; exFilter = b.dataset.g; document.querySelectorAll('#ex-filter .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.g === exFilter)); renderEx(); });
+$('ex-list').addEventListener('click', e => {
+  const n = e.target.closest('[data-next]'), a = e.target.closest('[data-all]'), l = e.target.closest('[data-load]');
+  if (n){ const hid = [...n.closest('.ex').querySelectorAll('.sol>[hidden]')]; if (hid.length) hid[0].hidden = false; }
+  if (a) a.closest('.ex').querySelectorAll('.sol>[hidden]').forEach(x => x.hidden = false);
+  if (l) loadEx(l.dataset.load);
+});
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => RENDER[current](), 150); });
+let start = 'ht'; try { const s = localStorage.getItem('htz-tab'); if (s && RENDER[s]) start = s; } catch (e) {}
+showTab(start);
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

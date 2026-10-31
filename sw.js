@@ -1,12 +1,14 @@
 // Service worker: lưu toàn bộ phần mềm vào máy để dùng offline.
 // Khi sửa phần mềm, tăng số phiên bản VERSION để máy tải bản mới.
-const VERSION = 'xlths-v5';
+const VERSION = 'xlths-v6';
 const ASSETS = [
   "./",
   "index.html",
   "tich-chap.html",
   "day-tin-hieu.html",
   "bien-doi-z.html",
+  "he-thong-z.html",
+  "assets/zcore.js",
   "assets/theme.css",
   "manifest.webmanifest",
   "icons/icon-192.png",
