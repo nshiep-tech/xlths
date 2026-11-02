@@ -90,26 +90,25 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    - Mọi tấm kính (thẻ, thanh điều hướng, bảng điều khiển): kính trắng mờ + chữ tối.
    ===================================================================== */
 html.glass {
-  --ink: #FFFFFF; --body: #F1F4F9; --ink2: #F1F4F9; --muted: #DCE3EE;
-  --line: rgba(255, 255, 255, .3); --line-2: rgba(255, 255, 255, .45); --line2: rgba(255, 255, 255, .45);
-  --soft: rgba(255, 255, 255, .14); --surface: rgba(255, 255, 255, .16); --side: transparent;
-  --bg: transparent; --paper: transparent; --card: rgba(255, 255, 255, .16);
-  --red: #FFB3C1; --red-ink: #FFC9D3; --red-tint: rgba(255, 255, 255, .16); --red-t: rgba(255, 255, 255, .16);
-  --green: #A6F4CB; --green-ink: #C2F8DC; --green-tint: rgba(255, 255, 255, .16); --green-t: rgba(255, 255, 255, .16);
-  --blue: #C4D6FF; --blue-t: rgba(255, 255, 255, .16); --amber: #FFDCA3; --amber-t: rgba(255, 255, 255, .16); --gray: #DCE3EE;
+  --ink: #0F1115; --body: #2F3540; --ink2: #2F3540; --muted: #4E5766;
+  --line: #D9DEE6; --line-2: #C6CDD8; --line2: #C6CDD8; --soft: rgba(255, 255, 255, .6); --surface: #FFFFFF; --side: transparent;
+  --bg: transparent; --paper: transparent; --card: #FFFFFF;
+  --red: #B3102F; --red-ink: #8E0C25; --red-tint: #FDECEF; --red-t: #FDECEF;
+  --green: #0D5C34; --green-ink: #0D5C34; --green-tint: #E3F3EA; --green-t: #E3F3EA;
+  --blue: #1A4380; --blue-t: #EAF1FB; --amber: #8A5000; --amber-t: #FFF3DC; --gray: #B9B9B3;
   --glass-blur: blur(28px) saturate(180%);
-  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 -1px 0 rgba(255, 255, 255, .35), 0 0 0 .5px rgba(255, 255, 255, .6), 0 12px 32px rgba(20, 28, 50, .22);
-  background: #3B4866; color: var(--ink); color-scheme: light;
+  --glass-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, .5), 0 0 0 .5px rgba(255, 255, 255, .8), 0 10px 30px rgba(30, 45, 80, .14);
+  background: #D8DFEA; color: var(--ink); color-scheme: light;
 }
 /* Hình nền kiểu iPhone: các mảng màu loang mềm trên nền xanh xám trầm */
 html.glass::before {
   content: ""; position: fixed; inset: -15%; z-index: -2; pointer-events: none;
   background:
-    radial-gradient(38% 34% at 10% 12%, rgba(255, 112, 146, .55), transparent 70%),
-    radial-gradient(36% 34% at 92% 10%, rgba(64, 196, 170, .5), transparent 70%),
-    radial-gradient(46% 42% at 78% 92%, rgba(96, 132, 255, .55), transparent 70%),
-    radial-gradient(34% 32% at 14% 88%, rgba(168, 116, 255, .45), transparent 70%),
-    linear-gradient(160deg, #4A5A80 0%, #3B4866 50%, #313C57 100%);
+    radial-gradient(38% 34% at 8% 10%, rgba(232, 150, 170, .45), transparent 70%),
+    radial-gradient(36% 34% at 94% 8%, rgba(120, 160, 230, .45), transparent 70%),
+    radial-gradient(46% 42% at 80% 92%, rgba(140, 150, 230, .4), transparent 70%),
+    radial-gradient(34% 32% at 12% 88%, rgba(130, 190, 160, .35), transparent 70%),
+    linear-gradient(160deg, #E3E8F1 0%, #D6DDE9 50%, #CBD3E1 100%);
   animation: glass-drift 32s ease-in-out infinite alternate;
 }
 html.glass::after { content: none; }
@@ -119,8 +118,7 @@ html.glass::after { content: none; }
   100% { transform: translate3d(-2%, 3%, 0) rotate(-3deg) scale(1); }
 }
 html.glass body { background: transparent; color: var(--ink); }
-html.glass body::before { background: rgba(49, 60, 87, .9) !important; }
-html.glass h1, html.glass h2 { text-shadow: 0 1px 2px rgba(20, 28, 50, .25); }
+html.glass body::before { background: rgba(214, 221, 233, .92) !important; }
 
 /* ---- Tấm kính sáng: trả lại bộ màu sáng (chữ tối) ---- */
 html.glass .card, html.glass .glass-card, html.glass .dg, html.glass aside.controls, html.glass .lightsurf,
