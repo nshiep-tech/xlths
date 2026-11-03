@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="vi" class="glass">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Phòng thí nghiệm biến đổi Z</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#D8DFEA">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -149,11 +149,10 @@ footer{color:var(--muted);font-size:12.5px;padding-block:6px 30px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="assets/theme.css">
-<style>html.glass .sitebar{position:relative}</style>
 </head>
 <body>
-<header class="sitebar"><div class="sitebar-in">
-  <a class="brand" href="./" aria-label="XLTHS – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19" stroke="#98A2B3" stroke-width="1.4"/><path d="M5.5 20V6.5M10.5 20V10.5M15 20v-6M19 20v-3.5" stroke="#C41E3A" stroke-width="2" stroke-linecap="round"/><circle cx="5.5" cy="5.8" r="2.1" fill="#C41E3A"/><circle cx="10.5" cy="9.8" r="2.1" fill="#C41E3A"/><circle cx="15" cy="13.4" r="2.1" fill="#1A7F4B"/><circle cx="19" cy="15.9" r="1.9" fill="#1A7F4B"/></svg></span><span class="brand-t"><b>XLTHS</b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
   <nav class="sitenav" aria-label="Các phần mềm">
     <a class="home" href="./">Trang chủ</a>
     <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
@@ -1296,7 +1295,7 @@ $('ex-list').addEventListener('click', e => {
   if (l) loadEx(l.dataset.load);
 });
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => RENDER[current](), 150); });
-let start = 'conv'; try { const s = localStorage.getItem('ztlab-tab'); if (s && RENDER[s]) start = s; } catch (e) {}
+let start = 'conv'; try { const s = localStorage.getItem('ztlab-tab'); if (s && RENDER[s]) start = s; } catch (e) {} { const hs = (location.hash || '').slice(1); if (RENDER[hs]) start = hs; } addEventListener('hashchange', () => { const hs = (location.hash || '').slice(1); if (RENDER[hs]) showTab(hs); });
 $('rc-r').value = rcSliderFromR(0.8);
 showTab(start);
 </script>

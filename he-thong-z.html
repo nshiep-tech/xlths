@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="vi" class="glass">
+<html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hệ thống trong miền Z</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#D8DFEA">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -152,7 +152,7 @@ footer{color:var(--muted);font-size:12.5px;padding-block:6px 30px}
 /* Thành phần riêng của Buổi 4 */
 .legend3{display:flex;flex-direction:column;gap:8px}
 .legend3>div{display:flex;align-items:center;gap:10px;font-size:14px}
-.diag{overflow-x:auto;border-radius:14px;background:rgba(255,255,255,.72);border:1px solid rgba(15,17,21,.06)}
+.diag{overflow-x:auto;border-radius:12px;background:#fff;border:1px solid var(--line)}
 .diag svg{display:block;width:100%;min-width:600px;height:auto}
 .tri svg{display:block;width:100%;height:auto;max-width:460px}
 pre.code{margin:0;font:500 13.5px/1.6 var(--f-mono);background:rgba(246,247,249,.85);border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow-x:auto;white-space:pre;color:var(--ink)}
@@ -162,11 +162,10 @@ pre.code{margin:0;font:500 13.5px/1.6 var(--f-mono);background:rgba(246,247,249,
 input:disabled{opacity:.45}
 </style>
 <link rel="stylesheet" href="assets/theme.css">
-<style>html.glass .sitebar{position:relative}</style>
 </head>
 <body>
-<header class="sitebar"><div class="sitebar-in">
-  <a class="brand" href="./" aria-label="XLTHS – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19" stroke="#98A2B3" stroke-width="1.4"/><path d="M5.5 20V6.5M10.5 20V10.5M15 20v-6M19 20v-3.5" stroke="#C41E3A" stroke-width="2" stroke-linecap="round"/><circle cx="5.5" cy="5.8" r="2.1" fill="#C41E3A"/><circle cx="10.5" cy="9.8" r="2.1" fill="#C41E3A"/><circle cx="15" cy="13.4" r="2.1" fill="#1A7F4B"/><circle cx="19" cy="15.9" r="1.9" fill="#1A7F4B"/></svg></span><span class="brand-t"><b>XLTHS</b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
   <nav class="sitenav" aria-label="Các phần mềm">
     <a class="home" href="./">Trang chủ</a>
     <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
@@ -811,7 +810,7 @@ function renderTri(){
   let par = ''; for (let i = 0; i <= 40; i++){ const a1 = -2 + 4 * i / 40; par += (i ? 'L' : 'M') + X(a1).toFixed(1) + ' ' + Y(a1 * a1 / 4).toFixed(1); }
   const {a1, a2} = TRI;
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tam giác ổn định bậc 2" style="touch-action:none;cursor:crosshair">`;
-  s += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="12" fill="rgba(255,255,255,.75)" stroke="#E4E7EC"/>`;
+  s += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="12" fill="#fff" stroke="#E2E8F0"/>`;
   s += `<polygon points="${X(-2)},${Y(1)} ${X(2)},${Y(1)} ${X(0)},${Y(-1)}" fill="#E7F4EC" stroke="#145F39" stroke-width="2"/>`;
   s += `<path d="${par}" fill="none" stroke="#1F4E8C" stroke-width="1.8" stroke-dasharray="6 4"/>`;
   s += `<line x1="${X(-2.5)}" x2="${X(2.5)}" y1="${Y(0)}" y2="${Y(0)}" stroke="#98A2B3"/><line x1="${X(0)}" x2="${X(0)}" y1="${Y(1.5)}" y2="${Y(-1.5)}" stroke="#98A2B3"/>`;
@@ -972,7 +971,7 @@ $('ex-list').addEventListener('click', e => {
   if (l) loadEx(l.dataset.load);
 });
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => RENDER[current](), 150); });
-let start = 'ht'; try { const s = localStorage.getItem('htz-tab'); if (s && RENDER[s]) start = s; } catch (e) {}
+let start = 'ht'; try { const s = localStorage.getItem('htz-tab'); if (s && RENDER[s]) start = s; } catch (e) {} { const hs = (location.hash || '').slice(1); if (RENDER[hs]) start = hs; } addEventListener('hashchange', () => { const hs = (location.hash || '').slice(1); if (RENDER[hs]) showTab(hs); });
 showTab(start);
 </script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>

@@ -1,172 +1,147 @@
 /* =====================================================================
-   XLTHS – hệ thiết kế chung cho trang chủ và các phần mềm Buổi 1, 2, 3.
-   Nền sáng duy nhất (không đổi sang nền tối), nhấn đỏ – xanh lá.
-   Nạp SAU CSS riêng của từng trang để đồng bộ giao diện.
+   DSP LAB – Hệ thiết kế chung (Design System)
+   Dùng cho trang chủ và mọi phần mềm mô phỏng. Nạp SAU CSS riêng của
+   từng trang: các token ở đây thay thế token cũ cùng tên nên giao diện
+   thống nhất mà không phải sửa thuật toán hay cấu trúc của từng trang.
+
+   Mục lục
+   1. Design tokens          6. Thẻ (cards)
+   2. Typography             7. Bảng mô phỏng (simulation panels)
+   3. Layout                 8. Biểu đồ (charts)
+   4. Components             9. Responsive breakpoints
+   5. Navigation
    ===================================================================== */
+
+/* ---------- 1. Design tokens ---------- */
 :root {
-  --bg: #F6F7F9; --surface: #FFFFFF; --side: #FAFBFC; --ink: #0F1115; --body: #3B4048; --muted: #667085;
-  --line: #E4E7EC; --line-2: #D0D5DD; --soft: #F2F4F7;
-  --red: #C41E3A; --red-ink: #9E1830; --red-tint: #FDECEF;
-  --green: #1A7F4B; --green-ink: #145F39; --green-tint: #E8F5EE;
-  --blue: #1F4E8C; --blue-tint: #EAF1FB; --amber: #9A5B00; --amber-tint: #FFF4DE;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
-  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 12px rgba(16, 24, 40, .06);
-  --shadow-lg: 0 2px 4px rgba(16, 24, 40, .04), 0 16px 40px rgba(16, 24, 40, .10);
-  --r-sm: 10px; --r: 14px; --r-lg: 20px;
-  --f-body: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  /* Màu nhận diện */
+  --navy: #142B4A; --navy-2: #1D3A63; --navy-tint: #EEF2F8;
+  --blue: #1E40AF; --blue-ink: #1E3A8A; --blue-tint: #EFF4FF; --blue-t: #EFF4FF;
+  --red: #BE123C; --red-ink: #9F1239; --red-tint: #FFF1F3; --red-t: #FFF1F3;
+  --green: #047857; --green-ink: #065F46; --green-tint: #ECFDF5; --green-t: #ECFDF5;
+  --amber: #B45309; --amber-tint: #FFFBEB; --amber-t: #FFFBEB;
+  /* Nền và bề mặt */
+  --bg: #F5F7FA; --paper: #F5F7FA; --surface: #FFFFFF; --card: #FFFFFF; --side: #F8FAFC; --soft: #F1F5F9;
+  /* Chữ */
+  --ink: #172033; --body: #334155; --ink2: #334155; --muted: #64748B; --gray: #94A3B8;
+  /* Đường kẻ */
+  --line: #E2E8F0; --line-2: #CBD5E1; --line2: #CBD5E1;
+  /* Đổ bóng, bo góc */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+  --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 2px 8px rgba(15, 23, 42, .05);
+  --shadow-lg: 0 4px 10px rgba(15, 23, 42, .04), 0 14px 32px rgba(15, 23, 42, .08);
+  --r-sm: 8px; --r: 12px; --r-lg: 16px;
+  /* Font */
+  --f-body: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, Consolas, "Courier New", monospace;
+  --ease: cubic-bezier(.2, .8, .2, 1);
   color-scheme: light;
 }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); -webkit-font-smoothing: antialiased; }
 
-/* ---------- Thanh điều hướng chung của cả trang ---------- */
-.sitebar { position: relative; z-index: 25; background: rgba(255, 255, 255, .92); border-bottom: 1px solid var(--line); }
-.sitebar-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 14px; min-height: 56px;
+/* ---------- 2. Typography ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg); }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01"; }
+.mono, code, kbd, samp { font-family: var(--f-mono); }
+.eyebrow { color: var(--red); letter-spacing: .12em; }
+.app-page .eyebrow::before, .pagehead .eyebrow::before { background: var(--red); }
+
+/* ---------- 3. Layout ---------- */
+.wrap-x { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ---------- 4. Components ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(30, 64, 175, .35); outline-offset: 2px; }
+input[type=range] { accent-color: var(--blue); }
+input[type=number], input[type=text], select, textarea { border: 1px solid var(--line-2); border-radius: var(--r-sm); background: #fff; color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+input[type=number]:focus, input[type=text]:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30, 64, 175, .12); outline: none; }
+
+/* ---------- 5. Navigation ---------- */
+.sitebar { position: relative; z-index: 30; background: #fff; border-bottom: 1px solid var(--line); }
+.sitebar-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 16px; min-height: 60px;
   padding-top: env(safe-area-inset-top, 0px);
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; flex: none; min-height: 44px; }
-.brand-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
+.brand-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--navy); display: grid; place-items: center; flex: none; }
 .brand-mark svg { width: 22px; height: 22px; display: block; }
-.brand-t { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-t b { font-size: 15px; font-weight: 800; letter-spacing: .02em; }
-.brand-t small { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.brand-t { display: flex; flex-direction: column; line-height: 1.2; }
+.brand-t b { font-size: 13.5px; font-weight: 800; letter-spacing: .06em; color: var(--navy); }
+.brand-t b .short { display: none; }
+.brand-t small { font-size: 11.5px; color: var(--muted); font-weight: 500; }
 .sitenav { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; justify-content: flex-end; }
 .sitenav::-webkit-scrollbar { display: none; }
-.sitenav a { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px; color: var(--body); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.sitenav a { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: var(--r-sm); color: var(--body); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
 .sitenav a:hover { background: var(--soft); color: var(--ink); }
-.sitenav a[aria-current="page"] { background: var(--red-tint); color: var(--red-ink); }
+.sitenav a[aria-current="page"], .sitenav a.on { background: var(--navy-tint); color: var(--navy); }
 .sitenav a .n { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
 .sitenav a[aria-current="page"] .n { color: var(--red); }
-.sitenav .new { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--green-ink); background: var(--green-tint); border-radius: 999px; padding: 1px 7px; }
-.uni-line { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .01em; }
-@media (max-width: 760px) { .brand-t small { display: none; } .sitenav .new { display: none; } }
-@media (max-width: 600px) {
-  .sitebar-in { gap: 8px; }
-  .brand-t { display: none; }
-  .sitenav { gap: 0; }
-  .sitenav a { padding: 0 9px; font-size: 13.5px; }
-  .sitenav a .n, .sitenav a.home { display: none; }
-}
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(196, 30, 58, .35); outline-offset: 2px; }
+.sitenav .new { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--green-ink); background: var(--green-tint); border-radius: 999px; padding: 2px 7px; }
+.nav-toggle { display: none; margin-left: auto; width: 44px; height: 44px; border-radius: var(--r-sm); border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; place-items: center; }
 
-/* ---------- Làm mới các thành phần của phần mềm Buổi 1, 2 ---------- */
-.app-page .inst { display: none !important; }
-.app-page .top { background: rgba(255, 255, 255, .96); box-shadow: var(--shadow-sm); }
-.app-page .eyebrow::before { width: 16px; height: 3px; border-radius: 2px; }
-.app-page .author { border-color: var(--line); }
-.app-page .side-btn, .app-page .icon-btn { border: 1px solid var(--line-2); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); }
-.app-page .side-btn[aria-expanded="true"] { background: var(--surface); border-color: var(--line-2); color: var(--ink); }
-.app-page .modes { background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px; }
-.app-page .mode-tab { border: 0; border-radius: 9px; background: transparent; color: var(--body); padding: 7px 12px; box-shadow: none; }
-.app-page .mode-tab:hover { background: rgba(255, 255, 255, .7); color: var(--ink); }
-.app-page .mode-tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
-.app-page .mode-tab b { background: var(--surface); border: 1px solid var(--line-2); }
-.app-page .mode-tab[aria-selected="true"] b { background: var(--red); border-color: var(--red); color: #fff; }
-.app-page .side { background: var(--side); }
-.app-page .card { border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+/* ---------- 6. Thẻ (cards) ---------- */
+.app-page .card, main .card, aside.controls { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
 .app-page .card.r, .app-page .card.g, .app-page .card.k { border-top-width: 1px; border-top-color: var(--line); position: relative; overflow: hidden; }
 .app-page .card.r::before, .app-page .card.g::before, .app-page .card.k::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--red); }
 .app-page .card.g::before { background: var(--green); }
 .app-page .card.k::before { background: var(--line-2); }
 .app-page .side .card { box-shadow: var(--shadow-sm); }
+
+/* ---------- 7. Bảng mô phỏng (simulation panels) ---------- */
+/* Buổi 1, 2: thanh tiêu đề công cụ + bảng tham số bên trái */
+.app-page .inst { display: none !important; }
+.app-page .top { background: #fff; border-bottom: 1px solid var(--line); box-shadow: var(--shadow-sm); top: env(safe-area-inset-top, 0px); }
+.app-page .top h1 { color: var(--navy); }
+.app-page .author { border-color: var(--line); }
+.app-page .side { background: var(--side); border-right: 1px solid var(--line); }
+.app-page .side-btn, .app-page .icon-btn { border: 1px solid var(--line-2); border-radius: var(--r-sm); background: #fff; color: var(--ink); box-shadow: var(--shadow-sm); }
+.app-page .side-btn:hover, .app-page .icon-btn:hover { border-color: var(--navy); }
+.app-page .modes { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 4px; gap: 4px; }
+.app-page .mode-tab { border: 0; border-radius: var(--r-sm); background: transparent; color: var(--body); padding: 7px 12px; box-shadow: none; transition: background .15s, color .15s; }
+.app-page .mode-tab:hover { background: #fff; color: var(--ink); }
+.app-page .mode-tab[aria-selected="true"] { background: #fff; color: var(--navy); box-shadow: var(--shadow); }
+.app-page .mode-tab b { background: #fff; border: 1px solid var(--line-2); color: var(--body); }
+.app-page .mode-tab[aria-selected="true"] b { background: var(--navy); border-color: var(--navy); color: #fff; }
 .app-page .chip { border-color: var(--line-2); }
-.app-page .chip[aria-pressed="true"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); }
+.app-page .chip[aria-pressed="true"] { background: var(--navy-tint); border-color: var(--navy); color: var(--navy); }
 .app-page .seg { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
-.app-page .seg button { border: 0; background: transparent; border-radius: 8px; }
-.app-page .seg button:hover { background: rgba(255, 255, 255, .7); }
-.app-page .seg button[aria-pressed="true"] { background: var(--surface); color: var(--red-ink); box-shadow: var(--shadow); }
-.app-page .btn { border: 1px solid var(--line-2); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); }
-.app-page .btn:hover { background: var(--soft); border-color: var(--ink); }
-.app-page .plot, .app-page .tbl-wrap { border-color: var(--line); border-radius: 12px; }
-.app-page input[type=number], .app-page input[type=text], .app-page select { border: 1px solid var(--line-2); border-radius: 9px; }
-.app-page .note { border: 1px solid #CDE8D8; }
-.app-page pre.code { background: var(--soft); border-color: var(--line); }
+.app-page .seg button { border: 0; background: transparent; border-radius: 7px; }
+.app-page .seg button:hover { background: #fff; }
+.app-page .seg button[aria-pressed="true"] { background: #fff; color: var(--navy); box-shadow: var(--shadow); }
+.app-page .btn { border: 1px solid var(--line-2); border-radius: var(--r-sm); background: #fff; box-shadow: var(--shadow-sm); }
+.app-page .btn:hover { background: var(--soft); border-color: var(--navy); }
+.app-page .note { border: 1px solid #A7F3D0; background: var(--green-tint); }
+.app-page pre.code, pre.code { background: #F8FAFC; border: 1px solid var(--line); border-radius: var(--r-sm); }
 
-/* =====================================================================
-   LIQUID GLASS (kiểu iOS 26) – nền hình nền màu trầm vừa phải, các tấm kính mờ sáng.
-   Bật bằng class "glass" trên <html>.
-   - Chữ nằm trực tiếp trên nền: trắng (độ tương phản cao).
-   - Mọi tấm kính (thẻ, thanh điều hướng, bảng điều khiển): kính trắng mờ + chữ tối.
-   ===================================================================== */
-html.glass {
-  --ink: #0F1115; --body: #2F3540; --ink2: #2F3540; --muted: #4E5766;
-  --line: #D9DEE6; --line-2: #C6CDD8; --line2: #C6CDD8; --soft: rgba(255, 255, 255, .6); --surface: #FFFFFF; --side: transparent;
-  --bg: transparent; --paper: transparent; --card: #FFFFFF;
-  --red: #B3102F; --red-ink: #8E0C25; --red-tint: #FDECEF; --red-t: #FDECEF;
-  --green: #0D5C34; --green-ink: #0D5C34; --green-tint: #E3F3EA; --green-t: #E3F3EA;
-  --blue: #1A4380; --blue-t: #EAF1FB; --amber: #8A5000; --amber-t: #FFF3DC; --gray: #B9B9B3;
-  --glass-blur: blur(28px) saturate(180%);
-  --glass-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, .5), 0 0 0 .5px rgba(255, 255, 255, .8), 0 10px 30px rgba(30, 45, 80, .14);
-  background: #D8DFEA; color: var(--ink); color-scheme: light;
+/* Buổi 3, 4: tiêu đề trang + thanh thẻ chức năng + bảng điều khiển */
+.pagehead { background: #fff; border-bottom: 1px solid var(--line); }
+.pagehead h1 { color: var(--navy); }
+.pagehead .author b { color: var(--ink); }
+nav.tabs { background: rgba(255, 255, 255, .97); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.tablist { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; }
+.tab { color: var(--body); border-radius: var(--r-sm); transition: background .15s, color .15s; }
+.tab:hover { background: #fff; color: var(--ink); }
+.tab[aria-selected="true"] { background: #fff; color: var(--navy); box-shadow: var(--shadow); }
+.tab[aria-selected="true"] .no { color: var(--red); }
+.toggle { background: #fff; color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r-sm); }
+.toggle:hover { border-color: var(--navy); }
+aside.controls { border-radius: var(--r); }
+.ex { background: #fff; border: 1px solid var(--line); }
+
+/* ---------- 8. Biểu đồ (charts) ---------- */
+.app-page .plot, .app-page .tbl-wrap, .plot, .diag { background: #fff; border: 1px solid var(--line); border-radius: var(--r-sm); }
+canvas, svg { max-width: 100%; }
+
+/* Hiệu ứng nhẹ khi nội dung xuất hiện */
+.reveal { animation: ds-rise .45s var(--ease) both; }
+@keyframes ds-rise { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: none; } }
+
+/* ---------- 9. Responsive breakpoints ---------- */
+@media (max-width: 1100px) { .sitebar.tools .brand-t { display: none; } }
+@media (max-width: 760px) { .brand-t small { display: none; } .sitenav .new { display: none; } .brand-t b .full { display: none; } .brand-t b .short { display: inline; } }
+@media (max-width: 600px) {
+  .sitebar-in { gap: 8px; min-height: 56px; }
+  .app-page .sitenav, .sitebar.tools .sitenav { gap: 0; }
+  .sitebar.tools .brand-t { display: none; }
+  .sitebar.tools .sitenav a { padding: 0 9px; font-size: 13.5px; }
+  .sitebar.tools .sitenav a .n, .sitebar.tools .sitenav a.home { display: none; }
+  .sitebar.tools .sitenav { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%); }
 }
-/* Hình nền kiểu iPhone: các mảng màu loang mềm trên nền xanh xám trầm */
-html.glass::before {
-  content: ""; position: fixed; inset: -15%; z-index: -2; pointer-events: none;
-  background:
-    radial-gradient(38% 34% at 8% 10%, rgba(232, 150, 170, .45), transparent 70%),
-    radial-gradient(36% 34% at 94% 8%, rgba(120, 160, 230, .45), transparent 70%),
-    radial-gradient(46% 42% at 80% 92%, rgba(140, 150, 230, .4), transparent 70%),
-    radial-gradient(34% 32% at 12% 88%, rgba(130, 190, 160, .35), transparent 70%),
-    linear-gradient(160deg, #E3E8F1 0%, #D6DDE9 50%, #CBD3E1 100%);
-  animation: glass-drift 32s ease-in-out infinite alternate;
-}
-html.glass::after { content: none; }
-@keyframes glass-drift {
-  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
-  50% { transform: translate3d(3%, -2%, 0) rotate(4deg) scale(1.05); }
-  100% { transform: translate3d(-2%, 3%, 0) rotate(-3deg) scale(1); }
-}
-html.glass body { background: transparent; color: var(--ink); }
-html.glass body::before { background: rgba(214, 221, 233, .92) !important; }
-
-/* ---- Tấm kính sáng: trả lại bộ màu sáng (chữ tối) ---- */
-html.glass .card, html.glass .glass-card, html.glass .dg, html.glass aside.controls, html.glass .lightsurf,
-html.glass .sitebar, html.glass .app-page .top, html.glass .app-page .side, html.glass nav.tabs {
-  --ink: #0F1115; --body: #2F3540; --ink2: #2F3540; --muted: #5B6474;
-  --line: #E4E7EC; --line-2: #D0D5DD; --line2: #D0D5DD; --soft: #F2F4F7; --surface: #FFFFFF; --side: #FAFBFC;
-  --bg: #F6F7F9; --paper: #F7F7F4; --card: #FFFFFD;
-  --red: #C41E3A; --red-ink: #9E1830; --red-tint: #FDECEF; --red-t: #FDECEF;
-  --green: #145F39; --green-ink: #145F39; --green-tint: #E8F5EE; --green-t: #E8F5EE;
-  --blue: #1F4E8C; --blue-t: #EAF1FB; --amber: #9A5B00; --amber-t: #FFF3DC; --gray: #B9B9B3;
-  color: var(--ink); text-shadow: none;
-}
-html.glass .card h1, html.glass .card h2, html.glass .glass-card h2 { text-shadow: none; }
-.glass-card, html.glass .dg, html.glass main .card, html.glass aside.controls, html.glass .app-page .card {
-  background: linear-gradient(145deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, .78));
-  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(255, 255, 255, .8); box-shadow: var(--glass-shadow);
-}
-html.glass main .card, html.glass aside.controls { border-radius: 22px; }
-html.glass .app-page .card { border-radius: 20px; }
-
-/* ---- Thanh điều hướng kính sáng ---- */
-html.glass .sitebar, html.glass .app-page .top, html.glass nav.tabs {
-  background: rgba(255, 255, 255, .74); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid rgba(255, 255, 255, .85); box-shadow: inset 0 -1px 0 rgba(15, 17, 21, .06), 0 8px 24px rgba(20, 28, 50, .14);
-}
-html.glass .sitenav a { color: #2F3540; }
-html.glass .sitenav a:hover { background: rgba(255, 255, 255, .8); color: #0F1115; }
-html.glass .sitenav a[aria-current="page"] { background: #fff; color: #0F1115; box-shadow: 0 1px 0 #fff inset, 0 4px 14px rgba(20, 28, 50, .14), inset 0 -2px 0 #C41E3A; }
-html.glass .sitenav a[aria-current="page"] .n { color: #C41E3A; }
-
-/* ---- Phần mềm Buổi 1, 2 ---- */
-html.glass .app-page .top { position: sticky; }
-html.glass .app-page .side { background: rgba(255, 255, 255, .5); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-right: 1px solid rgba(255, 255, 255, .7); }
-html.glass .app-page .modes { background: rgba(15, 17, 21, .05); }
-html.glass .app-page .plot, html.glass .app-page .tbl-wrap { background: #fff; }
-
-/* ---- Phần mềm Buổi 3, 4 ---- */
-html.glass .pagehead { background: transparent; border-bottom: 0; }
-html.glass .tablist { background: rgba(15, 17, 21, .05); border-color: rgba(15, 17, 21, .06); }
-html.glass .tab[aria-selected="true"] { background: #fff; color: #0F1115; box-shadow: 0 1px 0 #fff inset, 0 4px 14px rgba(20, 28, 50, .16); }
-html.glass .tab[aria-selected="true"] .no { color: #C41E3A; }
-html.glass .ex { background: #fff; border-color: #E4E7EC; }
-html.glass input[type=text], html.glass input[type=number], html.glass select { background: #fff; }
-
-/* Hiện dần (trạng thái nghỉ vẫn hiển thị đầy đủ) */
-.reveal { animation: glass-rise .7s cubic-bezier(.2, .8, .2, 1) both; }
-@keyframes glass-rise { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.985); } to { opacity: 1; transform: none; } }
-
-@media (max-width: 700px) { html.glass { --glass-blur: blur(18px) saturate(170%); } }
-@media (prefers-reduced-motion: reduce) { html.glass::before, .reveal { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
