@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Digital Signal Processing Lab – Xử lý tín hiệu số · NGUYỄN SỸ HIỆP</title>
-<meta name="description" content="Phòng thí nghiệm Xử lý tín hiệu số: nền tảng học tập và thực hành bằng các công cụ mô phỏng tương tác. Giảng viên Nguyễn Sỹ Hiệp, Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên.">
+<meta name="description" content="Phòng thí nghiệm Xử lý tín hiệu số: học và thực hành bằng các công cụ mô phỏng tương tác. Giảng viên Nguyễn Sỹ Hiệp, Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên.">
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -17,37 +17,34 @@
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <style>
 /* =====================================================================
-   Trang chủ DSP Lab. Token, font, thanh điều hướng lấy từ assets/theme.css.
-   Bố cục: Header → Hero (máy hiện sóng mô phỏng thật) → Thống kê →
-   Bài học theo chương → Phần mềm mô phỏng → Tài liệu → Giới thiệu.
+   Trang chủ DSP Lab – bố cục tinh gọn:
+   Header → Hero → Phần mềm mô phỏng → Bài học (danh sách) → Tài liệu (sổ xuống) → Giới thiệu.
+   Token, font, thanh điều hướng lấy từ assets/theme.css.
    ===================================================================== */
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth;scroll-padding-top:72px}
 body{margin:0;font-size:16px;line-height:1.6;color:var(--ink)}
-h1,h2,h3,h4,p{margin:0}
-.wrap{max-width:1200px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+h1,h2,h3,p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 .sitebar{position:sticky;top:0}
 .ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-/* ---------- Typography ---------- */
-.over{display:inline-flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
-.over::before{content:"";width:22px;height:2px;background:currentColor}
-.sec-h{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;margin-bottom:28px}
-.sec-h h2{font-size:clamp(26px,3.2vw,36px);line-height:1.2;letter-spacing:-.02em;font-weight:800;color:var(--navy);margin-top:10px}
-.sec-h p{color:var(--muted);max-width:56ch;margin-top:8px}
-section.blk{padding-block:72px 8px}
+/* Tiêu đề khối */
+section.blk{padding-block:80px 0}
+.sec-h{margin-bottom:28px}
+.sec-h h2{font-size:clamp(24px,3vw,32px);line-height:1.2;letter-spacing:-.02em;font-weight:800;color:var(--navy)}
+.sec-h p{color:var(--muted);margin-top:6px;max-width:60ch}
 
-/* ---------- Buttons ---------- */
-.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:10px;font:600 15px var(--f-body);text-decoration:none;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s,box-shadow .15s,transform .15s;white-space:nowrap}
+/* Nút */
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:10px;font:600 15px var(--f-body);text-decoration:none;border:1px solid transparent;transition:background .15s,border-color .15s,box-shadow .15s;white-space:nowrap}
 .b .ic{width:18px;height:18px}
 .b.pri{background:var(--navy);color:#fff}
-.b.pri:hover{background:var(--navy-2);box-shadow:0 6px 18px rgba(20,43,74,.25)}
+.b.pri:hover{background:var(--navy-2);box-shadow:0 6px 18px rgba(20,43,74,.22)}
 .b.out{background:#fff;color:var(--navy);border-color:var(--line-2)}
 .b.out:hover{border-color:var(--navy)}
-.b.sm{min-height:42px;padding:0 16px;font-size:14px;border-radius:9px}
 
-/* ---------- Header (menu điện thoại) ---------- */
+/* Menu điện thoại */
 @media (max-width:860px){
   .nav-toggle{display:grid}
   .sitebar .sitenav.home-nav{position:absolute;left:0;right:0;top:100%;flex-direction:column;align-items:stretch;gap:2px;padding:8px max(16px,env(safe-area-inset-left,0px)) 14px;background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);display:none}
@@ -56,200 +53,136 @@ section.blk{padding-block:72px 8px}
 }
 
 /* ---------- Hero ---------- */
-.hero{background:#fff;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px;opacity:.45;-webkit-mask-image:linear-gradient(90deg,transparent,#000 55%);mask-image:linear-gradient(90deg,transparent,#000 55%);pointer-events:none}
-.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;padding-block:64px 64px}
-.hero h1{margin:18px 0 0;font-weight:800;letter-spacing:-.015em;line-height:1.1;color:var(--navy)}
-.hero h1 .l1{display:block;font-size:clamp(28px,3.6vw,44px)}
-.hero h1 .l2{display:block;font-size:clamp(34px,4.6vw,58px);color:var(--red)}
-.hero .sub{margin-top:14px;font:600 clamp(15px,1.5vw,17px) var(--f-mono);color:var(--blue);letter-spacing:-.01em}
-.hero .desc{margin-top:18px;font-size:clamp(16px,1.5vw,17.5px);color:var(--body);max-width:52ch}
+.hero{background:#fff;border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center;padding-block:72px}
+.hero .kick{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.hero h1{margin-top:14px;font-weight:800;letter-spacing:-.015em;line-height:1.12;color:var(--navy)}
+.hero h1 .l1{display:block;font-size:clamp(26px,3.3vw,40px)}
+.hero h1 .l2{display:block;font-size:clamp(32px,4.3vw,54px);color:var(--red)}
+.hero .sub{margin-top:12px;font:600 clamp(14px,1.4vw,16px) var(--f-mono);color:var(--blue)}
+.hero .desc{margin-top:18px;font-size:17px;color:var(--body);max-width:46ch}
 .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-.lect{display:flex;align-items:center;gap:14px;margin-top:32px;padding-top:24px;border-top:1px solid var(--line)}
-.lect .av{flex:none;width:44px;height:44px;border-radius:10px;background:var(--navy-tint);color:var(--navy);display:grid;place-items:center;font-weight:800;font-size:15px;border:1px solid #D5DEEC}
-.lect small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.lect b{display:block;font-size:16px;font-weight:800;letter-spacing:.04em;color:var(--ink)}
-.lect span{display:block;font-size:14px;color:var(--body)}
+.lect{margin-top:28px;font-size:14.5px;color:var(--muted);line-height:1.5}
+.lect b{color:var(--ink);letter-spacing:.03em}
 
-/* Máy hiện sóng (scope) */
-.scope{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden}
-.scope-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:#F8FAFC}
-.scope-h b{font-size:13px;font-weight:700;color:var(--navy);letter-spacing:.02em}
-.scope-h .live{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-mono);color:var(--green);white-space:nowrap}
-.scope-h .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(4,120,87,.15)}
-.chain{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 16px 4px;font:600 13.5px var(--f-mono);color:var(--ink);flex-wrap:wrap}
-.chain .blkbox{border:1.5px solid var(--navy);border-radius:8px;padding:5px 12px;background:var(--navy-tint);color:var(--navy)}
+/* Hình minh họa: một đồ thị tính trực tiếp */
+.scope{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:18px 18px 12px}
+.scope-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.chain{display:flex;align-items:center;gap:8px;font:600 13px var(--f-mono);color:var(--ink);flex-wrap:wrap}
+.chain .blkbox{border:1.5px solid var(--navy);border-radius:7px;padding:3px 10px;background:var(--navy-tint);color:var(--navy)}
 .chain .arr{color:var(--muted)}
 .chain .xin{color:var(--blue)}.chain .yout{color:var(--red)}
-.scope-body{padding:6px 12px 4px}
-.plot-t{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 6px 0;font-size:12.5px;font-weight:600;color:var(--muted)}
-.plot-t b{color:var(--ink);font-weight:700}
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:2px 6px 0;font-size:12px;color:var(--body);font-weight:600}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--body);font-weight:600}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.scope svg{display:block;width:100%;height:auto}
-.scope-ctl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);background:#F8FAFC}
-.scope-ctl label{font-size:13px;font-weight:600;color:var(--body);white-space:nowrap}
-.scope-ctl input{width:100%;min-height:32px}
-.scope-ctl output{font:600 13px var(--f-mono);color:var(--navy);min-width:52px;text-align:right}
-.readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
-.readout div{padding:10px 14px;border-right:1px solid var(--line)}
-.readout div:last-child{border-right:0}
-.readout small{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.readout b{font:700 15px var(--f-mono);color:var(--ink)}
-.readout b.g{color:var(--green)}.readout b.r{color:var(--red)}
-
-/* ---------- Thống kê ---------- */
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:-36px;position:relative;z-index:2}
-.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);display:flex;gap:14px;align-items:flex-start}
-.stat .si{flex:none;width:42px;height:42px;border-radius:10px;display:grid;place-items:center}
-.stat .si .ic{width:22px;height:22px}
-.stat b{display:block;font-size:28px;font-weight:800;line-height:1.1;color:var(--navy);letter-spacing:-.02em}
-.stat span{display:block;font-size:14px;color:var(--muted);margin-top:4px;line-height:1.4}
-.t-navy{background:var(--navy-tint);color:var(--navy)}.t-red{background:var(--red-tint);color:var(--red)}.t-green{background:var(--green-tint);color:var(--green)}.t-blue{background:var(--blue-tint);color:var(--blue)}
-
-/* ---------- Bài học theo chương ---------- */
-.prog{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--body);font-weight:600}
-.prog .bar{width:180px;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
-.prog .bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--green);transition:width .9s var(--ease)}
-.chapter{margin-top:36px}
-.chapter:first-child{margin-top:0}
-.ch-h{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.ch-h .ch-no{font:700 12.5px var(--f-body);color:var(--red);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.ch-h h3{font-size:18px;font-weight:700;color:var(--navy)}
-.ch-h span.cnt{margin-left:auto;font-size:13.5px;color:var(--muted);white-space:nowrap}
-.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;list-style:none;margin:0;padding:0}
-.lesson{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;transition:border-color .2s,box-shadow .2s,transform .2s}
-.lesson:hover{border-color:#C7D2E3;box-shadow:var(--shadow-lg);transform:translateY(-2px)}
-.lesson.soon{background:#FBFCFD}
-.ls-top{display:flex;align-items:flex-start;gap:14px}
-.ls-ic{flex:none;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--navy-tint);color:var(--navy)}
-.ls-ic .ic{width:22px;height:22px}
-.lesson.soon .ls-ic{background:var(--soft);color:var(--muted)}
-.ls-no{font:700 12px var(--f-body);color:var(--muted);letter-spacing:.1em;font-variant-numeric:tabular-nums}
-.ls-top h4{font-size:16.5px;line-height:1.35;font-weight:700;color:var(--ink);margin-top:2px}
-.ls-desc{font-size:14.5px;color:var(--body);line-height:1.55}
-.topics{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
-.topics li{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--body);border:1px solid var(--line)}
-.ls-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;border-top:1px solid var(--line);min-height:58px}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;border-radius:999px;padding:3px 10px}
-.badge .ic{width:13px;height:13px}
-.badge.ok{background:var(--green-tint);color:var(--green-ink)}
-.badge.new{background:var(--red-tint);color:var(--red-ink)}
-.badge.soon{background:var(--soft);color:var(--muted)}
-.lnk{display:inline-flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:var(--blue);text-decoration:none;min-height:44px;padding:0 4px}
-.lnk:hover{text-decoration:underline;text-underline-offset:3px}
-.lnk .ic{width:16px;height:16px}
+.scope svg{display:block;width:100%;height:auto;margin-top:10px}
+.scope figcaption{margin-top:6px;font-size:13px;color:var(--muted)}
 
 /* ---------- Phần mềm mô phỏng ---------- */
-.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
-.tool{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:grid;grid-template-columns:200px minmax(0,1fr);transition:box-shadow .2s,border-color .2s}
-.tool:hover{box-shadow:var(--shadow-lg);border-color:#C7D2E3}
-.tool .thumb{background:#F8FAFC;border-right:1px solid var(--line);display:grid;place-items:center;padding:16px}
-.tool .thumb svg{width:100%;height:auto;max-width:168px}
-.tool .tb{padding:20px 22px;display:flex;flex-direction:column;gap:10px}
-.tool .meta{font:700 12px var(--f-body);color:var(--red);letter-spacing:.06em;text-transform:uppercase}
-.tool h3{font-size:19px;font-weight:700;color:var(--navy);line-height:1.3}
-.tool p{font-size:14.5px;color:var(--body)}
-.feat{list-style:none;margin:2px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
-.feat li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--body);line-height:1.45}
-.feat li .ic{width:15px;height:15px;color:var(--green);margin-top:2px}
-.tool .act{margin-top:auto;padding-top:8px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.quick{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px}
-.quick h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:12px}
-.quick ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.quick a{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font-size:14.5px;font-weight:600;line-height:1.3;transition:border-color .15s,background .15s}
-.quick a:hover{border-color:var(--navy);background:var(--navy-tint)}
-.quick a .ic{color:var(--navy)}
-.quick a small{display:block;font-size:12px;color:var(--muted);font-weight:500}
-.dev-h{margin-top:28px;font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.dev{margin-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.dev div{border:1px dashed var(--line-2);border-radius:12px;padding:14px 16px;background:#FBFCFD}
-.dev b{display:block;font-size:14.5px;color:var(--ink)}
-.dev span{font-size:13px;color:var(--muted)}
+.tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.tool{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:box-shadow .2s,border-color .2s,transform .2s}
+.tool:hover{box-shadow:var(--shadow-lg);border-color:#C7D2E3;transform:translateY(-2px)}
+.tool .thumb{background:#F8FAFC;border-bottom:1px solid var(--line);display:grid;place-items:center;padding:18px;height:130px}
+.tool .thumb svg{width:100%;height:100%;max-width:170px}
+.tool .tb{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.tool .meta{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+.tool h3{font-size:17px;font-weight:700;color:var(--navy);line-height:1.3}
+.tool p{font-size:14px;color:var(--muted);line-height:1.5}
+.tool .go{margin-top:auto;padding-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:var(--blue)}
+.tool .go .ic{width:16px;height:16px;transition:transform .2s}
+.tool:hover .go .ic{transform:translateX(3px)}
 
-/* ---------- Tài liệu ---------- */
-.docs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.doc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}
-.doc h3{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:14px}
-.doc h3 .ic{color:var(--red)}
-.ref{width:100%;border-collapse:collapse;font-size:13.5px}
-.ref th{text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 6px 8px;border-bottom:1px solid var(--line)}
-.ref td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+/* ---------- Bài học: danh sách gọn theo chương ---------- */
+.course{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ch{display:grid;grid-template-columns:220px minmax(0,1fr);border-top:1px solid var(--line)}
+.ch:first-child{border-top:0}
+.ch-h{padding:18px 20px;background:#F8FAFC;border-right:1px solid var(--line)}
+.ch-h small{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+.ch-h b{display:block;margin-top:4px;font-size:15px;font-weight:700;color:var(--navy);line-height:1.35}
+.ls{list-style:none;margin:0;padding:0}
+.ls li{border-top:1px solid var(--line)}
+.ls li:first-child{border-top:0}
+.ls a,.ls .row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 20px;min-height:60px;text-decoration:none;color:inherit}
+.ls a{transition:background .15s}
+.ls a:hover{background:var(--navy-tint)}
+.ls .no{font:700 13px var(--f-mono);color:var(--muted)}
+.ls a .no{color:var(--navy)}
+.ls .t{font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.4}
+.ls .row .t{color:var(--muted);font-weight:500}
+.ls .st{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;color:var(--blue);white-space:nowrap}
+.ls .st .ic{width:16px;height:16px}
+.ls .row .st{color:var(--gray);font-weight:600}
+
+/* ---------- Tài liệu: sổ xuống ---------- */
+.docs{display:flex;flex-direction:column;gap:10px}
+details.doc{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+details.doc summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 20px;min-height:58px;font-size:16px;font-weight:700;color:var(--navy)}
+details.doc summary::-webkit-details-marker{display:none}
+details.doc summary .ic{color:var(--red)}
+details.doc summary .chev{margin-left:auto;color:var(--muted);transition:transform .25s}
+details.doc[open] summary .chev{transform:rotate(180deg)}
+details.doc summary:hover{background:#F8FAFC}
+.doc-in{padding:4px 20px 20px;animation:ds-rise .3s var(--ease) both}
+.ref{width:100%;border-collapse:collapse;font-size:14px}
+.ref th{text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 10px 8px;border-bottom:1px solid var(--line)}
+.ref td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
 .ref tr:last-child td{border-bottom:0}
-.ref .m{font-family:var(--f-mono);font-size:12.5px;color:var(--ink);white-space:nowrap}
-.ref .roc{font-family:var(--f-mono);font-size:12px;color:var(--green-ink);white-space:nowrap}
-.ref code{font-family:var(--f-mono);font-size:12.5px;color:var(--blue-ink);background:var(--blue-tint);padding:1px 6px;border-radius:5px;white-space:nowrap}
-.tbl-scroll{overflow-x:auto;margin:0 -6px}
-.doc .note2{margin-top:12px;font-size:13.5px;color:var(--body);line-height:1.55}
-.doc .note2 b{color:var(--green-ink)}
-.install{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:24px;margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px}
-.install h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px}
-.install p{font-size:14.5px;color:var(--body)}
-.status{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;color:var(--muted)}
+.ref .m{font-family:var(--f-mono);font-size:13px;color:var(--ink);white-space:nowrap}
+.ref .roc{font-family:var(--f-mono);font-size:13px;color:var(--green-ink);white-space:nowrap}
+.ref code{font-family:var(--f-mono);font-size:13px;color:var(--blue-ink);background:var(--blue-tint);padding:1px 6px;border-radius:5px;white-space:nowrap}
+.tbl-scroll{overflow-x:auto}
+.note2{margin-top:12px;font-size:14px;color:var(--body)}
+.note2 b{color:var(--green-ink)}
+.status{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;font-size:14px;color:var(--muted)}
 .status .dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--gray);margin-top:7px}
 .status.ok{color:var(--green-ink);font-weight:600}
-.status.ok .dot{background:var(--green);box-shadow:0 0 0 3px rgba(4,120,87,.15)}
+.status.ok .dot{background:var(--green)}
 .seg{display:inline-flex;gap:3px;border-radius:10px;padding:3px;margin-bottom:12px;flex-wrap:wrap;background:var(--soft);border:1px solid var(--line)}
 .seg button{border:0;background:transparent;border-radius:8px;padding:0 14px;min-height:40px;font:600 14px var(--f-body);color:var(--body);cursor:pointer}
 .seg button[aria-selected="true"]{background:#fff;color:var(--navy);box-shadow:var(--shadow)}
-.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:s}
-.steps li{counter-increment:s;display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:start;font-size:14.5px;color:var(--body)}
-.steps li::before{content:counter(s);width:26px;height:26px;border-radius:7px;background:var(--navy);color:#fff;display:grid;place-items:center;font:700 13px var(--f-mono)}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14.5px;color:var(--body)}
 .sym{display:inline-block;border:1px solid var(--line-2);border-radius:6px;padding:0 6px;background:#fff;font-weight:700;color:var(--ink)}
-.tip{margin-top:12px;font-size:13.5px;color:var(--muted)}
 
 /* ---------- Giới thiệu ---------- */
-.about{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
-.about .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px}
+.about{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:32px}
 .about p{color:var(--body);font-size:15.5px}
-.about p+p{margin-top:12px}
-.princ{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:12px}
-.princ li{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--body)}
-.princ li .ic{color:var(--green);margin-top:2px}
-.princ b{color:var(--ink)}
-.person small{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.person h3{font-size:22px;font-weight:800;letter-spacing:.03em;color:var(--navy);margin-top:6px}
-.person .org{margin-top:6px;font-size:15px;color:var(--body)}
-.person dl{margin:18px 0 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;font-size:14.5px}
-.person dt{color:var(--muted);font-weight:600}
-.person dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
-.person a{color:var(--blue);font-weight:600}
+.about .person{border-left:1px solid var(--line);padding-left:32px}
+.person small{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.person h3{font-size:20px;font-weight:800;letter-spacing:.03em;color:var(--navy);margin-top:4px}
+.person p{margin-top:4px;font-size:14.5px}
+.person a{display:inline-block;margin-top:10px;color:var(--blue);font-weight:600;font-size:14.5px}
 
 footer{margin-top:80px;background:var(--navy);color:#C8D3E4}
-footer .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:space-between;align-items:center;padding-block:26px calc(26px + env(safe-area-inset-bottom,0px));font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 28px;justify-content:space-between;padding-block:24px calc(24px + env(safe-area-inset-bottom,0px));font-size:14px}
 footer b{color:#fff}
 
 /* ---------- Responsive ---------- */
-@media (max-width:1080px){
-  .tools{grid-template-columns:minmax(0,1fr)}
-  .docs{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:1000px){
+  .tools{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media (max-width:960px){
-  .hero-grid{grid-template-columns:minmax(0,1fr);gap:36px;padding-block:44px 64px}
-  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .quick ul,.dev{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .about,.install{grid-template-columns:minmax(0,1fr)}
+@media (max-width:900px){
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:36px;padding-block:44px 52px}
+  .ch{grid-template-columns:minmax(0,1fr)}
+  .ch-h{border-right:0;border-bottom:1px solid var(--line);padding:12px 20px}
+  .ch-h b{display:inline;margin-left:8px}
+  .ch-h small{display:inline}
+  .about{grid-template-columns:minmax(0,1fr);gap:20px}
+  .about .person{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:20px}
 }
-@media (max-width:640px){
+@media (max-width:600px){
   .wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-  section.blk{padding-block:52px 4px}
-  .stats{gap:10px;margin-top:-28px}
-  .stat{padding:14px;gap:10px;flex-direction:column}
-  .stat b{font-size:24px}
-  .lessons{grid-template-columns:minmax(0,1fr)}
-  .tool{grid-template-columns:minmax(0,1fr)}
-  .tool .thumb{border-right:0;border-bottom:1px solid var(--line);padding:14px}
-  .tool .thumb svg{max-width:150px}
-  .feat{grid-template-columns:minmax(0,1fr)}
-  .tool .act .b{flex:1 1 100%}
-  .quick ul,.dev,.docs{grid-template-columns:minmax(0,1fr)}
+  section.blk{padding-block:56px 0}
+  .tools{grid-template-columns:minmax(0,1fr)}
+  .tool{flex-direction:row}
+  .tool .thumb{width:110px;height:auto;flex:none;border-bottom:0;border-right:1px solid var(--line);padding:12px}
   .ctas .b{flex:1 1 100%}
-  .ch-h{flex-wrap:wrap;gap:4px 12px}
-  .ch-h span.cnt{margin-left:0;width:100%}
-  .readout div{padding:8px 10px}
-  .readout b{font-size:13.5px}
-  .scope-ctl{grid-template-columns:minmax(0,1fr) auto}
-  .scope-ctl label{grid-column:1/-1;white-space:normal}
+  .ls a,.ls .row{grid-template-columns:36px minmax(0,1fr) auto;gap:10px;padding:12px 16px}
+  .ls .st span{display:none}
+  .ch-h{padding:12px 16px}
+  details.doc summary{padding:14px 16px}
+  .doc-in{padding:4px 16px 18px}
+  .about{padding:20px}
+  .chain{font-size:11.5px;gap:5px}
+  .chain .blkbox{padding:2px 7px}
 }
 </style>
 </head>
@@ -270,90 +203,46 @@ footer b{color:#fff}
 <section class="hero" id="top">
   <div class="wrap hero-grid">
     <div>
-      <span class="over">Học phần Xử lý tín hiệu số · ICTU</span>
+      <p class="kick">Học phần Xử lý tín hiệu số</p>
       <h1><span class="l1">PHÒNG THÍ NGHIỆM</span><span class="l2">XỬ LÝ TÍN HIỆU SỐ</span></h1>
       <p class="sub">Digital Signal Processing &amp; System Simulation</p>
       <p class="desc">Nền tảng học tập và thực hành xử lý tín hiệu số thông qua các công cụ mô phỏng trực quan, tương tác theo thời gian thực.</p>
       <div class="ctas">
-        <a class="b pri" href="#phan-mem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Mở phần mềm mô phỏng</a>
-        <a class="b out" href="#bai-hoc">Xem lộ trình 9 bài học</a>
+        <a class="b pri" href="#phan-mem">Mở phần mềm mô phỏng</a>
+        <a class="b out" href="#bai-hoc">Xem các bài học</a>
       </div>
-      <div class="lect">
-        <span class="av" aria-hidden="true">SH</span>
-        <div><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</span></div>
-      </div>
+      <p class="lect">Giảng viên <b>NGUYỄN SỸ HIỆP</b><br>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</p>
     </div>
 
-    <figure class="scope" aria-labelledby="scopeCap" style="margin:0">
-      <div class="scope-h"><b id="scopeCap">Mô phỏng: bộ lọc trung bình trượt 4 điểm</b><span class="live">tính trực tiếp</span></div>
-      <div class="chain" aria-hidden="true"><span class="xin">x(n)</span><span class="arr">→</span><span class="blkbox">H(z) = ¼(1 + z⁻¹ + z⁻² + z⁻³)</span><span class="arr">→</span><span class="yout">y(n)</span></div>
-      <div class="scope-body">
-        <div class="plot-t"><span><b>Miền thời gian</b> · x(n) = sin(2π·0,04n) + 0,6·sin(2π·f₂n)</span></div>
-        <div class="legend"><span><i style="background:#1E40AF"></i>x(n) đầu vào</span><span><i style="background:#BE123C"></i>y(n) đầu ra</span></div>
-        <svg id="pT" viewBox="0 0 560 190" role="img" aria-label="Đồ thị x(n) và y(n) theo n"></svg>
-        <div class="plot-t"><span><b>Miền tần số</b> · biên độ phổ DFT, N = 50 mẫu</span></div>
-        <svg id="pF" viewBox="0 0 560 170" role="img" aria-label="Phổ biên độ của x(n) và y(n)"></svg>
+    <figure class="scope">
+      <div class="scope-h">
+        <div class="chain" aria-hidden="true"><span class="xin">x(n)</span><span class="arr">→</span><span class="blkbox">H(z) = ¼(1 + z⁻¹ + z⁻² + z⁻³)</span><span class="arr">→</span><span class="yout">y(n)</span></div>
+        <div class="legend"><span><i style="background:#94A3B8"></i>đầu vào</span><span><i style="background:#BE123C"></i>đầu ra</span></div>
       </div>
-      <div class="scope-ctl">
-        <label for="f2">Tần số thành phần nhanh f₂ (chu kỳ/mẫu)</label>
-        <input type="range" id="f2" min="0.1" max="0.48" step="0.02" value="0.3">
-        <output id="f2o" for="f2">0,30</output>
-      </div>
-      <div class="readout">
-        <div><small>|H| tại 0,04</small><b class="g" id="rH1">–</b></div>
-        <div><small>|H| tại f₂</small><b class="r" id="rH2">–</b></div>
-        <div><small>Năng lượng y / x</small><b id="rE">–</b></div>
-      </div>
+      <svg id="pT" viewBox="0 0 520 220" role="img" aria-label="Tín hiệu đầu vào có nhiễu và tín hiệu đầu ra sau bộ lọc trung bình trượt"></svg>
+      <figcaption>Bộ lọc trung bình trượt 4 điểm làm mượt tín hiệu: thành phần nhanh bị loại, thành phần chậm được giữ lại. Đồ thị được tính trực tiếp.</figcaption>
     </figure>
   </div>
 </section>
 
-<div class="wrap">
-  <div class="stats" aria-label="Thống kê nền tảng">
-    <div class="stat"><span class="si t-navy"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2"/><path d="M8 7h7M8 11h5"/></svg></span><div><b>9</b><span>bài học theo đề cương</span></div></div>
-    <div class="stat"><span class="si t-red"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 14l3-4 3 2 4-5M8 21h8"/></svg></span><div><b id="stTools">4</b><span>phần mềm mô phỏng</span></div></div>
-    <div class="stat"><span class="si t-blue"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span><div><b>4</b><span>chương kiến thức</span></div></div>
-    <div class="stat"><span class="si t-green"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></span><div><b>Offline</b><span>cài như ứng dụng, chạy không cần mạng</span></div></div>
-  </div>
-</div>
-
 <main>
-  <section class="blk wrap" id="bai-hoc">
-    <div class="sec-h">
-      <div><span class="over">Lộ trình học phần</span><h2>Bài học theo chương</h2><p>Chín buổi đi từ dãy số rời rạc đến thiết kế bộ lọc số. Buổi nào có phần mềm thì vào thực hành ngay từ thẻ bài học.</p></div>
-      <div class="prog"><span id="progT">4/9 bài đã có phần mềm</span><span class="bar"><i id="progBar"></i></span></div>
-    </div>
-    <div id="chapters"></div>
+  <section class="blk wrap" id="phan-mem">
+    <div class="sec-h"><h2>Phần mềm mô phỏng</h2><p>Nhập số liệu, xem đồ thị và lời giải từng bước cập nhật ngay.</p></div>
+    <div class="tools" id="tools"></div>
   </section>
 
-  <section class="blk wrap" id="phan-mem">
-    <div class="sec-h">
-      <div><span class="over">Công cụ thực hành</span><h2>Phần mềm mô phỏng</h2><p>Nhập số liệu, kéo thanh trượt, xem đồ thị và lời giải từng bước cập nhật ngay. Mọi phép tính chạy trực tiếp trong trình duyệt.</p></div>
-    </div>
-    <div class="tools" id="tools"></div>
-
-    <div class="quick">
-      <h3>Truy cập nhanh các chức năng</h3>
-      <ul id="quick"></ul>
-    </div>
-
-    <p class="dev-h">Đang phát triển</p>
-    <div class="dev">
-      <div><b>Biến đổi Fourier rời rạc</b><span>Phổ biên độ, phổ pha · Buổi 5</span></div>
-      <div><b>Đáp ứng tần số</b><span>H(e^jω), vẽ đáp ứng như freqz · Buổi 6</span></div>
-      <div><b>Thiết kế bộ lọc FIR, IIR</b><span>Cửa sổ, biến đổi song tuyến · Buổi 7–9</span></div>
-    </div>
+  <section class="blk wrap" id="bai-hoc">
+    <div class="sec-h"><h2>Bài học</h2><p>9 buổi chia thành 4 chương. Buổi có phần mềm: bấm để vào thực hành.</p></div>
+    <div class="course" id="course"></div>
   </section>
 
   <section class="blk wrap" id="tai-lieu">
-    <div class="sec-h">
-      <div><span class="over">Tra cứu</span><h2>Tài liệu</h2><p>Bảng tra cứu nhanh dùng trong giờ học và khi làm bài tập.</p></div>
-    </div>
+    <div class="sec-h"><h2>Tài liệu</h2><p>Bảng tra cứu nhanh khi học và làm bài tập. Bấm để mở.</p></div>
     <div class="docs">
-      <div class="doc">
-        <h3><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg>Cặp biến đổi Z cơ bản</h3>
-        <div class="tbl-scroll"><table class="ref">
-          <thead><tr><th>x(n)</th><th>X(z)</th><th>ROC</th></tr></thead>
+      <details class="doc">
+        <summary><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg>Cặp biến đổi Z cơ bản<svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="doc-in"><div class="tbl-scroll"><table class="ref">
+          <thead><tr><th>x(n)</th><th>X(z)</th><th>Miền hội tụ</th></tr></thead>
           <tbody>
             <tr><td class="m">δ(n)</td><td class="m">1</td><td class="roc">mọi z</td></tr>
             <tr><td class="m">u(n)</td><td class="m">1/(1 − z⁻¹)</td><td class="roc">|z| &gt; 1</td></tr>
@@ -361,11 +250,11 @@ footer b{color:#fff}
             <tr><td class="m">−aⁿu(−n−1)</td><td class="m">1/(1 − az⁻¹)</td><td class="roc">|z| &lt; |a|</td></tr>
             <tr><td class="m">n·aⁿu(n)</td><td class="m">az⁻¹/(1 − az⁻¹)²</td><td class="roc">|z| &gt; |a|</td></tr>
           </tbody>
-        </table></div>
-      </div>
-      <div class="doc">
-        <h3><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Tính chất và ổn định</h3>
-        <div class="tbl-scroll"><table class="ref">
+        </table></div></div>
+      </details>
+      <details class="doc">
+        <summary><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Tính chất biến đổi Z và điều kiện ổn định<svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="doc-in"><div class="tbl-scroll"><table class="ref">
           <thead><tr><th>Miền n</th><th>Miền z</th></tr></thead>
           <tbody>
             <tr><td class="m">x(n − k)</td><td class="m">z⁻ᵏ·X(z)</td></tr>
@@ -374,232 +263,155 @@ footer b{color:#fff}
             <tr><td class="m">n·x(n)</td><td class="m">−z·dX(z)/dz</td></tr>
           </tbody>
         </table></div>
-        <p class="note2"><b>Ổn định (hệ nhân quả):</b> mọi điểm cực nằm trong vòng tròn đơn vị, |pᵢ| &lt; 1. Với mẫu bậc 2 dạng 1 + a₁z⁻¹ + a₂z⁻²: <span style="font-family:var(--f-mono);font-size:12.5px;white-space:nowrap">|a₂| &lt; 1</span> và <span style="font-family:var(--f-mono);font-size:12.5px;white-space:nowrap">|a₁| &lt; 1 + a₂</span>.</p>
-      </div>
-      <div class="doc">
-        <h3><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>Lệnh MATLAB thường dùng</h3>
-        <div class="tbl-scroll"><table class="ref">
+        <p class="note2"><b>Ổn định (hệ nhân quả):</b> mọi điểm cực nằm trong vòng tròn đơn vị, |pᵢ| &lt; 1. Với mẫu bậc 2 dạng 1 + a₁z⁻¹ + a₂z⁻²: |a₂| &lt; 1 và |a₁| &lt; 1 + a₂.</p></div>
+      </details>
+      <details class="doc">
+        <summary><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>Lệnh MATLAB thường dùng<svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="doc-in"><div class="tbl-scroll"><table class="ref">
           <thead><tr><th>Lệnh</th><th>Công dụng</th></tr></thead>
           <tbody>
             <tr><td><code>stem(n, x)</code></td><td>Vẽ dãy rời rạc</td></tr>
             <tr><td><code>conv(x, h)</code></td><td>Tích chập hai dãy</td></tr>
-            <tr><td><code>filter(b, a, x)</code></td><td>Đầu ra theo PT sai phân</td></tr>
+            <tr><td><code>filter(b, a, x)</code></td><td>Đầu ra theo phương trình sai phân</td></tr>
             <tr><td><code>impz(b, a, N)</code></td><td>Đáp ứng xung h(n)</td></tr>
             <tr><td><code>roots(a)</code></td><td>Điểm cực (nghiệm mẫu số)</td></tr>
             <tr><td><code>zplane(b, a)</code></td><td>Đồ thị cực – không</td></tr>
             <tr><td><code>residuez(b, a)</code></td><td>Phân thức tối giản cho Z ngược</td></tr>
           </tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <div class="install" id="cai-dat">
-      <div>
-        <h3>Cài đặt và dùng offline</h3>
-        <p>Mở trang một lần khi có mạng, phần mềm được lưu vào máy. Sau đó dùng được cả khi mất mạng, kể cả trong phòng học không có Wi-Fi.</p>
-        <div class="status" id="status" role="status"><span class="dot"></span><span id="status-t">Đang kiểm tra khả năng dùng offline…</span></div>
-      </div>
-      <div>
-        <div class="seg" role="tablist" aria-label="Chọn thiết bị">
-          <button role="tab" id="t-ios" aria-selected="true" aria-controls="p-ios">iPhone, iPad</button>
-          <button role="tab" id="t-and" aria-selected="false" aria-controls="p-and">Android</button>
-          <button role="tab" id="t-pc" aria-selected="false" aria-controls="p-pc">Máy tính</button>
+        </table></div></div>
+      </details>
+      <details class="doc" id="cai-dat">
+        <summary><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Cài đặt và dùng khi không có mạng<svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="doc-in">
+          <div class="status" id="status" role="status"><span class="dot"></span><span id="status-t">Đang kiểm tra khả năng dùng offline…</span></div>
+          <div class="seg" role="tablist" aria-label="Chọn thiết bị">
+            <button role="tab" id="t-ios" aria-selected="true" aria-controls="p-ios">iPhone, iPad</button>
+            <button role="tab" id="t-and" aria-selected="false" aria-controls="p-and">Android</button>
+            <button role="tab" id="t-pc" aria-selected="false" aria-controls="p-pc">Máy tính</button>
+          </div>
+          <ol class="steps" id="p-ios" role="tabpanel" aria-labelledby="t-ios">
+            <li>Mở trang này bằng <b>Safari</b> khi có mạng.</li>
+            <li>Bấm <b>Chia sẻ</b> <span class="sym">⬆︎</span>, chọn <b>Thêm vào MH chính</b>, bấm <b>Thêm</b>.</li>
+            <li>Mở biểu tượng <b>DSP Lab</b> một lần khi còn mạng; từ lần sau dùng được offline.</li>
+          </ol>
+          <ol class="steps" id="p-and" role="tabpanel" aria-labelledby="t-and" hidden>
+            <li>Mở trang này bằng <b>Chrome</b> khi có mạng.</li>
+            <li>Bấm <span class="sym">⋮</span>, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</li>
+            <li>Mở biểu tượng một lần khi còn mạng; sau đó dùng offline.</li>
+          </ol>
+          <ol class="steps" id="p-pc" role="tabpanel" aria-labelledby="t-pc" hidden>
+            <li>Mở trang này bằng Chrome hoặc Edge một lần khi có mạng.</li>
+            <li>Muốn có biểu tượng riêng: bấm biểu tượng <b>Cài đặt</b> ở cuối thanh địa chỉ.</li>
+          </ol>
         </div>
-        <ol class="steps" id="p-ios" role="tabpanel" aria-labelledby="t-ios">
-          <li><div>Mở trang này bằng <b>Safari</b> khi có mạng.</div></li>
-          <li><div>Bấm nút <b>Chia sẻ</b> <span class="sym">⬆︎</span>, chọn <b>Thêm vào MH chính</b>, rồi bấm <b>Thêm</b>.</div></li>
-          <li><div>Mở biểu tượng <b>DSP Lab</b> một lần khi còn mạng. Từ lần sau dùng được offline.</div></li>
-        </ol>
-        <ol class="steps" id="p-and" role="tabpanel" aria-labelledby="t-and" hidden>
-          <li><div>Mở trang này bằng <b>Chrome</b> khi có mạng.</div></li>
-          <li><div>Bấm <span class="sym">⋮</span>, chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</div></li>
-          <li><div>Mở biểu tượng một lần khi còn mạng. Sau đó dùng offline.</div></li>
-        </ol>
-        <ol class="steps" id="p-pc" role="tabpanel" aria-labelledby="t-pc" hidden>
-          <li><div>Mở trang này bằng Chrome hoặc Edge một lần khi có mạng.</div></li>
-          <li><div>Muốn có biểu tượng riêng: bấm biểu tượng <b>Cài đặt</b> ở cuối thanh địa chỉ.</div></li>
-        </ol>
-        <p class="tip">Nếu mở link trong Zalo hoặc Messenger, bấm <span class="sym">⋯</span> và chọn <b>Mở bằng trình duyệt</b> trước khi cài.</p>
-      </div>
+      </details>
     </div>
   </section>
 
   <section class="blk wrap" id="gioi-thieu">
-    <div class="sec-h"><div><span class="over">Về nền tảng</span><h2>Giới thiệu</h2></div></div>
+    <div class="sec-h"><h2>Giới thiệu</h2></div>
     <div class="about">
-      <div class="box">
-        <p>DSP Lab là bộ phần mềm mô phỏng đi kèm học phần <b>Xử lý tín hiệu số</b>. Mỗi công cụ bám sát nội dung một buổi học: sinh viên nhập số liệu của bài tập, quan sát đồ thị, sơ đồ và đối chiếu lời giải từng bước với cách giải trên lớp.</p>
-        <p>Kết quả được tính trực tiếp từ công thức trong bài giảng và có dòng kiểm tra lại (ví dụ đối chiếu nghiệm phương trình sai phân với phép đệ quy), giúp người học tự kiểm tra bài làm.</p>
-        <ul class="princ">
-          <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span><b>Tính toán thật.</b> Mọi đồ thị vẽ từ dữ liệu người dùng nhập, không dùng hình minh họa cố định.</span></li>
-          <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span><b>Chạy mọi thiết bị.</b> Máy tính, máy tính bảng và điện thoại; không cần cài phần mềm riêng.</span></li>
-          <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span><b>Không thu thập dữ liệu.</b> Không đăng nhập, không theo dõi người dùng.</span></li>
-        </ul>
-      </div>
-      <div class="box person">
+      <p>DSP Lab là bộ phần mềm mô phỏng đi kèm học phần <b>Xử lý tín hiệu số</b>. Mỗi công cụ bám sát một buổi học: sinh viên nhập số liệu bài tập, quan sát đồ thị và đối chiếu lời giải từng bước. Mọi kết quả được tính trực tiếp trong trình duyệt, chạy trên máy tính lẫn điện thoại, không cần đăng nhập.</p>
+      <div class="person">
         <small>Giảng viên phụ trách</small>
         <h3>NGUYỄN SỸ HIỆP</h3>
-        <p class="org">Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</p>
-        <dl>
-          <dt>Học phần</dt><dd>Xử lý tín hiệu số</dd>
-          <dt>Thời lượng</dt><dd>9 buổi</dd>
-          <dt>Mã nguồn</dt><dd><a href="https://github.com/nshiep-tech/xlths" rel="noopener">github.com/nshiep-tech/xlths</a></dd>
-        </dl>
+        <p>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</p>
+        <a href="https://github.com/nshiep-tech/xlths" rel="noopener">Mã nguồn trên GitHub</a>
       </div>
     </div>
   </section>
 </main>
 
-<footer><div class="wrap"><span><b>Digital Signal Processing Lab</b> · Giảng viên <b>NGUYỄN SỸ HIỆP</b></span><span>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</span></div></footer>
+<footer><div class="wrap"><span><b>Digital Signal Processing Lab</b> · Giảng viên <b>NGUYỄN SỸ HIỆP</b></span><span>Trường ĐH Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div></footer>
 
 <script>
 (function(){
   "use strict";
   var $ = function(id){ return document.getElementById(id); };
-  var NS = 'http://www.w3.org/2000/svg';
   function ic(d){ return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; }
-  var I = {
-    wave: '<path d="M2 12h3l2-6 3 12 3-9 2 6 2-3h5"/>',
-    conv: '<path d="M4 18V8M8 18V5M12 18v-7M16 18V9M20 18v-4"/><path d="M3 21h18"/>',
-    z: '<circle cx="12" cy="12" r="8"/><path d="M12 2v20M2 12h20"/><path d="M8.5 8.5l2 2M10.5 8.5l-2 2"/>',
-    sys: '<rect x="8" y="8" width="8" height="8" rx="1.5"/><path d="M2 12h6M16 12h6M19 9l3 3-3 3"/>',
-    four: '<path d="M4 20V10M8 20V4M12 20v-8M16 20v-5M20 20v-2"/>',
-    freq: '<path d="M3 17c3 0 4-10 7-10s3 10 5 10 3-6 6-6"/><path d="M3 21h18"/>',
-    filt: '<path d="M3 4h18l-7 9v6l-4 2v-8L3 4z"/>',
-    fir: '<path d="M3 18h4l3-12 4 12 3-6h4"/>',
-    iir: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/>',
-    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-    check: '<path d="M20 6L9 17l-5-5"/>'
-  };
+  var ARROW = ic('<path d="M5 12h14M13 6l6 6-6 6"/>');
 
-  /* ---------- Menu điện thoại ---------- */
+  /* ---------- Menu điện thoại + đánh dấu mục đang xem ---------- */
   var hdr = $('hdr'), navBtn = $('navBtn');
   function closeNav(){ hdr.classList.remove('open'); navBtn.setAttribute('aria-expanded', 'false'); navBtn.setAttribute('aria-label', 'Mở menu'); }
   navBtn.addEventListener('click', function(){ var o = hdr.classList.toggle('open'); navBtn.setAttribute('aria-expanded', String(o)); navBtn.setAttribute('aria-label', o ? 'Đóng menu' : 'Mở menu'); });
   $('nav').addEventListener('click', function(e){ if (e.target.closest('a')) closeNav(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeNav(); });
-  // Đánh dấu mục menu theo vị trí cuộn
   var links = [].slice.call(document.querySelectorAll('#nav a'));
   if ('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ var id = '#' + e.target.id; links.forEach(function(a){ if (a.getAttribute('href') === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }); } }); }, {rootMargin: '-45% 0px -50% 0px'});
-    ['top', 'bai-hoc', 'phan-mem', 'tai-lieu', 'gioi-thieu'].forEach(function(id){ io.observe($(id)); });
+    ['top', 'phan-mem', 'bai-hoc', 'tai-lieu', 'gioi-thieu'].forEach(function(id){ io.observe($(id)); });
   }
 
-  /* ---------- Dữ liệu bài học (9 buổi, 4 chương) ---------- */
+  /* ---------- Phần mềm mô phỏng (4 công cụ) ---------- */
+  var mono = 'font-family="JetBrains Mono,monospace"';
+  var TH = {
+    seq: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 50h152" stroke="#94A3B8"/>' + [0,1,2,3,4,5,6,7,8,9,10].map(function(k){ var x = 12 + k * 14.5, y = 50 - 34 * Math.sin(k * 0.75); return '<path d="M' + x + ' 50V' + y.toFixed(1) + '" stroke="#1E40AF" stroke-width="2"/><circle cx="' + x + '" cy="' + y.toFixed(1) + '" r="3.2" fill="#1E40AF"/>'; }).join('') + '</svg>',
+    conv: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 88h152" stroke="#94A3B8"/>' + [1,3,5,3].map(function(v, k){ var x = 42 + k * 28, y = 88 - v * 13; return '<path d="M' + x + ' 88V' + y + '" stroke="#BE123C" stroke-width="2.4"/><circle cx="' + x + '" cy="' + y + '" r="4" fill="#BE123C"/>'; }).join('') + '<text x="10" y="14" ' + mono + ' font-size="12" fill="#142B4A">x * h</text></svg>',
+    z: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M84 4v92M30 50h108" stroke="#94A3B8"/><circle cx="84" cy="50" r="38" fill="none" stroke="#047857" stroke-width="2"/><circle cx="84" cy="50" r="24" fill="#ECFDF5" stroke="#047857" stroke-dasharray="4 3"/><path d="M98 32l8 8M106 32l-8 8M98 60l8 8M106 60l-8 8" stroke="#BE123C" stroke-width="2.4"/><circle cx="63" cy="50" r="4.5" fill="#fff" stroke="#1E40AF" stroke-width="2"/></svg>',
+    sys: '<svg viewBox="0 0 168 100" aria-hidden="true"><g fill="none" stroke="#142B4A" stroke-width="1.6"><path d="M6 30h30M76 30h34M146 30h16"/><rect x="36" y="18" width="40" height="24" rx="4" fill="#EEF2F8"/><rect x="110" y="18" width="36" height="24" rx="4" fill="#EEF2F8"/><circle cx="56" cy="76" r="9" fill="#fff"/><path d="M56 42v25M65 76h63V42M50 76h-6M56 70v12"/></g><text x="47" y="34" ' + mono + ' font-size="11" fill="#142B4A">z⁻¹</text><text x="119" y="34" ' + mono + ' font-size="11" fill="#142B4A">z⁻¹</text></svg>'
+  };
+  var T = [
+    {n: 1, href: 'day-tin-hieu.html', th: 'seq', t: 'Tín hiệu rời rạc', d: 'Lấy mẫu, lượng tử hóa, các dãy cơ bản.'},
+    {n: 2, href: 'tich-chap.html', th: 'conv', t: 'Tích chập', d: 'Tích chập từng bước, phương trình sai phân.'},
+    {n: 3, href: 'bien-doi-z.html', th: 'z', t: 'Biến đổi Z', d: 'Miền hội tụ, cực – không, Z ngược.'},
+    {n: 4, href: 'he-thong-z.html', th: 'sys', t: 'Hệ thống miền Z', d: 'Hàm truyền, sơ đồ khối, ổn định.'}
+  ];
+  $('tools').innerHTML = T.map(function(x){
+    return '<a class="tool" href="' + x.href + '"><div class="thumb">' + TH[x.th] + '</div><div class="tb"><span class="meta">Buổi ' + x.n + '</span><h3>' + x.t + '</h3><p>' + x.d + '</p><span class="go">Mở công cụ ' + ARROW + '</span></div></a>';
+  }).join('');
+
+  /* ---------- Bài học: 9 buổi, 4 chương ---------- */
   var CH = [
-    {t: 'Tín hiệu và hệ thống rời rạc', b: [0, 1]},
-    {t: 'Phân tích trong miền Z', b: [2, 3]},
-    {t: 'Phân tích trong miền tần số', b: [4, 5]},
-    {t: 'Bộ lọc số', b: [6, 7, 8]}
+    {t: 'Tín hiệu và hệ thống rời rạc', b: [
+      ['Tín hiệu rời rạc và biểu diễn tín hiệu rời rạc trong MATLAB', 'day-tin-hieu.html'],
+      ['Hệ thống tuyến tính và phương trình sai phân tuyến tính hệ số hằng', 'tich-chap.html']]},
+    {t: 'Phân tích trong miền Z', b: [
+      ['Biến đổi Z và các tính chất của biến đổi Z', 'bien-doi-z.html'],
+      ['Biểu diễn hệ thống trong miền Z và thực hiện trên MATLAB', 'he-thong-z.html']]},
+    {t: 'Phân tích trong miền tần số', b: [
+      ['Biến đổi Fourier và tính chất'],
+      ['Biểu diễn hệ thống trên miền tần số và vẽ đáp ứng tần số bằng MATLAB']]},
+    {t: 'Bộ lọc số', b: [
+      ['Bộ lọc số lý tưởng và cấu trúc bộ lọc số'],
+      ['Thiết kế bộ lọc FIR'],
+      ['Thiết kế bộ lọc IIR']]}
   ];
-  var L = [
-    {t: 'Tín hiệu rời rạc và biểu diễn tín hiệu rời rạc trong MATLAB', s: 'Tín hiệu tương tự trở thành dãy số như thế nào, và có những dãy cơ bản nào.', href: 'day-tin-hieu.html', i: 'wave', topics: ['Lấy mẫu, định lý Shannon', 'Lượng tử hóa', 'δ(n), u(n), rect, aⁿ, sin', 'Năng lượng, công suất', 'Phép toán trên dãy']},
-    {t: 'Hệ thống tuyến tính và phương trình sai phân tuyến tính hệ số hằng', s: 'Mô tả hệ LTI bằng đáp ứng xung, tính đầu ra bằng tích chập và phương trình sai phân.', href: 'tich-chap.html', i: 'conv', topics: ['Tuyến tính, bất biến', 'Đáp ứng xung h(n)', 'Tích chập từng bước', 'Nhân quả, ổn định', 'Phương trình sai phân']},
-    {t: 'Biến đổi Z và các tính chất của biến đổi Z', s: 'Chuyển tích chập thành phép nhân đa thức, xác định miền hội tụ và quay về dãy số.', href: 'bien-doi-z.html', i: 'z', topics: ['Mặt phẳng z', 'Miền hội tụ ROC', 'Điểm cực, điểm không', 'Z ngược: 3 cách', 'Các tính chất']},
-    {t: 'Biểu diễn hệ thống trong miền Z và thực hiện trên MATLAB', s: 'Hàm truyền H(z), sơ đồ thực hiện, ghép hệ, giải phương trình sai phân và xét ổn định.', href: 'he-thong-z.html', isNew: true, i: 'sys', topics: ['Hàm truyền H(z)', 'Sơ đồ trực tiếp 1, 2', 'Nối tiếp, song song, hồi tiếp', 'Z một phía', 'Tam giác ổn định', 'Lệnh MATLAB']},
-    {t: 'Biến đổi Fourier và tính chất', s: 'Phân tích tín hiệu thành các thành phần tần số.', i: 'four', topics: ['DTFT', 'Phổ biên độ, phổ pha', 'Liên hệ với biến đổi Z', 'Định lý Parseval']},
-    {t: 'Biểu diễn hệ thống trên miền tần số và vẽ đáp ứng tần số bằng MATLAB', s: 'Hệ thống khuếch đại hay làm suy giảm từng tần số ra sao.', i: 'freq', topics: ['Đáp ứng tần số H(e^jω)', 'Đáp ứng biên độ, pha', 'Lệnh freqz']},
-    {t: 'Bộ lọc số lý tưởng và cấu trúc bộ lọc số', s: 'Bốn loại bộ lọc lý tưởng, chỉ tiêu kỹ thuật và cấu trúc thực hiện.', i: 'filt', topics: ['Thông thấp, thông cao', 'Thông dải, chắn dải', 'Cấu trúc FIR, IIR']},
-    {t: 'Thiết kế bộ lọc FIR', s: 'Bộ lọc pha tuyến tính, luôn ổn định, thiết kế bằng phương pháp cửa sổ.', i: 'fir', topics: ['Cửa sổ chữ nhật, Hamming', 'Hiện tượng Gibbs', 'Lấy mẫu tần số']},
-    {t: 'Thiết kế bộ lọc IIR', s: 'Chuyển bộ lọc tương tự thành bộ lọc số gọn và hiệu quả.', i: 'iir', topics: ['Bất biến xung', 'Biến đổi song tuyến', 'Butterworth, Chebyshev']}
-  ];
-  var on = L.filter(function(x){ return x.href; }).length;
-  var html = '';
+  var k = 0, html = '';
   CH.forEach(function(c, ci){
-    var have = c.b.filter(function(k){ return L[k].href; }).length;
-    html += '<div class="chapter"><div class="ch-h"><span class="ch-no">Chương ' + (ci + 1) + '</span><h3>' + c.t + '</h3><span class="cnt">Buổi ' + (c.b[0] + 1) + '–' + (c.b[c.b.length - 1] + 1) + ' · ' + have + '/' + c.b.length + ' có phần mềm</span></div><ul class="lessons">';
-    c.b.forEach(function(k){
-      var x = L[k], n = ('0' + (k + 1)).slice(-2);
-      var badge = x.isNew ? '<span class="badge new">Mới cập nhật</span>' : x.href ? '<span class="badge ok">' + ic(I.check) + 'Có phần mềm</span>' : '<span class="badge soon">Đang xây dựng</span>';
-      html += '<li class="lesson' + (x.href ? '' : ' soon') + '" id="buoi-' + (k + 1) + '">' +
-        '<div class="ls-top"><span class="ls-ic">' + ic(I[x.i]) + '</span><div><span class="ls-no">BUỔI ' + n + '</span><h4>' + x.t + '</h4></div></div>' +
-        '<p class="ls-desc">' + x.s + '</p>' +
-        '<ul class="topics" aria-label="Nội dung kiến thức">' + x.topics.map(function(t){ return '<li>' + t + '</li>'; }).join('') + '</ul>' +
-        '<div class="ls-foot">' + badge + (x.href ? '<a class="lnk" href="' + x.href + '">Vào bài thực hành ' + ic(I.arrow) + '</a>' : '') + '</div></li>';
+    html += '<div class="ch"><div class="ch-h"><small>Chương ' + (ci + 1) + '</small><b>' + c.t + '</b></div><ul class="ls">';
+    c.b.forEach(function(x){
+      k++; var no = '<span class="no">' + ('0' + k).slice(-2) + '</span>';
+      html += x[1]
+        ? '<li><a href="' + x[1] + '">' + no + '<span class="t">' + x[0] + '</span><span class="st"><span>Thực hành</span>' + ARROW + '</span></a></li>'
+        : '<li><div class="row">' + no + '<span class="t">' + x[0] + '</span><span class="st">Sắp có</span></div></li>';
     });
     html += '</ul></div>';
   });
-  $('chapters').innerHTML = html;
-  $('progT').textContent = on + '/9 bài đã có phần mềm'; $('stTools').textContent = on;
-  setTimeout(function(){ $('progBar').style.width = (on / 9 * 100) + '%'; }, 250);
+  $('course').innerHTML = html;
 
-  /* ---------- Phần mềm mô phỏng ---------- */
-  var TH = {
-    seq: '<svg viewBox="0 0 168 110" aria-hidden="true"><path d="M8 60h152" stroke="#94A3B8"/><path d="M12 60' + (function(){ var s = ''; for (var u = 0; u <= 100; u++){ var xx = 12 + u * 1.45, yy = 60 - 36 * Math.sin(u * 0.075); s += 'L' + xx.toFixed(1) + ' ' + yy.toFixed(1); } return s; })() + '" fill="none" stroke="#CBD5E1" stroke-width="1.6"/>' + [0,1,2,3,4,5,6,7,8,9,10].map(function(k){ var x = 12 + k * 14.5, y = 60 - 36 * Math.sin(k * 0.75); return '<path d="M' + x + ' 60V' + y.toFixed(1) + '" stroke="#1E40AF" stroke-width="2"/><circle cx="' + x + '" cy="' + y.toFixed(1) + '" r="3.2" fill="#1E40AF"/>'; }).join('') + '</svg>',
-    conv: '<svg viewBox="0 0 168 110" aria-hidden="true"><path d="M8 92h152" stroke="#94A3B8"/>' + [1,3,5,3].map(function(v, k){ var x = 46 + k * 28, y = 92 - v * 13; return '<path d="M' + x + ' 92V' + y + '" stroke="#BE123C" stroke-width="2.4"/><circle cx="' + x + '" cy="' + y + '" r="4" fill="#BE123C"/><text x="' + (x + 7) + '" y="' + (y + 4) + '" font-family="JetBrains Mono,monospace" font-size="10" fill="#64748B">' + v + '</text>'; }).join('') + '<text x="10" y="18" font-family="JetBrains Mono,monospace" font-size="12" fill="#142B4A">y(n) = x(n) * h(n)</text></svg>',
-    z: '<svg viewBox="0 0 168 110" aria-hidden="true"><path d="M84 6v98M20 55h128" stroke="#94A3B8"/><circle cx="84" cy="55" r="40" fill="none" stroke="#047857" stroke-width="2"/><circle cx="84" cy="55" r="25" fill="#ECFDF5" stroke="#047857" stroke-dasharray="4 3"/><path d="M99 36l8 8M107 36l-8 8M99 66l8 8M107 66l-8 8" stroke="#BE123C" stroke-width="2.4"/><circle cx="62" cy="55" r="4.5" fill="#fff" stroke="#1E40AF" stroke-width="2"/><text x="128" y="20" font-family="JetBrains Mono,monospace" font-size="11" fill="#64748B">z</text></svg>',
-    sys: '<svg viewBox="0 0 168 110" aria-hidden="true"><g fill="none" stroke="#142B4A" stroke-width="1.6"><path d="M6 30h30M76 30h34M146 30h16"/><rect x="36" y="18" width="40" height="24" rx="4" fill="#EEF2F8"/><rect x="110" y="18" width="36" height="24" rx="4" fill="#EEF2F8"/><circle cx="56" cy="80" r="9" fill="#fff"/><path d="M56 42v29M65 80h63V42M50 80h-6M56 74v12"/></g><text x="47" y="34" font-family="JetBrains Mono,monospace" font-size="11" fill="#142B4A">z⁻¹</text><text x="119" y="34" font-family="JetBrains Mono,monospace" font-size="11" fill="#142B4A">z⁻¹</text><text x="6" y="22" font-family="JetBrains Mono,monospace" font-size="10" fill="#1E40AF">x(n)</text><text x="134" y="100" font-family="JetBrains Mono,monospace" font-size="10" fill="#BE123C">y(n)</text></svg>'
-  };
-  var T = [
-    {n: 1, href: 'day-tin-hieu.html', th: 'seq', t: 'Tín hiệu rời rạc', d: 'Từ tín hiệu tương tự đến dãy số: lấy mẫu, lượng tử hóa, các dãy cơ bản và phép toán trên dãy.', f: ['Lấy mẫu với chu kỳ Tₛ tùy chọn', 'Lượng tử hóa theo số bit', 'Thư viện dãy cơ bản', 'Cộng, nhân, dịch, lật dãy']},
-    {n: 2, href: 'tich-chap.html', th: 'conv', t: 'Phép tích chập và phương trình sai phân', d: 'Tính đầu ra hệ LTI từng bước, giải phương trình sai phân và kiểm tra tính chất của hệ.', f: ['Tích chập từng bước có hình', 'Bảng tính y(n)', 'Phương trình sai phân', 'Bài tập tính chất hệ']},
-    {n: 3, href: 'bien-doi-z.html', th: 'z', t: 'Biến đổi Z', d: 'Tích chập thành phép nhân, miền hội tụ, mặt phẳng cực – không và biến đổi Z ngược.', f: ['Miền hội tụ ROC', 'Đồ thị cực – không', 'Z ngược 3 phương pháp', 'Bài tập có đáp án']},
-    {n: 4, href: 'he-thong-z.html', th: 'sys', t: 'Hệ thống trong miền Z', d: 'Hàm truyền, sơ đồ khối thực hiện, ghép hệ, giải phương trình sai phân và xét ổn định.', f: ['Hàm truyền H(z)', 'Sơ đồ khối DF1, DF2', 'Tam giác ổn định', 'Mã MATLAB kèm kết quả']}
-  ];
-  $('tools').innerHTML = T.map(function(x){
-    return '<article class="tool"><div class="thumb">' + TH[x.th] + '</div><div class="tb"><span class="meta">Buổi 0' + x.n + '</span><h3>' + x.t + '</h3><p>' + x.d + '</p>' +
-      '<ul class="feat">' + x.f.map(function(f){ return '<li>' + ic(I.check) + '<span>' + f + '</span></li>'; }).join('') + '</ul>' +
-      '<div class="act"><a class="b pri sm" href="' + x.href + '">Mở công cụ ' + ic(I.arrow) + '</a></div></div></article>';
-  }).join('');
-  var Q = [
-    ['day-tin-hieu.html#tuongtu', 'wave', 'Lấy mẫu và lượng tử hóa', 'Buổi 1'],
-    ['tich-chap.html#ptsp', 'conv', 'Phương trình sai phân', 'Buổi 2'],
-    ['bien-doi-z.html#pz', 'z', 'Mặt phẳng cực – không', 'Buổi 3'],
-    ['bien-doi-z.html#izt', 'iir', 'Biến đổi Z ngược', 'Buổi 3'],
-    ['he-thong-z.html#sd', 'sys', 'Sơ đồ khối hệ thống', 'Buổi 4'],
-    ['he-thong-z.html#od', 'filt', 'Xét tính ổn định', 'Buổi 4']
-  ];
-  $('quick').innerHTML = Q.map(function(q){ return '<li><a href="' + q[0] + '">' + ic(I[q[1]]) + '<span>' + q[2] + '<small>' + q[3] + '</small></span></a></li>'; }).join('');
-
-  /* ---------- Máy hiện sóng: tính thật y(n) = ¼Σx(n−k) và phổ DFT ---------- */
-  var N = 50, f1 = 0.04;
-  function el(tag, a){ var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); return e; }
-  function txt(svg, x, y, s, a){ var o = {x: x, y: y, 'font-size': 11, fill: '#64748B', 'font-family': 'Inter, sans-serif'}; for (var k in a) o[k] = a[k]; var t = el('text', o); t.textContent = s; svg.appendChild(t); }
-  function fmt(v, d){ return v.toFixed(d).replace('.', ','); }
-  function Hmag(f){ var re = 0, im = 0; for (var k = 0; k < 4; k++){ re += Math.cos(2 * Math.PI * f * k) / 4; im -= Math.sin(2 * Math.PI * f * k) / 4; } return Math.sqrt(re * re + im * im); }
-  function dft(x){ var out = []; for (var k = 0; k <= N / 2; k++){ var re = 0, im = 0; for (var n = 0; n < N; n++){ re += x[n] * Math.cos(2 * Math.PI * k * n / N); im -= x[n] * Math.sin(2 * Math.PI * k * n / N); } out.push((k === 0 || k === N / 2 ? 1 : 2) * Math.sqrt(re * re + im * im) / N); } return out; }
-  var mono = 'JetBrains Mono, monospace';
+  /* ---------- Đồ thị hero: x(n) = sin(2π·0,04n) + 0,6·sin(2π·0,3n), y(n) = ¼Σx(n−k) ---------- */
+  var NS = 'http://www.w3.org/2000/svg', N = 50;
+  function el(tag, a){ var e = document.createElementNS(NS, tag); for (var q in a) e.setAttribute(q, a[q]); return e; }
+  function txt(svg, x, y, s, a){ var o = {x: x, y: y, 'font-size': 12, fill: '#64748B', 'font-family': 'Inter, sans-serif'}; for (var q in a) o[q] = a[q]; var t = el('text', o); t.textContent = s; svg.appendChild(t); }
   function draw(){
-    var f2 = parseFloat($('f2').value), x = [], y = [], ex = 0, ey = 0, n, k;
-    for (n = 0; n < N; n++) x.push(Math.sin(2 * Math.PI * f1 * n) + 0.6 * Math.sin(2 * Math.PI * f2 * n));
-    for (n = 0; n < N; n++){ var s = 0; for (k = 0; k < 4; k++) if (n - k >= 0) s += x[n - k]; y.push(s / 4); ex += x[n] * x[n]; ey += y[n] * y[n]; }
-    // Miền thời gian
-    var pT = $('pT'); pT.textContent = '';
-    var W = pT.getBoundingClientRect().width < 470 ? 380 : 560; pT.setAttribute('viewBox', '0 0 ' + W + ' 190'); $('pF').setAttribute('viewBox', '0 0 ' + W + ' 170');
-    var L0 = 34, R0 = W - 12, T0 = 14, B0 = 160, ym = 1.7;
-    function X(n){ return L0 + (R0 - L0) * n / (N - 1); }
+    var x = [], y = [], n, j, p = $('pT');
+    for (n = 0; n < N; n++) x.push(Math.sin(2 * Math.PI * 0.04 * n) + 0.6 * Math.sin(2 * Math.PI * 0.3 * n));
+    for (n = 0; n < N; n++){ var s = 0; for (j = 0; j < 4; j++) if (n - j >= 0) s += x[n - j]; y.push(s / 4); }
+    var W = p.getBoundingClientRect().width < 440 ? 380 : 520; p.setAttribute('viewBox', '0 0 ' + W + ' 220'); p.textContent = '';
+    var L0 = 30, R0 = W - 8, T0 = 10, B0 = 190, ym = 1.7;
+    function X(i){ return L0 + (R0 - L0) * i / (N - 1); }
     function Y(v){ return T0 + (B0 - T0) * (ym - v) / (2 * ym); }
-    [-1.5, -1, -0.5, 0, 0.5, 1, 1.5].forEach(function(v){ pT.appendChild(el('line', {x1: L0, x2: R0, y1: Y(v), y2: Y(v), stroke: v === 0 ? '#94A3B8' : '#EEF2F6', 'stroke-width': 1})); if (v % 1 === 0) txt(pT, L0 - 8, Y(v) + 4, fmt(v, 0), {'text-anchor': 'end', 'font-family': mono}); });
-    (W < 500 ? [0, 10, 20, 30, 40, 49] : [0, 10, 20, 30, 40, 49]).forEach(function(n){ pT.appendChild(el('line', {x1: X(n), x2: X(n), y1: T0, y2: B0, stroke: '#F1F5F9'})); txt(pT, X(n), B0 + 15, n, {'text-anchor': 'middle', 'font-family': mono}); });
-    txt(pT, R0, B0 + 28, 'n (mẫu)', {'text-anchor': 'end', 'font-weight': 600});
-    txt(pT, 2, 10, 'biên độ', {'font-weight': 600});
-    var py = '';
-    for (n = 0; n < N; n++){
-      pT.appendChild(el('line', {x1: X(n) - 1.6, x2: X(n) - 1.6, y1: Y(0), y2: Y(x[n]), stroke: '#1E40AF', 'stroke-width': 1.3, 'stroke-opacity': .5}));
-      pT.appendChild(el('circle', {cx: X(n) - 1.6, cy: Y(x[n]), r: 2, fill: '#1E40AF', 'fill-opacity': .65}));
-      py += (n ? 'L' : 'M') + (X(n) + 1.6).toFixed(1) + ' ' + Y(y[n]).toFixed(1);
-    }
-    pT.appendChild(el('path', {d: py, fill: 'none', stroke: '#BE123C', 'stroke-width': 1, 'stroke-opacity': .35}));
-    for (n = 0; n < N; n++){ pT.appendChild(el('line', {x1: X(n) + 1.6, x2: X(n) + 1.6, y1: Y(0), y2: Y(y[n]), stroke: '#BE123C', 'stroke-width': 1.6})); pT.appendChild(el('circle', {cx: X(n) + 1.6, cy: Y(y[n]), r: 2.4, fill: '#BE123C'})); }
-    // Miền tần số
-    var X1 = dft(x), Y1 = dft(y), pF = $('pF'); pF.textContent = '';
-    var B1 = 132, T1 = 12, fm = 1.1;
-    function FX(k){ return L0 + (R0 - L0) * k / (N / 2); }
-    function FY(v){ return B1 - (B1 - T1) * Math.min(v, fm) / fm; }
-    [0, 0.5, 1].forEach(function(v){ pF.appendChild(el('line', {x1: L0, x2: R0, y1: FY(v), y2: FY(v), stroke: v === 0 ? '#94A3B8' : '#EEF2F6'})); txt(pF, L0 - 8, FY(v) + 4, fmt(v, v % 1 ? 1 : 0), {'text-anchor': 'end', 'font-family': mono}); });
-    var ph = ''; for (var i = 0; i <= 100; i++){ var ff = 0.5 * i / 100; ph += (i ? 'L' : 'M') + FX(ff * N).toFixed(1) + ' ' + FY(Hmag(ff)).toFixed(1); }
-    pF.appendChild(el('path', {d: ph, fill: 'none', stroke: '#047857', 'stroke-width': 1.5, 'stroke-dasharray': '5 4'}));
-    for (k = 0; k <= N / 2; k++){
-      pF.appendChild(el('rect', {x: FX(k) - 4, y: FY(X1[k]), width: 3.6, height: Math.max(0, B1 - FY(X1[k])), fill: '#1E40AF', 'fill-opacity': .5}));
-      pF.appendChild(el('rect', {x: FX(k) + 0.4, y: FY(Y1[k]), width: 3.6, height: Math.max(0, B1 - FY(Y1[k])), fill: '#BE123C'}));
-    }
-    [0, 0.1, 0.2, 0.3, 0.4, 0.5].forEach(function(f){ txt(pF, FX(f * N), B1 + 15, fmt(f, 1), {'text-anchor': 'middle', 'font-family': mono}); });
-    txt(pF, R0, B1 + 30, 'f (chu kỳ/mẫu)', {'text-anchor': 'end', 'font-weight': 600});
-    txt(pF, R0, T1 + 2, '- - - |H(f)|', {'text-anchor': 'end', fill: '#047857', 'font-weight': 700});
-    $('f2o').textContent = fmt(f2, 2);
-    $('rH1').textContent = fmt(Hmag(f1), 3); $('rH2').textContent = fmt(Hmag(f2), 3); $('rE').textContent = fmt(ey / ex, 3);
+    [-1, 0, 1].forEach(function(v){ p.appendChild(el('line', {x1: L0, x2: R0, y1: Y(v), y2: Y(v), stroke: v === 0 ? '#94A3B8' : '#EEF2F6'})); txt(p, L0 - 8, Y(v) + 4, v, {'text-anchor': 'end'}); });
+    var px = '', py = '';
+    for (n = 0; n < N; n++){ px += (n ? 'L' : 'M') + X(n).toFixed(1) + ' ' + Y(x[n]).toFixed(1); py += (n ? 'L' : 'M') + X(n).toFixed(1) + ' ' + Y(y[n]).toFixed(1); }
+    p.appendChild(el('path', {d: px, fill: 'none', stroke: '#94A3B8', 'stroke-width': 1.4}));
+    for (n = 0; n < N; n++) p.appendChild(el('line', {x1: X(n), x2: X(n), y1: Y(0), y2: Y(y[n]), stroke: '#BE123C', 'stroke-width': 1.4, 'stroke-opacity': .45}));
+    p.appendChild(el('path', {d: py, fill: 'none', stroke: '#BE123C', 'stroke-width': 2.2, 'stroke-linejoin': 'round'}));
+    for (n = 0; n < N; n++) p.appendChild(el('circle', {cx: X(n), cy: Y(y[n]), r: 2.4, fill: '#BE123C'}));
+    txt(p, R0, B0 + 24, 'n (mẫu)', {'text-anchor': 'end', 'font-weight': 600});
   }
-  $('f2').addEventListener('input', draw); draw();
+  draw();
   var rz; addEventListener('resize', function(){ clearTimeout(rz); rz = setTimeout(draw, 150); });
 
   /* ---------- Thẻ chọn thiết bị ---------- */
@@ -613,10 +425,10 @@ footer b{color:#fff}
   if (!('serviceWorker' in navigator)){ set(false, 'Trình duyệt này không hỗ trợ chạy offline. Hãy dùng Safari (iPhone) hoặc Chrome.'); return; }
   if (location.protocol === 'file:'){ set(false, 'Đang mở từ tệp trong máy. Để dùng offline, hãy mở bằng đường link của trang.'); return; }
   function check(){
-    caches.keys().then(function(k){
-      if (!k.length) return false;
-      return caches.open(k[k.length - 1]).then(function(c){ return Promise.all(['day-tin-hieu.html', 'tich-chap.html', 'bien-doi-z.html', 'he-thong-z.html', 'assets/zcore.js', 'assets/theme.css'].map(function(u){ return c.match(u); })); }).then(function(r){ return r.every(Boolean); });
-    }).then(function(ok){ ok ? set(true, 'Đã lưu vào máy: cả ' + on + ' phần mềm dùng được khi không có mạng.') : set(false, 'Đang lưu phần mềm vào máy để dùng offline…'); }).catch(function(){});
+    caches.keys().then(function(ks){
+      if (!ks.length) return false;
+      return caches.open(ks[ks.length - 1]).then(function(c){ return Promise.all(['day-tin-hieu.html', 'tich-chap.html', 'bien-doi-z.html', 'he-thong-z.html', 'assets/zcore.js', 'assets/theme.css'].map(function(u){ return c.match(u); })); }).then(function(r){ return r.every(Boolean); });
+    }).then(function(ok){ ok ? set(true, 'Đã lưu vào máy: cả 4 phần mềm dùng được khi không có mạng.') : set(false, 'Đang lưu phần mềm vào máy để dùng offline…'); }).catch(function(){});
   }
   addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').then(function(){ return navigator.serviceWorker.ready; }).then(function(){ setTimeout(check, 500); }).catch(function(){ set(false, 'Chưa lưu được để dùng offline. Hãy tải lại trang khi có mạng.'); });
