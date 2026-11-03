@@ -142,13 +142,6 @@ details.doc summary:hover{background:#F8FAFC}
 .steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14.5px;color:var(--body)}
 .sym{display:inline-block;border:1px solid var(--line-2);border-radius:6px;padding:0 6px;background:#fff;font-weight:700;color:var(--ink)}
 
-/* ---------- Giới thiệu ---------- */
-.about{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:32px}
-.about p{color:var(--body);font-size:15.5px}
-.about .person{border-left:1px solid var(--line);padding-left:32px}
-.person small{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.person h3{font-size:20px;font-weight:800;letter-spacing:.03em;color:var(--navy);margin-top:4px}
-.person p{margin-top:4px;font-size:14.5px}
 
 footer{margin-top:80px;background:var(--navy);color:#C8D3E4}
 footer .wrap{display:flex;flex-wrap:wrap;gap:8px 28px;justify-content:space-between;padding-block:24px calc(24px + env(safe-area-inset-bottom,0px));font-size:14px}
@@ -164,8 +157,6 @@ footer b{color:#fff}
   .ch-h{border-right:0;border-bottom:1px solid var(--line);padding:12px 20px}
   .ch-h b{display:inline;margin-left:8px}
   .ch-h small{display:inline}
-  .about{grid-template-columns:minmax(0,1fr);gap:20px}
-  .about .person{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:20px}
 }
 @media (max-width:600px){
   .wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -179,7 +170,6 @@ footer b{color:#fff}
   .ch-h{padding:12px 16px}
   details.doc summary{padding:14px 16px}
   .doc-in{padding:4px 16px 18px}
-  .about{padding:20px}
   .chain{font-size:11.5px;gap:5px}
   .chain .blkbox{padding:2px 7px}
 }
@@ -194,7 +184,6 @@ footer b{color:#fff}
     <a href="#bai-hoc">Bài học</a>
     <a href="#phan-mem">Phần mềm mô phỏng</a>
     <a href="#tai-lieu">Tài liệu</a>
-    <a href="#gioi-thieu">Giới thiệu</a>
   </nav>
   <button class="nav-toggle" id="navBtn" aria-expanded="false" aria-controls="nav" aria-label="Mở menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 </div></header>
@@ -307,17 +296,6 @@ footer b{color:#fff}
     </div>
   </section>
 
-  <section class="blk wrap" id="gioi-thieu">
-    <div class="sec-h"><h2>Giới thiệu</h2></div>
-    <div class="about">
-      <p>DSP Lab là bộ phần mềm mô phỏng đi kèm học phần <b>Xử lý tín hiệu số</b>. Mỗi công cụ bám sát một buổi học: sinh viên nhập số liệu bài tập, quan sát đồ thị và đối chiếu lời giải từng bước. Mọi kết quả được tính trực tiếp trong trình duyệt, chạy trên máy tính lẫn điện thoại, không cần đăng nhập.</p>
-      <div class="person">
-        <small>Giảng viên phụ trách</small>
-        <h3>NGUYỄN SỸ HIỆP</h3>
-        <p>Trường Đại học Công nghệ Thông tin và Truyền thông – Đại học Thái Nguyên</p>
-      </div>
-    </div>
-  </section>
 </main>
 
 <footer><div class="wrap"><span><b>Digital Signal Processing Lab</b> · Giảng viên <b>NGUYỄN SỸ HIỆP</b></span><span>Trường ĐH Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div></footer>
@@ -338,7 +316,7 @@ footer b{color:#fff}
   var links = [].slice.call(document.querySelectorAll('#nav a'));
   if ('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ var id = '#' + e.target.id; links.forEach(function(a){ if (a.getAttribute('href') === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }); } }); }, {rootMargin: '-45% 0px -50% 0px'});
-    ['top', 'phan-mem', 'bai-hoc', 'tai-lieu', 'gioi-thieu'].forEach(function(id){ io.observe($(id)); });
+    ['top', 'phan-mem', 'bai-hoc', 'tai-lieu'].forEach(function(id){ io.observe($(id)); });
   }
 
   /* ---------- Phần mềm mô phỏng (4 công cụ) ---------- */
