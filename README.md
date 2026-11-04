@@ -24,6 +24,7 @@ Trang web: https://nshiep-tech.github.io/xlths/
 | `assets/lab.css` | Bố cục chung cho phần mềm Buổi 5–9 |
 | `assets/fcore.js` | Lõi tính toán Buổi 5–9: DTFT, freqz, lọc, cửa sổ, FIR, Butterworth/Chebyshev (đã đối chiếu với scipy), vẽ đồ thị, sơ đồ khối |
 | `assets/intro.js` | Tab 0 "Lý thuyết nền" của mỗi buổi: mục tiêu, kiến thức cần nhớ, khái niệm cốt lõi kèm ví dụ, mạch bài học, lỗi hay gặp, tự kiểm tra (nội dung nằm trong khối `<!--LT-->` của từng trang; liên kết `#ly-thuyet`) |
+| `assets/scrollcue.js` | Báo hiệu vùng cuộn ngang trên điện thoại (làm mờ mép còn nội dung, dòng "Vuốt ngang để xem hết") |
 | `fonts/` | Inter (giao diện) và JetBrains Mono (số liệu), tự lưu trữ để chạy offline |
 | `sw.js`, `manifest.webmanifest` | Cài như ứng dụng và chạy offline (tăng `VERSION` mỗi lần cập nhật) |
 
