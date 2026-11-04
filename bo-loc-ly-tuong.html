@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bộ lọc lý tưởng và cấu trúc – DSP Lab</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DSP Lab">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="stylesheet" href="assets/lab.css">
+
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
+    <a href="he-thong-z.html"><span class="n">04</span>Hệ thống Z</a>
+    <a href="fourier.html"><span class="n">05</span>Fourier</a>
+    <a href="dap-ung-tan-so.html"><span class="n">06</span>Đáp ứng tần số</a>
+    <a href="bo-loc-ly-tuong.html" aria-current="page"><span class="n">07</span>Bộ lọc lý tưởng</a>
+    <a href="thiet-ke-fir.html"><span class="n">08</span>Thiết kế FIR</a>
+    <a href="thiet-ke-iir.html"><span class="n">09</span>Thiết kế IIR</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 7</div>
+      <h1>Bộ lọc số <span class="z">lý tưởng</span> và cấu trúc bộ lọc</h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của bài">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="lt" id="tb-lt"><span class="no">1</span>Bốn bộ lọc lý tưởng</button>
+      <button class="tab" role="tab" data-tab="cn" id="tb-cn"><span class="no">2</span>Vì sao không làm được</button>
+      <button class="tab" role="tab" data-tab="ps" id="tb-ps"><span class="no">3</span>PT sai phân và lọc số</button>
+      <button class="tab" role="tab" data-tab="ct" id="tb-ct"><span class="no">4</span>Cấu trúc thực hiện</button>
+      <button class="tab" role="tab" data-tab="ml" id="tb-ml"><span class="no">5</span>MATLAB</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+<!-- ============ 1. BỐN BỘ LỌC LÝ TƯỞNG ============ -->
+<section class="tabpanel" id="p-lt" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Loại bộ lọc</span>
+        <div class="seg2" id="lt-type"><button data-t="lp" aria-pressed="true">Thông thấp</button><button data-t="hp" aria-pressed="false">Thông cao</button><button data-t="bp" aria-pressed="false">Thông dải</button><button data-t="bs" aria-pressed="false">Chắn dải</button></div></div>
+      <div class="field"><span class="lbl" id="lt-l1">Tần số cắt ω<sub>c</sub> (phần của π)</span>
+        <div class="rangeRow"><input type="range" id="lt-w1" min="0.05" max="0.95" step="0.05" value="0.5"><output id="lt-w1o">π/2</output></div></div>
+      <div class="field" id="lt-f2" hidden><span class="lbl">Tần số cắt trên ω<sub>c2</sub> (phần của π)</span>
+        <div class="rangeRow"><input type="range" id="lt-w2" min="0.1" max="1" step="0.05" value="0.75"><output id="lt-w2o">3π/4</output></div></div>
+      <div class="chips">
+        <button class="chip small" data-lt="lp|0.5|0.75">Ví dụ 7.1.1 (ω<sub>c</sub> = π/2)</button>
+        <button class="chip small" data-lt="hp|0.5|0.75">Ví dụ 7.1.2 (thông cao)</button>
+        <button class="chip small" data-lt="lp|0.25|0.75">Một phần tư băng</button>
+      </div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Bộ lọc lý tưởng: cho qua hoàn toàn hoặc chặn hoàn toàn</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Mọi bộ lọc thực tế (Buổi 8, 9) đều được thiết kế để giống bộ lọc lý tưởng nhất có thể. Hiểu lý tưởng trước thì mới biết thực tế sai lệch ở đâu.</div>
+          <div class="what"><b>Định nghĩa</b>Theo đáp ứng biên độ: |H| = 1 ở dải thông, |H| = 0 ở dải chắn, chuyển đột ngột tại tần số cắt ω<sub>c</sub>.</div>
+          <div class="use"><b>Ví dụ thực tế</b>Thông thấp: bỏ tiếng rít. Thông cao: bỏ tiếng ù. Thông dải: dò đài radio. Chắn dải: chặn nhiễu điện lưới 50 Hz.</div>
+        </div>
+        <p class="ref">Mục 7.1 bài giảng. |H| đối xứng nên chỉ cần xét 0 ≤ ω ≤ π.</p>
+      </div>
+      <div class="card">
+        <div class="plot-hd"><h3 id="lt-ht">Đáp ứng biên độ lý tưởng</h3></div>
+        <div class="plot" id="lt-H"></div>
+        <div class="kv" id="lt-kv"></div>
+      </div>
+      <div class="card"><h2>Tìm h(n) bằng Fourier ngược</h2><ol class="steps" id="lt-steps"></ol></div>
+      <div class="card">
+        <div class="plot-hd"><h3>Đáp ứng xung h(n), n từ −20 đến 20 (thực ra kéo dài vô hạn)</h3></div>
+        <div class="plot" id="lt-h"></div>
+        <div id="lt-notes"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. CẮT NGẮN ============ -->
+<section class="tabpanel" id="p-cn" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Bộ lọc thông thấp, ω<sub>c</sub> (phần của π)</span>
+        <div class="rangeRow"><input type="range" id="cn-wc" min="0.1" max="0.9" step="0.05" value="0.5"><output id="cn-wco">π/2</output></div></div>
+      <div class="field"><span class="lbl">Giữ lại N mẫu (N lẻ)</span>
+        <div class="rangeRow"><input type="range" id="cn-N" min="3" max="81" step="2" value="21"><output id="cn-No">21</output></div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Vì sao bộ lọc lý tưởng không thực hiện được về vật lý</h2>
+        <div class="intro">
+          <div class="why"><b>Vấn đề 1: không nhân quả</b>h(n) ≠ 0 cả khi n &lt; 0. Bộ lọc phải biết trước tín hiệu tương lai mới tính được đầu ra.</div>
+          <div class="what"><b>Vấn đề 2: dài vô hạn</b>h(n) kéo dài từ −∞ đến +∞, cần vô số phép nhân, vô số ô nhớ.</div>
+          <div class="use"><b>Cách xử lý</b>Giữ N mẫu quanh tâm rồi dời sang phải (N−1)/2 mẫu cho nhân quả. Đổi lại |H| có gợn sóng. Buổi 8 làm việc này có kiểm soát bằng cửa sổ.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="plot-hd"><h3>h(n) sau khi cắt N mẫu và dời cho nhân quả</h3></div>
+        <div class="plot" id="cn-h"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3>|H(e<sup>jω</sup>)| thu được so với lý tưởng</h3></div>
+        <div class="plot" id="cn-H"></div>
+        <div id="cn-leg"></div>
+        <div class="kv" id="cn-kv"></div>
+        <p class="key">Tăng N thì sườn dốc hơn, nhưng đỉnh gợn cạnh tần số cắt vẫn khoảng 9%: đó là hiện tượng Gibbs, sẽ học kỹ ở Buổi 8.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. PT SAI PHÂN VÀ LỌC SỐ ============ -->
+<section class="tabpanel" id="p-ps" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Σ a<sub>k</sub>·y(n−k) = Σ b<sub>r</sub>·x(n−r)</span></div>
+      <div class="field"><span class="lbl">a₀ a₁ a₂ … (của y)</span><input type="text" id="ps-a" value="1 0 -0,5"></div>
+      <div class="field"><span class="lbl">b₀ b₁ b₂ … (của x)</span><input type="text" id="ps-b" value="0 1"></div>
+      <div class="field"><span class="lbl">Đầu vào x(n), n ≥ 0</span>
+        <select id="ps-x"><option value="exp">aⁿ·u(n)</option><option value="u">u(n)</option><option value="d">δ(n)</option><option value="list">Nhập dãy</option></select></div>
+      <div class="field" id="ps-xa-f"><span class="lbl">a của đầu vào</span><input type="text" id="ps-xa" value="0,5"></div>
+      <div class="field" id="ps-xl-f" hidden><span class="lbl">Các mẫu x(0), x(1), …</span><input type="text" id="ps-xl" value="1 2 3"></div>
+      <div class="field"><span class="lbl">Giá trị ban đầu y(−1), y(−2), …</span><input type="text" id="ps-yi" value="0 1"></div>
+      <div class="field"><span class="lbl">Giá trị ban đầu x(−1), x(−2), …</span><input type="text" id="ps-xi" value="-1"></div>
+      <div class="chips"><button class="chip small" id="ps-lec">Ví dụ bài giảng 7.2.1</button></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Phương trình sai phân chính là "công thức chạy" của bộ lọc số</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Chip DSP không tính tích chập vô hạn. Nó chỉ lặp lại một công thức: lấy vài mẫu vào gần nhất, vài mẫu ra trước đó, nhân hệ số rồi cộng.</div>
+          <div class="what"><b>Dạng tổng quát (7.3)</b>y(n) = Σ b<sub>r</sub>x(n−r) − Σ a<sub>k</sub>y(n−k) với a₀ = 1. Bộ hệ số a<sub>k</sub>, b<sub>r</sub> đặc trưng hoàn toàn cho bộ lọc.</div>
+          <div class="use"><b>Ứng dụng</b>Đây là đoạn mã chạy trong máy trợ thính, loa thông minh, thiết bị đo điện tim mỗi khi có một mẫu mới.</div>
+        </div>
+        <p class="ref">Mục 7.2.1 bài giảng.</p>
+      </div>
+      <div class="card"><div class="math big" id="ps-eq"></div></div>
+      <div class="card"><h2>Tính từng mẫu</h2><div class="tbl-wrap" id="ps-tbl"></div></div>
+      <div class="card"><div class="plot-hd"><h3>Đầu vào và đầu ra</h3></div><div class="plot" id="ps-plot"></div><div id="ps-leg"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. CẤU TRÚC ============ -->
+<section class="tabpanel" id="p-ct" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">H(z): tử số b₀ b₁ b₂ … (theo z⁻¹)</span><input type="text" id="ct-b" value="1 2 1"></div>
+      <div class="field"><span class="lbl">Mẫu số a₀ a₁ a₂ …</span><input type="text" id="ct-a" value="1 -0,75 0,125"></div>
+      <div class="field"><span class="lbl">Dạng cấu trúc</span>
+        <div class="chips" id="ct-forms">
+          <button class="chip" data-f="df1" aria-pressed="false">Trực tiếp I</button>
+          <button class="chip" data-f="df2" aria-pressed="true">Trực tiếp II</button>
+          <button class="chip" data-f="cas" aria-pressed="false">Nối tiếp</button>
+          <button class="chip" data-f="par" aria-pressed="false">Song song</button>
+        </div></div>
+      <div class="field"><span class="lbl">Ví dụ</span>
+        <div class="chips">
+          <button class="chip small" data-ct="1 2 1|1 -0,75 0,125">Bậc 2, cực thực</button>
+          <button class="chip small" data-ct="1 0 -1|1 -0,9 0,81">Bậc 2, cực phức</button>
+          <button class="chip small" data-ct="1 3 3 1|1 -1 0,5 -0,125">Bậc 3</button>
+          <button class="chip small" data-ct="0,2 0,5 -0,3 0,5 0,2|1">FIR bậc 4</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Bốn cách "lắp mạch" cho cùng một H(z)</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Cùng một hàm truyền có thể lắp theo nhiều sơ đồ. Mỗi sơ đồ tốn bộ nhớ khác nhau và chịu sai số làm tròn khác nhau trên chip.</div>
+          <div class="what"><b>Bốn dạng</b>Trực tiếp I, trực tiếp II (lấy thẳng hệ số a, b); nối tiếp H = H₁·H₂·…; song song H = H₁ + H₂ + … (các khâu bậc 1, bậc 2).</div>
+          <div class="use"><b>Thực tế</b>Bộ lọc bậc cao thường lắp nối tiếp các khâu bậc 2 (biquad): ít bị sai số, dễ kiểm soát ổn định từng khâu.</div>
+        </div>
+        <p class="ref">Mục 7.2.2 bài giảng, công thức (7.9)–(7.18).</p>
+      </div>
+      <div class="card"><div class="math big" id="ct-sys"></div><div id="ct-info"></div></div>
+      <div class="card"><h2 id="ct-title"></h2><div id="ct-steps"></div><div class="diag" id="ct-svg"></div><div id="ct-check"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. MATLAB ============ -->
+<section class="tabpanel" id="p-ml" hidden>
+  <div class="panel-grid">
+    <aside class="controls"><small class="muted">Chương trình lấy H(z) đang nhập ở tab Cấu trúc và phương trình ở tab PT sai phân.</small><button class="btn ghost" id="ml-copy">Sao chép</button></aside>
+    <div class="out">
+      <div class="card"><h2>Lệnh MATLAB cho cấu trúc và tính đầu ra</h2><pre class="code" id="ml-code"></pre></div>
+      <div class="card"><h2>Kết quả để đối chiếu</h2><div class="tbl-wrap" id="ml-out"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải, bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Lý tưởng</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. PT sai phân</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Cấu trúc</button>
+        </div></div>
+    </aside>
+    <div class="out" id="ex-list"></div>
+  </div>
+</section>
+
+<footer>Bộ lọc lý tưởng và cấu trúc · Xử lý tín hiệu số · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+<script>(function(){var a=document.querySelector('.sitenav a[aria-current]');if(a&&a.scrollIntoView){var n=a.parentNode;n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.clientWidth/2;}})();</script>
+<script src="assets/zcore.js"></script>
+<script src="assets/fcore.js"></script>
+<script>
+/* =================== BUỔI 7: BỘ LỌC LÝ TƯỞNG, CẤU TRÚC =================== */
+const WF = wGrid(721, true), W2 = wGrid(721);
+const NAMES = {lp: 'thông thấp', hp: 'thông cao', bp: 'thông dải', bs: 'chắn dải'};
+const sub = s => String(s).replace(/\d/g, d => '₀₁₂₃₄₅₆₇₈₉'[d]);
+
+/* ---------- TAB 1 ---------- */
+let LT = {t: 'lp'};
+function idealMag(t, w, w1, w2){ const a = Math.abs(w); if (t === 'lp') return a <= w1 ? 1 : 0; if (t === 'hp') return a >= w1 ? 1 : 0; if (t === 'bp') return a >= w1 && a <= w2 ? 1 : 0; return a <= w1 || a >= w2 ? 1 : 0; }
+function renderLt(){
+  setPressed('#lt-type button', 't', LT.t);
+  const two = LT.t === 'bp' || LT.t === 'bs'; $('lt-f2').hidden = !two;
+  $('lt-l1').innerHTML = two ? 'Tần số cắt dưới ω<sub>c1</sub> (phần của π)' : 'Tần số cắt ω<sub>c</sub> (phần của π)';
+  let q1 = parseFloat($('lt-w1').value), q2 = parseFloat($('lt-w2').value); if (two && q2 <= q1){ q2 = Math.min(1, q1 + 0.05); $('lt-w2').value = q2; }
+  const w1 = q1 * PI, w2 = q2 * PI; $('lt-w1o').textContent = piStr(w1); $('lt-w2o').textContent = piStr(w2);
+  $('lt-ht').innerHTML = `Đáp ứng biên độ của bộ lọc ${NAMES[LT.t]} lý tưởng`;
+  const bands = []; const pass = LT.t === 'lp' ? [[-w1, w1]] : LT.t === 'hp' ? [[-PI, -w1], [w1, PI]] : LT.t === 'bp' ? [[-w2, -w1], [w1, w2]] : [[-PI, -w2], [-w1, w1], [w2, PI]];
+  pass.forEach(([a, b]) => bands.push({x0: a, x1: b, color: 'rgba(4,120,87,.10)'}));
+  linePlot($('lt-H'), {x: WF, series: [{y: WF.map(w => idealMag(LT.t, w, w1, w2)), color: COL.x, w: 2.6}], ymin: -0.1, ymax: 1.25, bands, vlines: (two ? [-w2, -w1, w1, w2] : [-w1, w1]).map(x => ({x, color: COL.a})), label: 'Bộ lọc lý tưởng'});
+  const kv = two ? [['Tần số cắt dưới ω_c1', piStr(w1)], ['Tần số cắt trên ω_c2', piStr(w2)], [LT.t === 'bp' ? 'Dải thông' : 'Dải chắn', `${piStr(w1)} → ${piStr(w2)}`], [LT.t === 'bp' ? 'Dải chắn' : 'Dải thông', `0 → ${piStr(w1)} và ${piStr(w2)} → π`]] : [['Tần số cắt ω_c', piStr(w1)], [LT.t === 'lp' ? 'Dải thông' : 'Dải chắn', `0 → ${piStr(w1)}`], [LT.t === 'lp' ? 'Dải chắn' : 'Dải thông', `${piStr(w1)} → π`]];
+  $('lt-kv').innerHTML = kv.map(([k, v]) => `<div><small>${k.replace(/_c(\d?)/, (m, d) => 'c' + d)}</small><b>${v}</b></div>`).join('');
+  const st = [], f = (w) => `sin(${piStr(w)}·n)/(πn)`;
+  st.push(`<b>Viết Fourier ngược,</b> pha bằng 0: h(n) = (1/2π)∫ |H|·e<sup>jωn</sup>dω, chỉ lấy tích phân trên dải thông.`);
+  if (LT.t === 'lp'){ st.push(`(1/2π)∫<sub>−${piStr(w1)}</sub><sup>${piStr(w1)}</sup> e<sup>jωn</sup>dω = (1/2π)·2j·sin(${piStr(w1)}n)/(jn).`); st.push(`<b>Kết quả:</b> <span class="math">h(n) = ${f(w1)}</span>, riêng h(0) = ω<sub>c</sub>/π = ${fmt(q1)}.`); }
+  if (LT.t === 'hp'){ st.push(`Dải thông là cả trục trừ đi khoảng [−${piStr(w1)}, ${piStr(w1)}]. Tích phân của cả trục cho δ(n).`); st.push(`<b>Kết quả:</b> <span class="math">h(n) = δ(n) − ${f(w1)}</span>, riêng h(0) = 1 − ${fmt(q1)} = ${fmt(1 - q1)}.`); st.push(`<b>Quan hệ:</b> h<sub>hp</sub>(n) = δ(n) − h<sub>lp</sub>(n) và H<sub>hp</sub> = 1 − H<sub>lp</sub> (cùng tần số cắt, cùng pha).`); }
+  if (LT.t === 'bp'){ st.push(`Thông dải = thông thấp ω<sub>c2</sub> trừ thông thấp ω<sub>c1</sub>.`); st.push(`<b>Kết quả:</b> <span class="math">h(n) = [sin(${piStr(w2)}·n) − sin(${piStr(w1)}·n)]/(πn)</span>, h(0) = ${fmt(q2 - q1)}.`); }
+  if (LT.t === 'bs'){ st.push(`Chắn dải = δ(n) trừ thông dải.`); st.push(`<b>Kết quả:</b> <span class="math">h(n) = δ(n) − [sin(${piStr(w2)}·n) − sin(${piStr(w1)}·n)]/(πn)</span>, h(0) = ${fmt(1 - (q2 - q1))}.`); }
+  $('lt-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  const n = [], v = []; for (let i = -20; i <= 20; i++){ n.push(i); v.push(hIdeal(LT.t, i, 0, w1, w2)); }
+  stemPlot($('lt-h'), {nmin: -20, nmax: 20, series: [{n, v, color: COL.y}], height: 230, label: 'h(n) lý tưởng'});
+  const notes = [];
+  notes.push('h(n) đối xứng quanh n = 0 vì pha bằng 0 (pha tuyến tính, tâm tại gốc).');
+  notes.push('h(n) ≠ 0 với n < 0 nên bộ lọc <b>không nhân quả</b>; h(n) dài vô hạn nên <b>không thực hiện được về vật lý</b>.');
+  const Mq = Math.round(1 / q1); if (LT.t === 'lp' && Math.abs(1 / q1 - Mq) < 1e-9 && Mq > 1) notes.push(`ω<sub>c</sub> = π/${Mq} nên h(n) = 0 tại mọi n là bội của ${Mq} (trừ n = 0): đây là <b>bộ lọc Nyquist</b>${Mq === 2 ? ' loại nửa băng (half-band)' : ` một phần ${Mq} băng`}.`);
+  $('lt-notes').innerHTML = '<ul class="key">' + notes.map(x => `<li>${x}</li>`).join('') + '</ul>';
+}
+
+/* ---------- TAB 2 ---------- */
+function renderCn(){
+  const q = parseFloat($('cn-wc').value), wc = q * PI, N = parseInt($('cn-N').value, 10), M = (N - 1) / 2;
+  $('cn-wco').textContent = piStr(wc); $('cn-No').textContent = N;
+  const h = []; for (let n = 0; n < N; n++) h.push(sincLP(wc, n - M));
+  stemPlot($('cn-h'), {nmin: -2, nmax: N + 1, series: [{n: h.map((_, i) => i), v: h, color: COL.y}], height: 210, label: 'h(n) cắt ngắn'});
+  const m = W2.map(w => cabs(dtft(h, 0, w)));
+  linePlot($('cn-H'), {x: W2, series: [{y: W2.map(w => w <= wc ? 1 : 0), color: '#94A3B8', w: 1.6, dash: '5 4'}, {y: m, color: COL.x, w: 2.4}], ymin: 0, ymax: 1.3, vlines: [{x: wc, color: COL.a, label: 'ω_c'}], label: 'So sánh với lý tưởng'});
+  $('cn-leg').innerHTML = legendHTML([['#94A3B8', 'Lý tưởng', true], [COL.x, `Cắt ngắn N = ${N}`]]);
+  const pk = Math.max(...m.filter((_, i) => W2[i] <= wc));
+  $('cn-kv').innerHTML = [['Độ trễ để nhân quả', `${fmt(M)} mẫu`], ['Đỉnh gợn dải thông', fmt(pk, 4)], ['Vượt quá', fmt((pk - 1) * 100, 2) + '%'], ['Số phép nhân mỗi mẫu', N]].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+}
+
+/* ---------- TAB 3 ---------- */
+function readPs(){
+  const a = parseList($('ps-a').value), b = parseList($('ps-b').value), yi = parseList($('ps-yi').value || '0') || [], xi = parseList($('ps-xi').value || '0') || [];
+  if (!a || !b || isZ(a[0])) return null;
+  const L = 10, t = $('ps-x').value, xa = parseNum($('ps-xa').value); let x = [], xs;
+  for (let n = 0; n < L; n++) x.push(t === 'd' ? (n === 0 ? 1 : 0) : t === 'u' ? 1 : t === 'exp' ? Math.pow(xa, n) : 0);
+  if (t === 'list'){ const l = parseList($('ps-xl').value) || []; x = x.map((_, i) => l[i] || 0); }
+  xs = t === 'd' ? 'δ(n)' : t === 'u' ? 'u(n)' : t === 'exp' ? `(${fmt(xa)})ⁿ·u(n)` : 'dãy nhập';
+  return {a, b, yi, xi, x, xs};
+}
+function renderPs(){
+  $('ps-xa-f').hidden = $('ps-x').value !== 'exp'; $('ps-xl-f').hidden = $('ps-x').value !== 'list';
+  const S = readPs(); if (!S){ $('ps-tbl').innerHTML = '<div class="bad">Hệ số chưa hợp lệ.</div>'; return; }
+  const a0 = S.a[0], an = S.a.map(v => v / a0), bn = S.b.map(v => v / a0);
+  // y(n) = Σ bn x(n−r) − Σ an y(n−k)
+  let rhs = ''; bn.forEach((v, r) => { if (isZ(v)) return; rhs += (rhs ? (v < 0 ? ' − ' : ' + ') : (v < 0 ? '−' : '')) + (isZ(Math.abs(v) - 1) ? '' : fmt(Math.abs(v))) + `x(n${r ? '−' + r : ''})`; });
+  an.slice(1).forEach((v, k) => { if (isZ(v)) return; const c = -v; rhs += (rhs ? (c < 0 ? ' − ' : ' + ') : (c < 0 ? '−' : '')) + (isZ(Math.abs(c) - 1) ? '' : fmt(Math.abs(c))) + `y(n−${k + 1})`; });
+  $('ps-eq').innerHTML = `${eqSide(S.a, 'y')} = ${eqSide(S.b, 'x')}<br>⇒ y(n) = ${rhs || '0'}<br><span class="key">Đầu vào x(n) = ${S.xs}; y(−k) = ${S.yi.map(v => fmt(v)).join(', ') || '0'}; x(−k) = ${S.xi.map(v => fmt(v)).join(', ') || '0'}</span>`;
+  const y = filt(S.b, S.a, S.x, S.yi, S.xi);
+  const X = n => n >= 0 ? S.x[n] : (S.xi[-n - 1] || 0), Y = n => n >= 0 ? y[n] : (S.yi[-n - 1] || 0);
+  let rows = '';
+  for (let n = 0; n < 6; n++){
+    let terms = [];
+    const P = v => v < 0 ? `(${fmt(v, 4)})` : fmt(v, 4), I = k => k < 0 ? '−' + (-k) : k;
+    bn.forEach((v, r) => { if (!isZ(v)) terms.push(`${fmt(v)}·x(${I(n - r)})`); });
+    an.slice(1).forEach((v, k) => { if (!isZ(v)) terms.push(`${fmt(-v)}·y(${I(n - k - 1)})`); });
+    const nums = []; bn.forEach((v, r) => { if (!isZ(v)) nums.push(`${fmt(v)}·${P(X(n - r))}`); }); an.slice(1).forEach((v, k) => { if (!isZ(v)) nums.push(`${fmt(-v)}·${P(Y(n - k - 1))}`); });
+    rows += `<tr><td class="m">${n}</td><td class="m">y(${n}) = ${terms.join(' + ').replace(/\+ −/g, '− ')} = ${nums.join(' + ').replace(/\+ −/g, '− ')}</td><td class="m"><b>${fmt(y[n], 4)}</b></td></tr>`;
+  }
+  $('ps-tbl').innerHTML = `<table class="t"><tr><th>n</th><th>Thay số</th><th>y(n)</th></tr>${rows}</table>`;
+  const nn = y.map((_, i) => i);
+  stemPlot($('ps-plot'), {nmin: -2, nmax: 9, series: [{n: [-2, -1, ...nn], v: [S.xi[1] || 0, S.xi[0] || 0, ...S.x], color: '#94A3B8'}, {n: [-2, -1, ...nn], v: [S.yi[1] || 0, S.yi[0] || 0, ...y], color: COL.y}], height: 230, label: 'x và y'});
+  $('ps-leg').innerHTML = legendHTML([['#94A3B8', 'x(n)'], [COL.y, 'y(n)']]);
+}
+
+/* ---------- TAB 4 ---------- */
+let CT = {f: 'df2'};
+const secHTML = s => s.a.length > 1 ? frac(polyW(s.b), polyW(s.a)) : polyW(s.b);
+function renderCt(){
+  setPressed('#ct-forms .chip', 'f', CT.f);
+  const b = parseList($('ct-b').value), a = parseList($('ct-a').value);
+  if (!b || !a || isZ(a[0])){ $('ct-sys').innerHTML = '<div class="bad">Hệ số chưa hợp lệ.</div>'; return; }
+  const an = a.map(v => v / a[0]), bn = b.map(v => v / a[0]);
+  $('ct-sys').innerHTML = `H(z) = ${frac(polyW(bn), polyW(an))}`;
+  const N = an.length - 1, M = bn.length - 1;
+  $('ct-info').innerHTML = `<p class="key">Bậc tử M = ${M}, bậc mẫu N = ${N}. Trực tiếp I cần ${M + N} ô nhớ (z⁻¹), trực tiếp II cần ${Math.max(M, N)}.</p>`;
+  const L = 30, ref = impz(bn, an, L); let chk = '', steps = '';
+  if (CT.f === 'df1' || CT.f === 'df2'){
+    $('ct-title').textContent = CT.f === 'df1' ? 'Dạng trực tiếp I' : 'Dạng trực tiếp II';
+    steps = CT.f === 'df1' ? `<p>Lắp thẳng phương trình y(n) = Σb<sub>r</sub>x(n−r) − Σa<sub>k</sub>y(n−k): một chuỗi trễ cho x, một chuỗi trễ cho y.</p>` : `<p>Đặt W(z) = X(z)/A(z): w(n) = x(n) − Σa<sub>k</sub>w(n−k), rồi y(n) = Σb<sub>r</sub>w(n−r). Hai nhánh dùng chung một chuỗi trễ (công thức 7.12–7.13).</p>`;
+    $('ct-svg').innerHTML = CT.f === 'df1' ? df1Svg(an, bn) : df2Svg(an, bn);
+  } else if (CT.f === 'cas'){
+    const r = cascadeSecs(bn, an); $('ct-title').textContent = `Dạng nối tiếp: ${r.secs.length} khâu`;
+    steps = `<ol class="steps"><li><div><b>Tìm nghiệm</b> tử số và mẫu số theo z.</div></li><li><div><b>Ghép cặp</b> nghiệm phức liên hợp thành khâu bậc 2 hệ số thực; nghiệm thực ghép từng đôi (công thức 7.16).</div></li><li><div><span class="math">H(z) = ${r.secs.map(s => secHTML(s)).join(' · ')}</span></div></li></ol>`;
+    $('ct-svg').innerHTML = chainSvg(r.secs.map((_, i) => 'H' + sub(i + 1) + '(z)'), 'cascade') + r.secs.map((s, i) => `<p class="key" style="padding:8px 12px 0">Khâu H${sub(i + 1)} lắp theo trực tiếp II:</p>` + df2Svg(s.a, s.b)).join('');
+    let h = Array(L).fill(0); h[0] = 1; r.secs.forEach(s => { h = filt(s.b, s.a, h); });
+    const e = Math.max(...h.map((v, i) => Math.abs(v - ref[i]))); chk = e;
+  } else {
+    const r = parallelSecs(bn, an);
+    if (r.err){ $('ct-title').textContent = 'Dạng song song'; $('ct-steps').innerHTML = `<div class="warn">${r.err}</div>`; $('ct-svg').innerHTML = ''; $('ct-check').innerHTML = ''; return; }
+    const parts = r.secs.map(s => secHTML(s)), dir = r.direct.filter(v => !isZ(v));
+    $('ct-title').textContent = `Dạng song song: ${r.secs.length + (dir.length ? 1 : 0)} nhánh`;
+    steps = `<ol class="steps"><li><div><b>Nếu bậc tử ≥ bậc mẫu,</b> chia đa thức theo z⁻¹ lấy phần nguyên: ${r.direct.length ? `<span class="math">${polyW(r.direct)}</span>` : 'không có'}.</div></li><li><div><b>Phân thức tối giản</b> phần còn lại theo từng cực p<sub>k</sub>: r<sub>k</sub>/(1 − p<sub>k</sub>z⁻¹)${r.res.map(o => `; p = ${fmtc(o.p, 4)}, r = ${fmtc(o.r, 4)}`).join('')}.</div></li><li><div><b>Gộp cặp cực phức</b> thành khâu bậc 2 hệ số thực (công thức 7.18).</div></li><li><div><span class="math">H(z) = ${[...(r.direct.length && r.direct.some(v => !isZ(v)) ? [polyW(r.direct)] : []), ...parts].join(' + ').replace(/ \+ <span class="frac"><span>−/g, ' − <span class="frac"><span>').replace(/ \+ −/g, ' − ')}</span></div></li></ol>`;
+    const labels = [...(r.direct.some(v => !isZ(v)) ? ['Phần nguyên'] : []), ...r.secs.map((_, i) => 'H' + sub(i + 1) + '(z)')];
+    $('ct-svg').innerHTML = chainSvg(labels, 'parallel') + r.secs.map((s, i) => `<p class="key" style="padding:8px 12px 0">Nhánh H${sub(i + 1)} lắp theo trực tiếp II:</p>` + df2Svg(s.a, s.b)).join('');
+    let h = Array(L).fill(0); r.direct.forEach((v, i) => { if (i < L) h[i] += v; }); const d = Array(L).fill(0); d[0] = 1;
+    r.secs.forEach(s => { const g = filt(s.b, s.a, d); g.forEach((v, i) => h[i] += v); });
+    chk = Math.max(...h.map((v, i) => Math.abs(v - ref[i])));
+  }
+  $('ct-steps').innerHTML = steps;
+  $('ct-check').innerHTML = chk !== '' ? `<div class="res">Kiểm tra: đáp ứng xung của cấu trúc này so với H(z) ban đầu (30 mẫu) lệch tối đa ${chk < 1e-9 ? '&lt; 10⁻⁹' : fmt(chk, 10)} ${chk < 1e-6 ? '<span class="ok">✓ Tương đương</span>' : ''}</div>` : '';
+}
+
+/* ---------- TAB 5 ---------- */
+function renderMl(){
+  const b = parseList($('ct-b').value) || [1], a = parseList($('ct-a').value) || [1], S = readPs();
+  let code = `% ----- Cấu trúc của H(z) -----\nb = ${mvec(b)};\na = ${mvec(a)};\n[sos, g] = tf2sos(b, a)        % dạng nối tiếp: mỗi hàng [b0 b1 b2 1 a1 a2]\n[r, p, k] = residuez(b, a)     % dạng song song: r./(1 - p z^-1) + k\nzplane(b, a)\n`;
+  if (S){ code += `\n% ----- Phương trình sai phân có giá trị ban đầu (mục 7.2.1) -----\nb2 = ${mvec(S.b)}; a2 = ${mvec(S.a)};\nzi = filtic(b2, a2, ${mvec(S.yi)}, ${mvec(S.xi)});   % y(-1),y(-2)..., x(-1),x(-2)...\nn = 0:9;\nx = ${$('ps-x').value === 'exp' ? `(${+parseNum($('ps-xa').value)}).^n` : $('ps-x').value === 'u' ? 'ones(size(n))' : $('ps-x').value === 'd' ? '[1 zeros(1,9)]' : mvec(S.x)};\ny = filter(b2, a2, x, zi)`; }
+  $('ml-code').textContent = code;
+  let out = '';
+  const r = cascadeSecs(b, a);
+  out += `<table class="t"><tr><th>Lệnh</th><th>Kết quả (đã tính trong phần mềm)</th></tr><tr><td class="m">tf2sos – các khâu</td><td class="m">${r.secs.map(s => `[${[...s.b, ...Array(3 - s.b.length).fill(0)].map(v => fmt(v, 4)).join(' ')} | ${[...s.a, ...Array(3 - s.a.length).fill(0)].map(v => fmt(v, 4)).join(' ')}]`).join('<br>')}</td></tr>`;
+  const p = parallelSecs(b.map(v => v / a[0]), a.map(v => v / a[0]));
+  if (!p.err) out += `<tr><td class="m">residuez – r</td><td class="m">${p.res.map(o => fmtc(o.r, 4)).join('; ')}</td></tr><tr><td class="m">residuez – p</td><td class="m">${p.res.map(o => fmtc(o.p, 4)).join('; ')}</td></tr><tr><td class="m">residuez – k</td><td class="m">${p.direct.length ? p.direct.map(v => fmt(v, 4)).join('; ') : '[]'}</td></tr>`;
+  if (S) out += `<tr><td class="m">filter – y(0..5)</td><td class="m">${filt(S.b, S.a, S.x, S.yi, S.xi).slice(0, 6).map(v => fmt(v, 4)).join('; ')}</td></tr>`;
+  $('ml-out').innerHTML = out + '</table><p class="key">tf2sos của MATLAB có thể sắp thứ tự khâu và cách chia hệ số khuếch đại g khác; tích các khâu vẫn bằng H(z).</p>';
+}
+
+/* ---------- BÀI TẬP ---------- */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Thông thấp lý tưởng (bài giảng 7.1.1)', q: 'Tìm h(n) của bộ lọc thông thấp lý tưởng |H| = 1 khi |ω| ≤ π/2, bằng 0 khi khác.', s: ['h(n) = (1/2π)∫<sub>−π/2</sub><sup>π/2</sup> e<sup>jωn</sup>dω.', '= (1/2π)·2j·sin(πn/2)/(jn).'], a: 'h(n) = sin(πn/2)/(πn), h(0) = 1/2.', m: 'h(±2) = h(±4) = … = 0: bộ lọc nửa băng (Nyquist). Không nhân quả nên không làm được.', load: {tab: 'lt', t: 'lp', w1: '0.5'}},
+ {g: 'A', id: 'A2', t: 'Thông cao pha không (bài giảng 7.1.2)', q: 'Tìm h(n) của bộ lọc thông cao lý tưởng |H| = 1 khi π/2 ≤ |ω| ≤ π.', s: ['h(n) = (1/2π)[∫<sub>−π</sub><sup>−π/2</sup> + ∫<sub>π/2</sub><sup>π</sup>] e<sup>jωn</sup>dω.', '= δ(n) − sin(πn/2)/(πn).'], a: 'h(n) = δ(n) − sin(πn/2)/(πn); h(0) = 1/2, h(1) = −1/π ≈ −0,318.', m: 'h<sub>hp</sub>(n) = δ(n) − h<sub>lp</sub>(n): thông cao = "tất cả" trừ thông thấp.', load: {tab: 'lt', t: 'hp', w1: '0.5'}},
+ {g: 'A', id: 'A3', t: 'Thông dải', q: 'Tìm h(n) của bộ lọc thông dải lý tưởng ω<sub>c1</sub> = π/4, ω<sub>c2</sub> = π/2.', s: ['Thông dải = thông thấp π/2 − thông thấp π/4.', 'h(n) = [sin(πn/2) − sin(πn/4)]/(πn).'], a: 'h(0) = 1/2 − 1/4 = 1/4; h(1) = (1 − 0,707)/π ≈ 0,093.', m: 'Mọi bộ lọc lý tưởng đều ghép được từ các khối thông thấp.', load: {tab: 'lt', t: 'bp', w1: '0.25', w2: '0.5'}},
+ {g: 'A', id: 'A4', t: 'Chắn dải', q: 'Từ bài A3, viết h(n) của bộ lọc chắn dải cùng hai tần số cắt.', s: ['Chắn dải = δ(n) − thông dải.'], a: 'h(n) = δ(n) − [sin(πn/2) − sin(πn/4)]/(πn); h(0) = 3/4.', m: 'Dùng để chặn một dải nhiễu hẹp, ví dụ nhiễu điện lưới.', load: {tab: 'lt', t: 'bs', w1: '0.25', w2: '0.5'}},
+ {g: 'A', id: 'A5', t: 'Cắt ngắn', q: 'Giữ N = 21 mẫu của h(n) ở bài A1. Phải dời bao nhiêu mẫu để nhân quả? Gợn dải thông khoảng bao nhiêu?', s: ['Giữ n = −10…10, dời sang phải (N−1)/2 = 10 mẫu.', 'Đo trên đồ thị: đỉnh gợn khoảng 1,09.'], a: 'Trễ 10 mẫu; vượt quá khoảng 9%.', m: 'Tăng N không làm hết gợn 9% (Gibbs). Buổi 8 dùng cửa sổ để giảm gợn.', load: {tab: 'cn', wc: '0.5', N: '21'}},
+ {g: 'B', id: 'B1', t: 'Ví dụ bài giảng 7.2.1', q: 'y(n) = 0,5y(n−2) + x(n−1), y(−2) = 1, y(−1) = 0, x(−1) = −1, x(n) = (0,5)ⁿu(n). Tính 4 mẫu đầu.', s: ['y(0) = 0,5·y(−2) + x(−1) = 0,5 − 1 = −0,5.', 'y(1) = 0,5·y(−1) + x(0) = 0 + 1 = 1.', 'y(2) = 0,5·y(0) + x(1) = −0,25 + 0,5 = 0,25.', 'y(3) = 0,5·y(1) + x(2) = 0,5 + 0,25 = 0,75.'], a: 'y = {−0,5; 1; 0,25; 0,75}.', m: 'Giá trị ban đầu là "trí nhớ" của bộ lọc trước khi bật.', load: {tab: 'ps', lec: true}},
+ {g: 'B', id: 'B2', t: 'Bộ lọc làm mượt', q: 'y(n) = 0,5y(n−1) + x(n), x(n) = u(n), y(−1) = 0. Tính y(0) đến y(3).', s: ['y(0) = 1; y(1) = 0,5 + 1 = 1,5.', 'y(2) = 0,75 + 1 = 1,75; y(3) = 0,875 + 1 = 1,875.'], a: 'y = {1; 1,5; 1,75; 1,875}, tiến về 2.', m: 'Đầu ra tăng dần chứ không nhảy đột ngột: bộ lọc thông thấp làm mượt.', load: {tab: 'ps', a: '1 -0,5', b: '1', x: 'u', yi: '0', xi: '0'}},
+ {g: 'C', id: 'C1', t: 'Trực tiếp I và II', q: 'H(z) = (1 + 2z⁻¹ + z⁻²)/(1 − 0,75z⁻¹ + 0,125z⁻²). Mỗi dạng trực tiếp cần bao nhiêu ô nhớ?', s: ['M = 2, N = 2.', 'Trực tiếp I: M + N = 4; trực tiếp II: max(M, N) = 2.'], a: 'DF I: 4 ô nhớ, DF II: 2 ô nhớ.', m: 'DF II tiết kiệm bộ nhớ nhất (dạng chính tắc).', load: {tab: 'ct', b: '1 2 1', a: '1 -0,75 0,125', f: 'df2'}},
+ {g: 'C', id: 'C2', t: 'Nối tiếp', q: 'Viết H(z) ở C1 dưới dạng nối tiếp các khâu bậc 1.', s: ['Tử: (1 + z⁻¹)². Mẫu: (1 − 0,5z⁻¹)(1 − 0,25z⁻¹).', 'Ghép mỗi thừa số tử với một thừa số mẫu.'], a: 'H = [(1 + z⁻¹)/(1 − 0,5z⁻¹)]·[(1 + z⁻¹)/(1 − 0,25z⁻¹)].', m: 'Mỗi khâu có một cực nên dễ kiểm tra ổn định riêng.', load: {tab: 'ct', b: '1 2 1', a: '1 -0,75 0,125', f: 'cas'}},
+ {g: 'C', id: 'C3', t: 'Song song', q: 'Viết H(z) ở C1 dưới dạng song song.', s: ['Bậc tử = bậc mẫu: phần nguyên k = b₂/a₂ = 1/0,125 = 8; phần dư −7 + 8z⁻¹.', 'Hệ số tại cực 0,5: (−7 + 16)/(1 − 0,5) = 18; tại cực 0,25: (−7 + 32)/(1 − 2) = −25.'], a: 'H = 8 + 18/(1 − 0,5z⁻¹) − 25/(1 − 0,25z⁻¹).', m: 'Kiểm tra h(0) = 8 + 18 − 25 = 1 = b₀. Đúng.', load: {tab: 'ct', b: '1 2 1', a: '1 -0,75 0,125', f: 'par'}},
+ {g: 'C', id: 'C4', t: 'Cực phức', q: 'H(z) = (1 − z⁻²)/(1 − 0,9z⁻¹ + 0,81z⁻²). Vì sao dạng nối tiếp phải giữ nguyên khâu bậc 2?', s: ['Mẫu số có Δ = 0,81 − 3,24 < 0: hai cực phức 0,45 ± 0,78j.', 'Tách thành khâu bậc 1 sẽ có hệ số phức, chip không làm được.'], a: 'Giữ một khâu bậc 2 hệ số thực.', m: 'Đây là lý do bài giảng dùng cả khâu bậc 1 (7.15) và bậc 2 (7.16).', load: {tab: 'ct', b: '1 0 -1', a: '1 -0,9 0,81', f: 'cas'}}
+];
+function loadEx(L){
+  if (L.tab === 'lt'){ LT.t = L.t; $('lt-w1').value = L.w1; if (L.w2) $('lt-w2').value = L.w2; }
+  if (L.tab === 'cn'){ $('cn-wc').value = L.wc; $('cn-N').value = L.N; }
+  if (L.tab === 'ps'){ if (L.lec) setLec(); else { $('ps-a').value = L.a; $('ps-b').value = L.b; $('ps-x').value = L.x; $('ps-yi').value = L.yi; $('ps-xi').value = L.xi; } }
+  if (L.tab === 'ct'){ $('ct-b').value = L.b; $('ct-a').value = L.a; CT.f = L.f; }
+  Lab.show(L.tab);
+}
+function setLec(){ $('ps-a').value = '1 0 -0,5'; $('ps-b').value = '0 1'; $('ps-x').value = 'exp'; $('ps-xa').value = '0,5'; $('ps-yi').value = '0 1'; $('ps-xi').value = '-1'; }
+const renderEx = Lab.exercises(EX, {A: 'Nhóm A. Bộ lọc lý tưởng', B: 'Nhóm B. Phương trình sai phân và lọc số', C: 'Nhóm C. Cấu trúc thực hiện'}, loadEx);
+
+/* =================== SỰ KIỆN =================== */
+$('lt-type').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b){ LT.t = b.dataset.t; renderLt(); } });
+['lt-w1', 'lt-w2'].forEach(id => $(id).addEventListener('input', renderLt));
+document.querySelectorAll('[data-lt]').forEach(b => b.addEventListener('click', () => { const [t, w1, w2] = b.dataset.lt.split('|'); LT.t = t; $('lt-w1').value = w1; $('lt-w2').value = w2; renderLt(); }));
+['cn-wc', 'cn-N'].forEach(id => $(id).addEventListener('input', renderCn));
+['ps-a', 'ps-b', 'ps-x', 'ps-xa', 'ps-xl', 'ps-yi', 'ps-xi'].forEach(id => $(id).addEventListener('input', renderPs));
+$('ps-lec').addEventListener('click', () => { setLec(); renderPs(); });
+['ct-b', 'ct-a'].forEach(id => $(id).addEventListener('input', renderCt));
+$('ct-forms').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b){ CT.f = b.dataset.f; renderCt(); } });
+document.querySelectorAll('[data-ct]').forEach(b => b.addEventListener('click', () => { const [bb, aa] = b.dataset.ct.split('|'); $('ct-b').value = bb; $('ct-a').value = aa; renderCt(); }));
+Lab.copy('ml-copy', 'ml-code');
+Lab.init({lt: renderLt, cn: renderCn, ps: renderPs, ct: renderCt, ml: renderMl, ex: renderEx}, 'lt-tab', 'lt');
+
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

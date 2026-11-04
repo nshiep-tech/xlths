@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thiết kế bộ lọc IIR – DSP Lab</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DSP Lab">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="stylesheet" href="assets/lab.css">
+
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
+    <a href="he-thong-z.html"><span class="n">04</span>Hệ thống Z</a>
+    <a href="fourier.html"><span class="n">05</span>Fourier</a>
+    <a href="dap-ung-tan-so.html"><span class="n">06</span>Đáp ứng tần số</a>
+    <a href="bo-loc-ly-tuong.html"><span class="n">07</span>Bộ lọc lý tưởng</a>
+    <a href="thiet-ke-fir.html"><span class="n">08</span>Thiết kế FIR</a>
+    <a href="thiet-ke-iir.html" aria-current="page"><span class="n">09</span>Thiết kế IIR</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 9</div>
+      <h1>Thiết kế bộ lọc <span class="z">IIR</span> từ bộ lọc tương tự</h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của bài">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="ss" id="tb-ss"><span class="no">1</span>Mặt phẳng s và z</button>
+      <button class="tab" role="tab" data-tab="cd" id="tb-cd"><span class="no">2</span>Chuyển Hₐ(s) → H(z)</button>
+      <button class="tab" role="tab" data-tab="bw" id="tb-bw"><span class="no">3</span>Butterworth, Chebyshev</button>
+      <button class="tab" role="tab" data-tab="ml" id="tb-ml"><span class="no">4</span>MATLAB</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+<!-- ============ 1. MẶT PHẲNG s VÀ z ============ -->
+<section class="tabpanel" id="p-ss" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Điểm cực tương tự s = σ + jΩ</span></div>
+      <div class="field"><span class="lbl">σ (phần thực)</span><div class="rangeRow"><input type="range" id="ss-sg" min="-10" max="4" step="0.1" value="-2"><output id="ss-sgo">−2</output></div></div>
+      <div class="field"><span class="lbl">Ω (rad/s)</span><div class="rangeRow"><input type="range" id="ss-om" min="-30" max="30" step="0.5" value="8"><output id="ss-omo">8</output></div></div>
+      <div class="field"><span class="lbl">Chu kỳ lấy mẫu T<sub>s</sub> (s)</span><div class="rangeRow"><input type="range" id="ss-T" min="0.02" max="0.5" step="0.01" value="0.1"><output id="ss-To">0,1</output></div></div>
+      <small class="muted">Kéo σ sang dương (nửa phải mặt phẳng s) để thấy điểm cực số chạy ra ngoài vòng tròn.</small>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Thiết kế IIR: mượn bộ lọc tương tự đã có sẵn công thức</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Bộ lọc tương tự (Butterworth, Chebyshev) đã được nghiên cứu hàng chục năm, có sẵn công thức. Chỉ cần "dịch" H<sub>a</sub>(s) sang H(z).</div>
+          <div class="what"><b>Yêu cầu khi dịch</b>Bộ lọc tương tự ổn định (cực ở nửa trái mặt phẳng s) phải cho bộ lọc số ổn định (cực trong vòng tròn đơn vị).</div>
+          <div class="use"><b>So với FIR</b>IIR đạt cùng độ dốc với bậc nhỏ hơn rất nhiều (ít phép nhân), đổi lại pha không tuyến tính và phải kiểm tra ổn định.</div>
+        </div>
+        <p class="ref">Mục 9.1, bảng 9.1 bài giảng.</p>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Mặt phẳng s</h2><div class="zbox" id="ss-s"></div></div>
+        <div class="card"><h2>Mặt phẳng z</h2><div class="zbox" id="ss-z"></div><div class="legend"><span style="color:#BE123C">× bất biến xung</span><span style="color:#1E40AF">× song tuyến</span><span style="color:#047857">× tương đương vi phân</span></div></div>
+      </div>
+      <div class="card"><h2>Điểm cực sau khi chuyển</h2><div class="tbl-wrap" id="ss-tbl"></div></div>
+      <div class="card"><div class="plot-hd"><h3>Tần số số ω theo tần số tương tự Ω (với T<sub>s</sub> đang chọn)</h3></div><div class="plot" id="ss-w"></div><div id="ss-wl"></div>
+        <p class="key">Bất biến xung: ω = ΩT (thẳng, nhưng chồng phổ khi Ω &gt; π/T). Song tuyến: ω = 2·arctg(ΩT/2), công thức (9.18), cong dần, không bao giờ vượt π nên không chồng phổ. Tương đương vi phân: ω = arctg(ΩT), công thức (9.21).</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. CHUYỂN Ha(s) → H(z) ============ -->
+<section class="tabpanel" id="p-cd" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Phương pháp</span>
+        <select id="cd-m"><option value="ii">Bất biến xung</option><option value="bl">Biến đổi song tuyến</option><option value="bd">Tương đương vi phân</option><option value="mz">Biến đổi z thích ứng</option></select></div>
+      <div class="field"><span class="lbl">Tử số H<sub>a</sub>(s), hệ số giảm dần theo s</span><input type="text" id="cd-b" value="4"></div>
+      <div class="field"><span class="lbl">Mẫu số H<sub>a</sub>(s)</span><input type="text" id="cd-a" value="1 8 15"><small>“1 8 15” nghĩa là s² + 8s + 15 = (s + 3)(s + 5).</small></div>
+      <div class="field"><span class="lbl">Chu kỳ lấy mẫu T<sub>s</sub> (s)</span><input type="text" id="cd-T" value="0,1"></div>
+      <div class="field"><span class="lbl">Ví dụ bài giảng</span>
+        <div class="chips">
+          <button class="chip small" data-cd="ii|4|1 8 15|0,1">Ví dụ 1</button>
+          <button class="chip small" data-cd="bl|4|1 -8 15|0,1">Ví dụ 2</button>
+          <button class="chip small" data-cd="bl|1|0,5 1|0,1">Ví dụ 3 (RC = 0,5)</button>
+          <button class="chip small" data-cd="bd|1|1 1|0,1">Ví dụ 4</button>
+          <button class="chip small" data-cd="mz|1 1 0|1 5 6|0,1">Ví dụ 5</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card"><h2 id="cd-title"></h2><div id="cd-what"></div></div>
+      <div class="card"><h2>Lời giải từng bước</h2><ol class="steps" id="cd-steps"></ol></div>
+      <div class="two">
+        <div class="card"><h2>Cực, không của H(z)</h2><div class="zbox" id="cd-z"></div><div id="cd-st"></div></div>
+        <div class="card"><h2>Phương trình sai phân</h2><div class="math" id="cd-eq" style="line-height:2"></div><div class="tbl-wrap" id="cd-coef"></div></div>
+      </div>
+      <div class="card"><div class="plot-hd"><h3>So sánh đáp ứng biên độ số và tương tự</h3></div><div class="plot" id="cd-plot"></div><div id="cd-leg"></div></div>
+      <div class="card"><h2>Sơ đồ thực hiện (trực tiếp II)</h2><div class="diag" id="cd-svg"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. BUTTERWORTH, CHEBYSHEV ============ -->
+<section class="tabpanel" id="p-bw" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Bộ lọc tương tự gốc</span><div class="seg2" id="bw-kind"><button data-k="butter" aria-pressed="true">Butterworth</button><button data-k="cheby1" aria-pressed="false">Chebyshev I</button></div></div>
+      <div class="field"><span class="lbl">Loại bộ lọc</span><div class="seg2" id="bw-type"><button data-t="low" aria-pressed="true">Thông thấp</button><button data-t="high" aria-pressed="false">Thông cao</button><button data-t="bandpass" aria-pressed="false">Thông dải</button></div></div>
+      <div class="field"><span class="lbl">Đơn vị tần số</span><div class="seg2" id="bw-u"><button data-u="pi" aria-pressed="true">Phần của π</button><button data-u="hz" aria-pressed="false">Hz</button></div></div>
+      <div class="field" id="bw-fsf" hidden><span class="lbl">Tần số lấy mẫu f (Hz)</span><input type="text" id="bw-fs" value="8000"></div>
+      <div class="row2"><div class="field"><span class="lbl" id="bw-lp">ω<sub>p</sub></span><input type="text" id="bw-wp" value="0,4"></div><div class="field"><span class="lbl" id="bw-ls">ω<sub>s</sub></span><input type="text" id="bw-ws" value="0,6"></div></div>
+      <small class="muted" id="bw-hint">Thông dải: nhập hai giá trị cách nhau bằng dấu cách, ví dụ “0,2 0,7”.</small>
+      <div class="field"><span class="lbl">Cách cho độ gợn</span><div class="seg2" id="bw-r"><button data-r="db" aria-pressed="true">R<sub>p</sub>, R<sub>s</sub> (dB)</button><button data-r="d" aria-pressed="false">δ<sub>p</sub>, δ<sub>s</sub></button></div></div>
+      <div class="row2"><div class="field"><span class="lbl" id="bw-l1">R<sub>p</sub> (dB)</span><input type="text" id="bw-rp" value="1"></div><div class="field"><span class="lbl" id="bw-l2">R<sub>s</sub> (dB)</span><input type="text" id="bw-rs" value="20"></div></div>
+      <div class="field"><span class="lbl">Bài thực hành (mục 9.2)</span>
+        <div class="chips">
+          <button class="chip small" data-bw="butter|low|pi|0,4|0,6|db|0,03|0,09|">Bài mẫu 1 (như mã)</button>
+          <button class="chip small" data-bw="butter|low|pi|0,4|0,6|d|0,03|0,09|">Bài mẫu 1 (đổi δ)</button>
+          <button class="chip small" data-bw="butter|bandpass|pi|0,2 0,7|0,1 0,8|d|0,07|0,1|">TH 1 thông dải</button>
+          <button class="chip small" data-bw="butter|high|hz|3000|1000|db|0,5|25|8000">TH 2 thông cao</button>
+          <button class="chip small" data-bw="cheby1|low|pi|0,4|0,6|db|1|30|">Chebyshev so sánh</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Thiết kế theo chỉ tiêu: buttord tìm bậc, butter tìm hệ số</h2>
+        <div class="intro">
+          <div class="why"><b>Butterworth</b>|H<sub>a</sub>(jΩ)|² = 1/(1 + (Ω/Ω<sub>c</sub>)<sup>2N</sup>): phẳng nhất trong dải thông, không gợn. Bậc N càng cao, sườn càng dốc.</div>
+          <div class="what"><b>Chebyshev I</b>Cho phép gợn đều trong dải thông để sườn dốc hơn: cùng chỉ tiêu thường cần bậc nhỏ hơn Butterworth.</div>
+          <div class="use"><b>Quy trình</b>Méo trước tần số (prewarp) Ω = tg(ω/2) → tính N → tính W<sub>n</sub> → nguyên mẫu tương tự → song tuyến ra H(z).</div>
+        </div>
+        <p class="ref">Mục 9.2 bài giảng: hàm buttord, butter.</p>
+      </div>
+      <div class="card"><h2>Lời giải từng bước</h2><ol class="steps" id="bw-steps"></ol><div class="kv" id="bw-kv"></div></div>
+      <div class="card"><div class="plot-hd"><h3>Đáp ứng biên độ (dB) và vùng chỉ tiêu</h3></div><div class="plot" id="bw-m"></div><div id="bw-res"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3>Đáp ứng pha (độ)</h3></div><div class="plot" id="bw-p"></div></div>
+      <div class="two">
+        <div class="card"><h2>Cực tương tự (mặt phẳng s, đã chuẩn hóa)</h2><div class="zbox" id="bw-s"></div></div>
+        <div class="card"><h2>Cực, không của H(z)</h2><div class="zbox" id="bw-z"></div></div>
+      </div>
+      <div class="card"><h2>Hệ số H(z) = B(z)/A(z)</h2><div class="tbl-wrap" id="bw-coef"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. MATLAB ============ -->
+<section class="tabpanel" id="p-ml" hidden>
+  <div class="panel-grid">
+    <aside class="controls"><small class="muted">Chương trình lấy thiết kế ở tab 3 và phép chuyển đổi ở tab 2.</small><button class="btn ghost" id="ml-copy">Sao chép</button></aside>
+    <div class="out">
+      <div class="card"><h2>Thiết kế theo chỉ tiêu</h2><pre class="code" id="ml-code"></pre><div class="tbl-wrap" id="ml-out"></div></div>
+      <div class="card"><div class="hd-row"><h2>Chuyển H<sub>a</sub>(s) sang H(z)</h2><button class="btn ghost" id="ml-copy2">Sao chép</button></div><pre class="code" id="ml-code2"></pre><div id="ml-out2"></div></div>
+      <div class="card"><h2>Cú pháp</h2><table class="t"><tr><th>Lệnh</th><th>Ý nghĩa</th></tr>
+        <tr><td class="m">[N, Wn] = buttord(Wp, Ws, Rp, Rs)</td><td>Bậc nhỏ nhất và tần số cắt. Wp, Ws chuẩn hóa từ 0 đến 1 (1 ứng với π, tức f/2): Wp = 2f<sub>p</sub>/f. Rp, Rs tính bằng dB</td></tr>
+        <tr><td class="m">[B, A] = butter(N, Wn, 'low')</td><td>Hệ số H(z); 'high' thông cao, 'bandpass' thông dải (Wn có 2 phần tử), 'stop' chắn dải</td></tr>
+        <tr><td class="m">[N, Wp] = cheb1ord(…), cheby1(N, Rp, Wp)</td><td>Tương tự cho Chebyshev loại I</td></tr>
+        <tr><td class="m">[bz, az] = bilinear(b, a, fs)</td><td>Song tuyến: s = 2f<sub>s</sub>(z − 1)/(z + 1)</td></tr>
+        <tr><td class="m">[bz, az] = impinvar(b, a, fs)</td><td>Bất biến xung. MATLAB nhân thêm T<sub>s</sub> (h(n) = T·h<sub>a</sub>(nT)), bài giảng không nhân</td></tr></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải, bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Chuyển đổi</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. Ánh xạ s → z</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Butterworth</button>
+        </div></div>
+    </aside>
+    <div class="out" id="ex-list"></div>
+  </div>
+</section>
+
+<footer>Thiết kế bộ lọc IIR · Xử lý tín hiệu số · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+<script>(function(){var a=document.querySelector('.sitenav a[aria-current]');if(a&&a.scrollIntoView){var n=a.parentNode;n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.clientWidth/2;}})();</script>
+<script src="assets/zcore.js"></script>
+<script src="assets/fcore.js"></script>
+<script>
+/* =================== BUỔI 9: THIẾT KẾ IIR =================== */
+const W2 = wGrid(1025);
+const fmt6 = v => fmt(v, 6);
+const polyS = c => polyZ(c, 's');
+function sPlane(el, pts, opt = {}){
+  const S = Math.max(260, Math.min(el.clientWidth || 340, 360)); const sx = opt.sx || 12, sy = opt.sy || 32;
+  const c = S / 2, kx = (S / 2 - 24) / sx, ky = (S / 2 - 24) / sy, X = v => c + v * kx, Y = v => c - v * ky;
+  let s = `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" role="img" aria-label="Mặt phẳng s"><rect x="4" y="4" width="${S - 8}" height="${S - 8}" rx="8" fill="#fff" stroke="#E2E8F0"/><rect x="5" y="5" width="${c - 5}" height="${S - 10}" fill="#ECFDF5"/>`;
+  s += `<line x1="10" x2="${S - 10}" y1="${c}" y2="${c}" stroke="#94A3B8"/><line x1="${c}" x2="${c}" y1="10" y2="${S - 10}" stroke="#142B4A" stroke-width="1.6"/>`;
+  if (opt.circle) s += `<ellipse cx="${c}" cy="${c}" rx="${kx}" ry="${ky}" fill="none" stroke="#142B4A" stroke-dasharray="3 3"/>`;
+  if (opt.T){ const yv = PI / opt.T; if (yv < sy) [yv, -yv].forEach(v => { s += `<line x1="10" x2="${S - 10}" y1="${Y(v)}" y2="${Y(v)}" stroke="#B45309" stroke-dasharray="5 4"/>`; }); if (yv < sy) s += `<text x="${S - 12}" y="${Y(yv) - 5}" text-anchor="end" font-size="11" fill="#B45309">Ω = π/T</text>`; }
+  pts.forEach(p => { const x = X(p.re), y = Y(p.im); s += `<path d="M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x - 6} ${y + 6}L${x + 6} ${y - 6}" stroke="${p.color || '#BE123C'}" stroke-width="2.6"/>`; });
+  s += `<text x="12" y="${c - 6}" font-size="11.5" fill="#047857" font-weight="600">ổn định</text><text x="${S - 14}" y="${c - 6}" text-anchor="end" font-size="11.5" fill="#64748B">σ</text><text x="${c + 6}" y="20" font-size="11.5" fill="#64748B">jΩ</text>`;
+  el.innerHTML = s + '</svg>';
+}
+function zMulti(el, pts){
+  const S = Math.max(260, Math.min(el.clientWidth || 340, 360)); const ext = Math.min(3.2, Math.max(1.35, ...pts.map(p => cabs(p.z) * 1.15)));
+  const c = S / 2, k = (S / 2 - 24) / ext, X = z => c + z.re * k, Y = z => c - z.im * k;
+  let s = `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" role="img" aria-label="Mặt phẳng z"><rect x="4" y="4" width="${S - 8}" height="${S - 8}" rx="8" fill="#fff" stroke="#E2E8F0"/><circle cx="${c}" cy="${c}" r="${k}" fill="#ECFDF5" stroke="#142B4A" stroke-dasharray="3 3"/>`;
+  s += `<line x1="10" x2="${S - 10}" y1="${c}" y2="${c}" stroke="#94A3B8"/><line x1="${c}" x2="${c}" y1="10" y2="${S - 10}" stroke="#94A3B8"/>`;
+  pts.forEach(p => { const x = X(p.z), y = Y(p.z); s += `<path d="M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x - 6} ${y + 6}L${x + 6} ${y - 6}" stroke="${p.color}" stroke-width="2.6"/>`; });
+  s += `<text x="${S - 14}" y="${c - 6}" text-anchor="end" font-size="11.5" fill="#64748B">Re</text><text x="${c + 6}" y="20" font-size="11.5" fill="#64748B">Im</text><text x="${c + k + 3}" y="${c + 14}" font-size="11" fill="#64748B">1</text>`;
+  el.innerHTML = s + '</svg>';
+}
+
+/* ---------- TAB 1 ---------- */
+function renderSs(){
+  const sg = parseFloat($('ss-sg').value), om = parseFloat($('ss-om').value), T = parseFloat($('ss-T').value);
+  $('ss-sgo').textContent = fmt(sg); $('ss-omo').textContent = fmt(om); $('ss-To').textContent = fmt(T);
+  const sp = C(sg, om), half = cscale(sp, T / 2);
+  const zi = cexp(cscale(sp, T)), zb = cdiv(cadd(C(1), half), csub(C(1), half)), zd = cdiv(C(1), csub(C(1), cscale(sp, T)));
+  sPlane($('ss-s'), [sp, cconj(sp)].map(z => Object.assign(z, {color: '#BE123C'})), {T});
+  zMulti($('ss-z'), [[zi, '#BE123C'], [zb, '#1E40AF'], [zd, '#047857']].flatMap(([z, col]) => [{z, color: col}, {z: cconj(z), color: col}]));
+  const row = (n, f, z) => `<tr><td>${n}</td><td class="m">${f}</td><td class="m">${fmtc(z, 4)}</td><td class="m">${fmt(cabs(z), 4)}</td><td>${cabs(z) < 1 - 1e-9 ? '<span class="pill g">trong vòng tròn</span>' : '<span class="pill r">ngoài hoặc trên</span>'}</td></tr>`;
+  $('ss-tbl').innerHTML = `<p class="key">Cực tương tự s = ${fmtc(sp, 3)} ${sg < 0 ? '<span class="pill g">nửa trái: ổn định</span>' : '<span class="pill r">nửa phải: không ổn định</span>'}</p><table class="t"><tr><th>Phương pháp</th><th>Công thức</th><th>Cực số z</th><th>|z|</th><th>Vị trí</th></tr>${row('Bất biến xung', 'z = e<sup>sT</sup>', zi)}${row('Song tuyến', 'z = (1 + sT/2)/(1 − sT/2)', zb)}${row('Tương đương vi phân', 'z = 1/(1 − sT)', zd)}</table><p class="key">Bất biến xung: |z| = e<sup>σT</sup> &lt; 1 ⇔ σ &lt; 0. Tương đương vi phân ánh xạ nửa trái mặt phẳng s vào trong vòng tròn tâm 1/2, bán kính 1/2 (hình 9.6), nên cực luôn nằm sát z = 1.</p>`;
+  const Om = Array.from({length: 401}, (_, i) => i / 400 * 3 * PI / T);
+  linePlot($('ss-w'), {x: Om, xmode: 'num', xlabel: 'Ω (rad/s)', series: [{y: Om.map(o => o * T <= PI ? o * T : NaN), color: '#BE123C', w: 2.2}, {y: Om.map(o => 2 * Math.atan(o * T / 2)), color: '#1E40AF', w: 2.2}, {y: Om.map(o => Math.atan(o * T)), color: '#047857', w: 2.2}], ymin: 0, ymax: PI * 1.05, hlines: [{y: PI, color: '#94A3B8', label: 'ω = π'}], ylabel: 'ω (rad)', label: 'Quan hệ tần số'});
+  $('ss-wl').innerHTML = legendHTML([['#BE123C', 'Bất biến xung ω = ΩT'], ['#1E40AF', 'Song tuyến ω = 2arctg(ΩT/2)'], ['#047857', 'Tương đương vi phân ω = arctg(ΩT)']]);
+}
+
+/* ---------- TAB 2 ---------- */
+const MD = {
+  ii: {t: 'Phương pháp bất biến xung', w: 'h(n) là mẫu của đáp ứng xung tương tự: h(n) = h<sub>a</sub>(nT<sub>s</sub>). Mỗi cực s<sub>pk</sub> thành cực z<sub>pk</sub> = e<sup>s<sub>pk</sub>T<sub>s</sub></sup>. Giữ nguyên dạng đáp ứng xung nhưng có thể chồng phổ.', r: 'Mục 9.1.2, công thức (9.16), Ví dụ 1.'},
+  bl: {t: 'Phương pháp biến đổi song tuyến', w: 'Thay s = (2/T<sub>s</sub>)·(1 − z⁻¹)/(1 + z⁻¹). Trục jΩ ánh xạ đúng lên vòng tròn đơn vị, nửa trái vào trong vòng tròn: ổn định được bảo toàn, không chồng phổ, chỉ méo tần số.', r: 'Mục 9.1.2, công thức (9.17), Ví dụ 2, 3.'},
+  bd: {t: 'Phương pháp tương đương vi phân', w: 'Thay đạo hàm bằng sai phân lùi: s = (1 − z⁻¹)/T<sub>s</sub>. Đơn giản, luôn ổn định, nhưng chỉ chính xác khi T<sub>s</sub> rất nhỏ.', r: 'Mục 9.1.2, công thức (9.20), Ví dụ 4.'},
+  mz: {t: 'Phương pháp biến đổi z thích ứng', w: 'Mỗi thừa số (s − a) của H<sub>a</sub>(s) thành (1 − e<sup>aT<sub>s</sub></sup>z⁻¹): ánh xạ cả cực lẫn điểm không như cách bất biến xung ánh xạ cực.', r: 'Mục 9.1.2, công thức (9.23), Ví dụ 5.'}
+};
+let CD = null;
+function convert(){
+  const m = $('cd-m').value, B = parseList($('cd-b').value), A = parseList($('cd-a').value), T = parseNum($('cd-T').value);
+  if (!B || !A || !(T > 0) || trimLead(A).length < 2) return {err: 'Cần tử số, mẫu số (bậc ≥ 1) và T<sub>s</sub> > 0.'};
+  let r;
+  if (m === 'ii') r = impinvarTF(B, A, T); else if (m === 'bl') r = bilinearTF(B, A, T); else if (m === 'bd') r = backDiffTF(B, A, T); else r = matchedZ(B, A, T);
+  if (r.err) return r;
+  const a0 = r.a[0]; r.b = r.b.map(v => v / a0); r.a = r.a.map(v => v / a0);
+  while (r.b.length > 1 && isZ(r.b[r.b.length - 1])) r.b.pop();
+  return Object.assign(r, {m, B: trimLead(B), A: trimLead(A), T});
+}
+const eSym = (s) => { // e^{sT} dạng chữ
+  if (Math.abs(s.im) < 1e-9){ const v = s.re; return isZ(v) ? '1' : `e<sup>${v < 0 ? '−' : ''}${isZ(Math.abs(v) - 1) ? '' : fmt(Math.abs(v))}T</sup>`; }
+  return `e<sup>(${fmtc(s, 3)})T</sup>`;
+};
+function renderCd(){
+  const m = $('cd-m').value; $('cd-title').textContent = MD[m].t; $('cd-what').innerHTML = `<p>${MD[m].w}</p><p class="ref">${MD[m].r}</p>`;
+  const R = convert(); CD = R;
+  if (R.err){ $('cd-steps').innerHTML = `<li><div class="bad">${R.err}</div></li>`; return; }
+  const T = R.T, st = [];
+  st.push(`<b>Hàm truyền tương tự:</b> <span class="math">H<sub>a</sub>(s) = ${frac(polyS(R.B), polyS(R.A))}</span>, T<sub>s</sub> = ${fmt(T)} s.`);
+  const ps = roots(R.A); st.push(`<b>Cực tương tự:</b> ${ps.map(p => `s = ${fmtc(p, 4)}`).join('; ')} ${ps.every(p => p.re < 0) ? '(đều ở nửa trái: H<sub>a</sub> ổn định)' : '<span class="no-ok">(có cực ở nửa phải: H<sub>a</sub> không ổn định)</span>'}.`);
+  if (m === 'ii'){
+    st.push(`<b>Phân thức tối giản:</b> H<sub>a</sub>(s) = Σ A<sub>k</sub>/(s − s<sub>pk</sub>), với A<sub>k</sub> = (s − s<sub>pk</sub>)·H<sub>a</sub>(s) tại s = s<sub>pk</sub>: ${R.terms.map(t => `A = ${fmtc(t.A, 4)} tại s<sub>p</sub> = ${fmtc(t.s, 4)}`).join('; ')}.`);
+    st.push(`<b>Áp dụng (9.16):</b> <span class="math">H(z) = ${R.terms.map(t => frac(fmtc(t.A, 4), `1 − ${eSym(t.s)}·z⁻¹`)).join(' + ').replace(/\+ <span class="frac"><span>−/g, '− <span class="frac"><span>')}</span>`);
+    st.push(`<b>Thay T<sub>s</sub> = ${fmt(T)}:</b> ${R.terms.map(t => `e<sup>s<sub>p</sub>T</sup> = ${fmtc(t.zp, 5)}`).join('; ')}. Quy đồng được H(z) ở bảng hệ số.`);
+  } else if (m === 'bl' || m === 'bd'){
+    const sub = m === 'bl' ? `s = (2/T<sub>s</sub>)·(1 − z⁻¹)/(1 + z⁻¹) = ${fmt(2 / T)}·(1 − z⁻¹)/(1 + z⁻¹)` : `s = (1 − z⁻¹)/T<sub>s</sub> = ${fmt(1 / T)}·(1 − z⁻¹)`;
+    st.push(`<b>Thay</b> <span class="math">${sub}</span> vào H<sub>a</sub>(s).`);
+    st.push(m === 'bl' ? `<b>Nhân tử và mẫu với (1 + z⁻¹)<sup>${R.A.length - 1}</sup></b> để bỏ phân số con, khai triển rồi chia cho hệ số tự do của mẫu.` : `<b>Khai triển các lũy thừa của (1 − z⁻¹),</b> rồi chia tử và mẫu cho hệ số tự do của mẫu.`);
+  } else {
+    const zs = roots(R.B), Cc = R.Cc;
+    st.push(`<b>Điểm không tương tự:</b> ${zs.length ? zs.map(z => `s = ${fmtc(z, 4)}`).join('; ') : 'không có'}; hằng số C = ${fmt(Cc, 4)}.`);
+    st.push(`<b>Ánh xạ mỗi thừa số (s − a) → (1 − e<sup>aT</sup>z⁻¹):</b> <span class="math">H(z) = ${isZ(Cc - 1) ? '' : fmt(Cc) + '·'}${frac(zs.map(z => `(1 − ${eSym(z)}z⁻¹)`).join('') || '1', ps.map(p => `(1 − ${eSym(p)}z⁻¹)`).join(''))}</span>`);
+    st.push(`<b>Thay T<sub>s</sub> = ${fmt(T)}:</b> không ${R.zz.map(z => fmtc(z, 5)).join('; ') || '—'}; cực ${R.pp.map(z => fmtc(z, 5)).join('; ')}.`);
+  }
+  st.push(`<b>Kết quả:</b> <span class="math">H(z) = ${frac(polyW(R.b.map(v => +v.toFixed(6))), polyW(R.a.map(v => +v.toFixed(6))))}</span>`);
+  $('cd-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  const pz = pzFromND(R.b, R.a); zPlane($('cd-z'), {poles: pz.poles, zeros: pz.zeros, size: 320});
+  const rmax = pz.poles.length ? Math.max(...pz.poles.map(o => cabs(o.z))) : 0;
+  $('cd-st').innerHTML = rmax < 1 ? `<div class="close">Mọi cực |z| ≤ ${fmt(rmax, 4)} &lt; 1: bộ lọc số ổn định.</div>` : `<div class="next">Có cực |z| = ${fmt(rmax, 4)} ≥ 1: bộ lọc số không ổn định${ps.some(p => p.re >= 0) ? ' (vì bộ lọc tương tự vốn đã không ổn định)' : ''}.</div>`;
+  $('cd-eq').innerHTML = `y(n) = ${R.b.map((v, k) => isZ(v) ? '' : `${fmt(v, 6)}·x(n${k ? '−' + k : ''})`).filter(Boolean).join(' + ')}${R.a.slice(1).map((v, k) => isZ(v) ? '' : ` + ${fmt(-v, 6)}·y(n−${k + 1})`).join('')}`.replace(/\+ −/g, '− ');
+  $('cd-coef').innerHTML = `<table class="t"><tr><th>k</th><th>b<sub>k</sub></th><th>a<sub>k</sub></th></tr>${Array.from({length: Math.max(R.b.length, R.a.length)}, (_, k) => `<tr><td class="m">${k}</td><td class="m">${R.b[k] != null ? fmt6(R.b[k]) : ''}</td><td class="m">${R.a[k] != null ? fmt6(R.a[k]) : ''}</td></tr>`).join('')}</table>`;
+  const Ha = O => cabs(cdiv(polyvalC(R.B, C(0, O)), polyvalC(R.A, C(0, O))));
+  const Om = w => m === 'bl' ? 2 / T * Math.tan(w / 2) : w / T, sc = m === 'ii' ? 1 / T : 1;
+  const wv = W2.slice(0, W2.length - 1);
+  linePlot($('cd-plot'), {x: wv, series: [{y: wv.map(w => cabs(Hw(R.b, R.a, w))), color: COL.x, w: 2.4}, {y: wv.map(w => Ha(Om(w)) * sc), color: COL.y, dash: '6 4', w: 1.8}], ymin: 0, ylabel: '|H|', label: 'So sánh số và tương tự'});
+  $('cd-leg').innerHTML = legendHTML([[COL.x, '|H(e<sup>jω</sup>)| bộ lọc số'], [COL.y, m === 'bl' ? '|H<sub>a</sub>(jΩ)| với Ω = (2/T)tg(ω/2)' : m === 'ii' ? '(1/T)·|H<sub>a</sub>(jΩ)| với Ω = ω/T' : '|H<sub>a</sub>(jΩ)| với Ω = ω/T', true]]) + (m === 'ii' ? '<p class="key">Theo bài giảng h(n) = h<sub>a</sub>(nT) nên H(e<sup>jω</sup>) ≈ (1/T)·H<sub>a</sub>(jω/T) khi không chồng phổ. MATLAB impinvar nhân thêm T để hai đường cùng độ cao.</p>' : m === 'bl' ? '<p class="key">Hai đường trùng khít: song tuyến giữ nguyên giá trị đáp ứng, chỉ "nén" trục tần số theo (9.19).</p>' : '');
+  $('cd-svg').innerHTML = df2Svg(R.a, R.b);
+}
+
+/* ---------- TAB 3 ---------- */
+let BW = {k: 'butter', t: 'low', u: 'pi', r: 'db'}, BWD = null;
+function bwRead(){
+  const fs = parseNum($('bw-fs').value), wp = parseList($('bw-wp').value), ws = parseList($('bw-ws').value), r1 = parseNum($('bw-rp').value), r2 = parseNum($('bw-rs').value);
+  if (!wp || !ws || !isFinite(r1) || !isFinite(r2)) return {err: 'Dữ liệu chưa hợp lệ.'};
+  const need = BW.t === 'bandpass' ? 2 : 1; if (wp.length !== need || ws.length !== need) return {err: BW.t === 'bandpass' ? 'Thông dải cần hai giá trị cho ω<sub>p</sub> và hai cho ω<sub>s</sub>.' : 'Cần một giá trị cho ω<sub>p</sub> và ω<sub>s</sub>.'};
+  let Wp = wp, Ws = ws; if (BW.u === 'hz'){ if (!(fs > 0)) return {err: 'Cần tần số lấy mẫu.'}; Wp = wp.map(v => 2 * v / fs); Ws = ws.map(v => 2 * v / fs); }
+  if ([...Wp, ...Ws].some(v => !(v > 0 && v < 1))) return {err: 'Tần số chuẩn hóa phải nằm giữa 0 và 1 (dưới f/2).'};
+  if (BW.t === 'low' && !(Wp[0] < Ws[0])) return {err: 'Thông thấp cần ω<sub>p</sub> < ω<sub>s</sub>.'};
+  if (BW.t === 'high' && !(Wp[0] > Ws[0])) return {err: 'Thông cao cần ω<sub>p</sub> > ω<sub>s</sub>.'};
+  if (BW.t === 'bandpass' && !(Ws[0] < Wp[0] && Wp[0] < Wp[1] && Wp[1] < Ws[1])) return {err: 'Thông dải cần ω<sub>s1</sub> < ω<sub>p1</sub> < ω<sub>p2</sub> < ω<sub>s2</sub>.'};
+  let Rp = r1, Rs = r2;
+  if (BW.r === 'd'){ if (!(r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1)) return {err: 'δ phải nằm giữa 0 và 1.'}; Rp = -20 * Math.log10(1 - r1); Rs = -20 * Math.log10(r2); }
+  if (!(Rp > 0 && Rs > Rp)) return {err: 'Cần 0 < R<sub>p</sub> < R<sub>s</sub>.'};
+  return {Wp, Ws, Rp, Rs, fs, d1: r1, d2: r2};
+}
+function renderBw(){
+  setPressed('#bw-kind button', 'k', BW.k); setPressed('#bw-type button', 't', BW.t); setPressed('#bw-u button', 'u', BW.u); setPressed('#bw-r button', 'r', BW.r);
+  $('bw-fsf').hidden = BW.u !== 'hz'; $('bw-hint').hidden = BW.t !== 'bandpass';
+  const un = BW.u === 'hz' ? ' (Hz)' : ' (×π)';
+  $('bw-lp').innerHTML = (BW.u === 'hz' ? 'f<sub>p</sub>' : 'ω<sub>p</sub>') + un; $('bw-ls').innerHTML = (BW.u === 'hz' ? 'f<sub>s</sub> chắn' : 'ω<sub>s</sub>') + un;
+  $('bw-l1').innerHTML = BW.r === 'db' ? 'R<sub>p</sub> (dB)' : 'δ<sub>p</sub>'; $('bw-l2').innerHTML = BW.r === 'db' ? 'R<sub>s</sub> (dB)' : 'δ<sub>s</sub>';
+  const S = bwRead(); BWD = null;
+  if (S.err){ $('bw-steps').innerHTML = `<li><div class="bad">${S.err}</div></li>`; $('bw-kv').innerHTML = ''; return; }
+  const O = iirOrder(BW.k, S.Wp, S.Ws, S.Rp, S.Rs), D = iirDesign(BW.k, O.N, O.Wn, BW.t, S.Rp); BWD = Object.assign({}, S, O, D);
+  const st = [], tw = v => Math.tan(PI * v / 2);
+  if (BW.r === 'd') st.push(`<b>Đổi độ gợn ra dB:</b> R<sub>p</sub> = −20log<sub>10</sub>(1 − δ<sub>p</sub>) = −20log<sub>10</sub>(${fmt(1 - S.d1)}) = <b>${fmt(S.Rp, 4)} dB</b>; R<sub>s</sub> = −20log<sub>10</sub>δ<sub>s</sub> = −20log<sub>10</sub>(${fmt(S.d2)}) = <b>${fmt(S.Rs, 3)} dB</b>.`);
+  st.push(`<b>Tần số chuẩn hóa</b> (1 ứng với π${BW.u === 'hz' ? `, W = 2f/${fmt(S.fs)}` : ''}): W<sub>p</sub> = ${S.Wp.map(v => fmt(v, 4)).join(', ')}; W<sub>s</sub> = ${S.Ws.map(v => fmt(v, 4)).join(', ')}.`);
+  st.push(`<b>Méo trước tần số</b> (song tuyến, 9.19): Ω = tg(πW/2) ⇒ Ω<sub>p</sub> = ${S.Wp.map(v => fmt(tw(v), 4)).join(', ')}; Ω<sub>s</sub> = ${S.Ws.map(v => fmt(tw(v), 4)).join(', ')}.`);
+  st.push(BW.t === 'bandpass' ? `<b>Đổi sang thông thấp tương đương:</b> tỉ số chọn lọc Ω<sub>s</sub>/Ω<sub>p</sub> = min|(Ω<sub>s</sub>² − Ω<sub>p1</sub>Ω<sub>p2</sub>)/(Ω<sub>s</sub>(Ω<sub>p1</sub> − Ω<sub>p2</sub>))| = <b>${fmt(O.WA, 4)}</b>.` : `<b>Tỉ số chọn lọc:</b> ${BW.t === 'low' ? 'Ω<sub>s</sub>/Ω<sub>p</sub>' : 'Ω<sub>p</sub>/Ω<sub>s</sub>'} = <b>${fmt(O.WA, 4)}</b>.`);
+  const G = (Math.pow(10, 0.1 * S.Rs) - 1) / (Math.pow(10, 0.1 * S.Rp) - 1);
+  st.push(BW.k === 'butter' ? `<b>Bậc:</b> N = ⌈log<sub>10</sub>[(10<sup>0,1R<sub>s</sub></sup> − 1)/(10<sup>0,1R<sub>p</sub></sup> − 1)] / (2·log<sub>10</sub>${fmt(O.WA, 4)})⌉ = ⌈${fmt(Math.log10(G) / (2 * Math.log10(O.WA)), 4)}⌉ = <b>${O.N}</b>.` : `<b>Bậc:</b> N = ⌈arccosh√[(10<sup>0,1R<sub>s</sub></sup> − 1)/(10<sup>0,1R<sub>p</sub></sup> − 1)] / arccosh(${fmt(O.WA, 4)})⌉ = ⌈${fmt(Math.acosh(Math.sqrt(G)) / Math.acosh(O.WA), 4)}⌉ = <b>${O.N}</b>.`);
+  st.push(BW.k === 'butter' ? `<b>Tần số cắt W<sub>n</sub></b> (như buttord của MATLAB: chọn để vừa đúng R<sub>s</sub> tại mép dải chắn): W<sub>n</sub> = <b>${O.Wn.map(v => fmt(v, 4)).join(', ')}</b>.` : `<b>Tần số cắt:</b> Chebyshev lấy đúng mép dải thông W<sub>n</sub> = W<sub>p</sub> = <b>${O.Wn.map(v => fmt(v, 4)).join(', ')}</b>.`);
+  st.push(BW.k === 'butter' ? `<b>Nguyên mẫu Butterworth</b> bậc ${O.N}: cực s<sub>k</sub> = e<sup>jπ(2k + N − 1)/(2N)</sup>, cách đều trên nửa trái đường tròn bán kính 1.` : `<b>Nguyên mẫu Chebyshev I</b> bậc ${O.N}, ε = √(10<sup>0,1R<sub>p</sub></sup> − 1) = ${fmt(D.proto.eps, 4)}: cực nằm trên một elip ở nửa trái.`);
+  st.push(`<b>Đổi tần số và song tuyến:</b> ${BW.t === 'low' ? 'giữ thông thấp' : BW.t === 'high' ? 's → Ω<sub>c</sub>/s đổi thành thông cao' : 's → (s² + Ω₀²)/(B·s) đổi thành thông dải, bậc thành ' + 2 * O.N}; rồi s = 2f<sub>s</sub>(z − 1)/(z + 1) ra H(z) bậc ${D.a.length - 1}.`);
+  $('bw-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  $('bw-kv').innerHTML = [['Bậc N', O.N + (BW.t === 'bandpass' ? ` (H(z) bậc ${2 * O.N})` : '')], ['W<sub>n</sub>', O.Wn.map(v => fmt(v, 4)).join(', ')], ['R<sub>p</sub>, R<sub>s</sub>', `${fmt(S.Rp, 3)}, ${fmt(S.Rs, 3)} dB`], ['Phép nhân mỗi mẫu', D.b.filter(v => !isZ(v)).length + D.a.slice(1).filter(v => !isZ(v)).length]].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+  // đo kiểm
+  const wp = S.Wp.map(v => v * PI), ws = S.Ws.map(v => v * PI);
+  const pass = BW.t === 'low' ? [[0, wp[0]]] : BW.t === 'high' ? [[wp[0], PI]] : [[wp[0], wp[1]]];
+  const stop = BW.t === 'low' ? [[ws[0], PI]] : BW.t === 'high' ? [[0, ws[0]]] : [[0, ws[0]], [ws[1], PI]];
+  const ms = measure(D.b, D.a, pass, stop);
+  const useHz = BW.u === 'hz', X = ms.w.map(w => useHz ? w * S.fs / (2 * PI) : w), cv = w => useHz ? w * S.fs / (2 * PI) : w;
+  const y = ms.m.map(db);
+  const bands = pass.map(([a, b]) => ({x0: cv(a), x1: cv(b), y0: -S.Rp, y1: 0.6, color: 'rgba(4,120,87,.16)'})).concat(stop.map(([a, b]) => ({x0: cv(a), x1: cv(b), y0: -S.Rs, y1: 5, color: 'rgba(190,18,60,.10)'})));
+  linePlot($('bw-m'), {x: X, xmode: useHz ? 'hz' : 'pi', series: [{y, color: COL.x, w: 2.4}], ymin: Math.max(-Math.max(60, S.Rs * 2), Math.min(...y)), ymax: 5, bands, hlines: [{y: -S.Rs, color: COL.y, label: `−${fmt(S.Rs, 2)} dB`}, {y: -S.Rp, color: COL.g}], ylabel: 'dB', label: 'Đáp ứng biên độ'});
+  const okP = -20 * Math.log10(ms.pmin) <= S.Rp + 1e-6, okS = ms.As >= S.Rs - 1e-6;
+  $('bw-res').innerHTML = `<div class="kv"><div><small>Suy giảm lớn nhất trong dải thông</small><b>${fmt(-20 * Math.log10(ms.pmin), 4)} dB ${okP ? '✓' : '✗'}</b></div><div><small>Suy giảm nhỏ nhất trong dải chắn</small><b>${fmt(ms.As, 3)} dB ${okS ? '✓' : '✗'}</b></div></div>` + (okP && okS ? '<div class="close">Đạt chỉ tiêu: đường đáp ứng nằm trong vùng xanh ở dải thông và dưới vùng đỏ ở dải chắn.</div>' : '<div class="next">Chưa đạt: kiểm tra lại chỉ tiêu.</div>');
+  linePlot($('bw-p'), {x: X, xmode: useHz ? 'hz' : 'pi', series: [{y: unwrap(ms.w.map(w => carg(Hw(D.b, D.a, w)))).map(v => v * 180 / PI).map((v, i, arr) => i > arr.length - 4 ? NaN : v), color: COL.y, w: 2}], ylabel: 'độ', label: 'Đáp ứng pha'});
+  sPlane($('bw-s'), D.proto.p.map(p => Object.assign(C(p.re, p.im), {color: '#BE123C'})), {sx: 1.6, sy: 1.6, circle: BW.k === 'butter'});
+  zPlane($('bw-z'), {poles: groupRoots(D.p, 1e-4), zeros: groupRoots(D.z, 1e-3), size: 320});
+  $('bw-coef').innerHTML = `<table class="t"><tr><th>k</th><th>b<sub>k</sub> (B)</th><th>a<sub>k</sub> (A)</th></tr>${D.a.map((v, k) => `<tr><td class="m">${k}</td><td class="m">${fmt(D.b[k], 6)}</td><td class="m">${fmt(v, 6)}</td></tr>`).join('')}</table><p class="key">Phương trình: y(n) = Σ b<sub>k</sub>x(n−k) − Σ a<sub>k</sub>y(n−k), k ≥ 1 cho phần y.</p>`;
+}
+
+/* ---------- TAB 4 ---------- */
+function renderMl(){
+  if (!BWD) renderBw();
+  const D = BWD;
+  if (D){
+    const mv = v => v.length > 1 ? mvec(v) : `${+v[0].toFixed(6)}`;
+    const ord = D.k === 'cheby1' ? 'cheb1ord' : 'buttord', fn = D.k === 'cheby1' ? `cheby1(n, rp, wn, '${D.type === 'bandpass' ? 'bandpass' : D.type}')` : `butter(n, wn, '${D.type === 'bandpass' ? 'bandpass' : D.type}')`;
+    $('ml-code').textContent = `wp = ${mv(D.Wp)};      % mép dải thông (chuẩn hóa, 1 = pi)\nws = ${mv(D.Ws)};      % mép dải chắn\nrp = ${+D.Rp.toFixed(4)};          % độ gợn dải thông (dB)\nrs = ${+D.Rs.toFixed(4)};          % độ suy giảm dải chắn (dB)\n[n, wn] = ${ord}(wp, ws, rp, rs);\n[b, a] = ${fn};\nfreqz(b, a, 1024${D.fs && BW.u === 'hz' ? ', ' + D.fs : ''});\ntitle('Đáp ứng biên độ và pha của bộ lọc IIR')`;
+    $('ml-out').innerHTML = `<table class="t"><tr><th>Biến</th><th>Kết quả</th></tr><tr><td class="m">n</td><td class="m">${D.N}</td></tr><tr><td class="m">wn</td><td class="m">${D.Wn.map(v => fmt(v, 4)).join('  ')}</td></tr><tr><td class="m">b</td><td class="m">${D.b.map(v => fmt(v, 5)).join('  ')}</td></tr><tr><td class="m">a</td><td class="m">${D.a.map(v => fmt(v, 5)).join('  ')}</td></tr></table><p class="key">Mã mẫu Bài 1 trong bài giảng truyền thẳng rp = 0.03, rs = 0.09 vào buttord, nghĩa là MATLAB hiểu đó là 0,03 dB và 0,09 dB, nên ra bộ lọc bậc rất thấp. Nếu 0,03 và 0,09 là δ<sub>p</sub>, δ<sub>s</sub> thì phải đổi ra dB trước (chọn “δ<sub>p</sub>, δ<sub>s</sub>” ở tab 3).</p>`;
+  }
+  const R = CD && !CD.err ? CD : convert();
+  if (!R.err){
+    const fs = +(1 / R.T).toFixed(6);
+    const c = {ii: `[bz, az] = impinvar(b, a, fs)   % MATLAB nhân thêm T: chia bz cho fs để giống bài giảng\nbz = bz / fs`, bl: `[bz, az] = bilinear(b, a, fs)`, bd: `syms s z\nHa = poly2sym(b, s) / poly2sym(a, s);\nHz = simplify(subs(Ha, s, (1 - z^-1)*fs))   % s = (1 - z^-1)/T`, mz: `zz = exp(roots(b) * T);  pp = exp(roots(a) * T);\nbz = (b(1)/a(1)) * poly(zz)\naz = poly(pp)`}[R.m];
+    $('ml-code2').textContent = `b = ${mvec(R.B)};    % tử số Ha(s)\na = ${mvec(R.A)};    % mẫu số Ha(s)\nT = ${R.T}; fs = 1/T;\n${c}`;
+    $('ml-out2').innerHTML = `<p class="key">Kết quả (chuẩn hóa a₀ = 1): bz = ${mvec(R.b)}, az = ${mvec(R.a)}.</p>`;
+  }
+}
+
+/* ---------- BÀI TẬP ---------- */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Ví dụ 1: bất biến xung', q: 'H<sub>a</sub>(s) = 4/[(s + 3)(s + 5)]. Tìm H(z) bằng phương pháp bất biến xung.', s: ['Cực s₁ = −3, s₂ = −5.', 'A₁ = 4/(−3 + 5) = 2; A₂ = 4/(−5 + 3) = −2.', 'Áp dụng (9.16): mỗi A<sub>k</sub>/(s − s<sub>k</sub>) thành A<sub>k</sub>/(1 − e<sup>s<sub>k</sub>T</sup>z⁻¹).'], a: 'H(z) = 2/(1 − e<sup>−3T</sup>z⁻¹) − 2/(1 − e<sup>−5T</sup>z⁻¹).', m: 'Cực số e<sup>−3T</sup>, e<sup>−5T</sup> luôn nhỏ hơn 1: ổn định được bảo toàn.', load: {tab: 'cd', v: 'ii|4|1 8 15|0,1'}},
+ {g: 'A', id: 'A2', t: 'Ví dụ 2: song tuyến', q: 'H<sub>a</sub>(s) = 4/[(s − 3)(s − 5)]. Tìm H(z) bằng biến đổi song tuyến với T<sub>s</sub> = 0,1.', s: ['Thay s = 20(1 − z⁻¹)/(1 + z⁻¹).', 'Nhân tử, mẫu với (1 + z⁻¹)²: tử 4(1 + z⁻¹)²; mẫu [20(1 − z⁻¹) − 3(1 + z⁻¹)]·[20(1 − z⁻¹) − 5(1 + z⁻¹)].', 'Mẫu = (17 − 23z⁻¹)(15 − 25z⁻¹).'], a: 'H(z) = 4(1 + z⁻¹)²/[(17 − 23z⁻¹)(15 − 25z⁻¹)]; cực 23/17 ≈ 1,353 và 25/15 ≈ 1,667.', m: 'Bộ lọc tương tự có cực ở nửa phải (+3, +5) nên không ổn định; bộ lọc số cũng không ổn định. Song tuyến giữ nguyên tính chất này.', load: {tab: 'cd', v: 'bl|4|1 -8 15|0,1'}},
+ {g: 'A', id: 'A3', t: 'Ví dụ 3: mạch RC', q: 'H<sub>a</sub>(s) = 1/(1 + RCs). Chuyển sang mạch số bằng song tuyến.', s: ['Thay s = (2/T)(1 − z⁻¹)/(1 + z⁻¹).', 'H(z) = (1 + z⁻¹)/[(1 + z⁻¹) + (2RC/T)(1 − z⁻¹)].', 'Nhân tử, mẫu với T.'], a: 'H(z) = T(1 + z⁻¹)/[(T + 2RC) + (T − 2RC)z⁻¹].', m: 'Với RC = 0,5, T = 0,1: H(z) = 0,0909(1 + z⁻¹)/(1 − 0,818z⁻¹).', load: {tab: 'cd', v: 'bl|1|0,5 1|0,1'}},
+ {g: 'A', id: 'A4', t: 'Ví dụ 4: tương đương vi phân', q: 'H<sub>a</sub>(s) = 1/(s + 1). Tìm H(z) bằng tương đương vi phân.', s: ['Thay s = (1 − z⁻¹)/T.', 'H(z) = 1/[(1 − z⁻¹)/T + 1] = T/[(1 + T) − z⁻¹].'], a: 'H(z) = T/[(1 + T) − z⁻¹], cực z = 1/(1 + T).', m: 'Với T = 0,1: cực 0,909 &lt; 1, ổn định.', load: {tab: 'cd', v: 'bd|1|1 1|0,1'}},
+ {g: 'A', id: 'A5', t: 'Ví dụ 5: z thích ứng', q: 'H<sub>a</sub>(s) = s(s + 1)/[(s + 2)(s + 3)]. Tìm H(z) bằng z thích ứng.', s: ['Không: s = 0, s = −1 ⇒ (1 − z⁻¹)(1 − e<sup>−T</sup>z⁻¹).', 'Cực: s = −2, −3 ⇒ (1 − e<sup>−2T</sup>z⁻¹)(1 − e<sup>−3T</sup>z⁻¹).', 'Khai triển: tử 1 − (1 + e<sup>−T</sup>)z⁻¹ + e<sup>−T</sup>z⁻²; mẫu 1 − (e<sup>−2T</sup> + e<sup>−3T</sup>)z⁻¹ + e<sup>−5T</sup>z⁻².'], a: 'b₀ = 1, b₁ = −(1 + e<sup>−T</sup>), b₂ = e<sup>−T</sup>; a₁ = −(e<sup>−2T</sup> + e<sup>−3T</sup>), a₂ = e<sup>−5T</sup>.', m: 'Chú ý dấu: b₁ và a₁ mang dấu âm, a₂ mang dấu dương (bài giảng ghi a₁ = e<sup>−3T</sup> + e<sup>−2T</sup>, a₂ = −e<sup>−5T</sup> là thiếu dấu).', load: {tab: 'cd', v: 'mz|1 1 0|1 5 6|0,1'}},
+ {g: 'B', id: 'B1', t: 'Ánh xạ một cực', q: 'Cực tương tự s = −2 + j8, T<sub>s</sub> = 0,1. Tìm cực số theo bất biến xung và song tuyến.', s: ['Bất biến xung: z = e<sup>−0,2</sup>·e<sup>j0,8</sup>, |z| = e<sup>−0,2</sup> ≈ 0,819.', 'Song tuyến: z = (1 − 0,1 + j0,4)/(1 + 0,1 − j0,4) = (0,9 + j0,4)/(1,1 − j0,4).', '|z| = √(0,81 + 0,16)/√(1,21 + 0,16) ≈ 0,985/1,170 ≈ 0,841.'], a: '|z| ≈ 0,819 (bất biến xung), ≈ 0,841 (song tuyến): đều ổn định.', m: 'Cực ở nửa trái luôn rơi vào trong vòng tròn với cả hai phương pháp.', load: {tab: 'ss', sg: '-2', om: '8', T: '0.1'}},
+ {g: 'B', id: 'B2', t: 'Méo tần số', q: 'Song tuyến với f<sub>s</sub> = 8000 Hz. Tần số số ω = π/2 ứng với tần số tương tự Ω nào?', s: ['(9.19): Ω = (2/T)·tg(ω/2) = 16000·tg(π/4).'], a: 'Ω = 16000 rad/s (≈ 2546 Hz), không phải 2000 Hz.', m: 'Vì méo phi tuyến này, khi thiết kế phải "méo trước" (prewarp) các tần số chỉ tiêu, buttord làm sẵn bước này.'},
+ {g: 'C', id: 'C1', t: 'Bài mẫu 1 (đổi δ ra dB)', q: 'Thông thấp δ<sub>p</sub> = 0,03, δ<sub>s</sub> = 0,09, ω<sub>p</sub> = 0,4π, ω<sub>s</sub> = 0,6π. Thiết kế Butterworth song tuyến.', s: ['R<sub>p</sub> = −20log(0,97) ≈ 0,265 dB; R<sub>s</sub> = −20log(0,09) ≈ 20,92 dB.', 'Ω<sub>p</sub> = tg(0,2π) ≈ 0,7265; Ω<sub>s</sub> = tg(0,3π) ≈ 1,3764; tỉ số ≈ 1,894.', 'N = ⌈log<sub>10</sub>[(10<sup>2,092</sup> − 1)/(10<sup>0,0265</sup> − 1)]/(2log<sub>10</sub>1,894)⌉ = 6.'], a: 'N = 6.', m: 'Nếu truyền thẳng 0,03 và 0,09 vào buttord như mã mẫu (hiểu là dB) thì chỉ được N = 1.', load: {tab: 'bw', v: 'butter|low|pi|0,4|0,6|d|0,03|0,09|'}},
+ {g: 'C', id: 'C2', t: 'Thực hành 2: thông cao', q: 'Thông cao Butterworth: f<sub>p</sub> = 3000 Hz, f<sub>s</sub> = 1000 Hz, R<sub>p</sub> = 0,5 dB, R<sub>s</sub> = 25 dB, f = 8000 Hz.', s: ['W<sub>p</sub> = 2·3000/8000 = 0,75; W<sub>s</sub> = 0,25.', 'Ω<sub>p</sub> = tg(0,375π) ≈ 2,414; Ω<sub>s</sub> = tg(0,125π) ≈ 0,414; tỉ số ≈ 5,83.', 'N = ⌈log<sub>10</sub>[(10<sup>2,5</sup> − 1)/(10<sup>0,05</sup> − 1)]/(2log<sub>10</sub>5,83)⌉ = 3.'], a: 'N = 3, W<sub>n</sub> ≈ 0,5246.', m: 'Thông cao chỉ cần bậc 3 vì dải chuyển tiếp rất rộng (1000–3000 Hz).', load: {tab: 'bw', v: 'butter|high|hz|3000|1000|db|0,5|25|8000'}},
+ {g: 'C', id: 'C3', t: 'Thực hành 1: thông dải', q: 'Thông dải Butterworth: δ<sub>p</sub> = 0,07, δ<sub>s</sub> = 0,1, ω<sub>p</sub> = [0,2π; 0,7π], ω<sub>s</sub> = [0,1π; 0,8π].', s: ['R<sub>p</sub> = −20log(0,93) ≈ 0,63 dB; R<sub>s</sub> = 20 dB.', 'Đổi sang thông thấp tương đương, tỉ số chọn lọc ≈ 1,6.', 'buttord cho N = 6; H(z) bậc 12.'], a: 'N = 6, W<sub>n</sub> ≈ [0,176; 0,733].', m: 'Thông dải bậc N cho H(z) bậc 2N.', load: {tab: 'bw', v: 'butter|bandpass|pi|0,2 0,7|0,1 0,8|d|0,07|0,1|'}},
+ {g: 'C', id: 'C4', t: 'Butterworth hay Chebyshev', q: 'Thông thấp ω<sub>p</sub> = 0,4π, ω<sub>s</sub> = 0,6π, R<sub>p</sub> = 1 dB, R<sub>s</sub> = 30 dB. So sánh bậc Butterworth và Chebyshev I.', s: ['Tỉ số Ω<sub>s</sub>/Ω<sub>p</sub> ≈ 1,894; G = (10³ − 1)/(10<sup>0,1</sup> − 1) ≈ 3859.', 'Butterworth: N = ⌈log<sub>10</sub>3859/(2·log<sub>10</sub>1,894)⌉ = ⌈6,46⌉ = 7.', 'Chebyshev: N = ⌈arccosh√3859/arccosh 1,894⌉ = ⌈3,85⌉ = 4.'], a: 'Butterworth bậc 7, Chebyshev I bậc 4.', m: 'Chấp nhận gợn đều trong dải thông thì tiết kiệm gần một nửa số phép nhân.', load: {tab: 'bw', v: 'cheby1|low|pi|0,4|0,6|db|1|30|'}}
+];
+function setCd(v){ const [m, b, a, T] = v.split('|'); $('cd-m').value = m; $('cd-b').value = b; $('cd-a').value = a; $('cd-T').value = T; }
+function setBw(v){ const [k, t, u, wp, ws, r, r1, r2, fs] = v.split('|'); Object.assign(BW, {k, t, u, r}); $('bw-wp').value = wp; $('bw-ws').value = ws; $('bw-rp').value = r1; $('bw-rs').value = r2; if (fs) $('bw-fs').value = fs; }
+function loadEx(L){
+  if (L.tab === 'cd') setCd(L.v); if (L.tab === 'bw') setBw(L.v);
+  if (L.tab === 'ss'){ $('ss-sg').value = L.sg; $('ss-om').value = L.om; $('ss-T').value = L.T; }
+  Lab.show(L.tab);
+}
+const renderEx = Lab.exercises(EX, {A: 'Nhóm A. Chuyển Hₐ(s) sang H(z)', B: 'Nhóm B. Ánh xạ s → z, méo tần số', C: 'Nhóm C. Thiết kế Butterworth, Chebyshev'}, loadEx);
+
+/* =================== SỰ KIỆN =================== */
+['ss-sg', 'ss-om', 'ss-T'].forEach(id => $(id).addEventListener('input', renderSs));
+['cd-m', 'cd-b', 'cd-a', 'cd-T'].forEach(id => $(id).addEventListener('input', renderCd));
+document.querySelectorAll('[data-cd]').forEach(b => b.addEventListener('click', () => { setCd(b.dataset.cd); renderCd(); }));
+[['bw-kind', 'k'], ['bw-type', 't'], ['bw-u', 'u'], ['bw-r', 'r']].forEach(([id, key]) => $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const v = b.dataset[key];
+  if (key === 't' && v !== BW.t){ if (v === 'bandpass'){ $('bw-wp').value = BW.u === 'hz' ? '1000 2500' : '0,3 0,6'; $('bw-ws').value = BW.u === 'hz' ? '600 3000' : '0,2 0,7'; } else if (v === 'high'){ $('bw-wp').value = BW.u === 'hz' ? '2400' : '0,6'; $('bw-ws').value = BW.u === 'hz' ? '1600' : '0,4'; } else { $('bw-wp').value = BW.u === 'hz' ? '1600' : '0,4'; $('bw-ws').value = BW.u === 'hz' ? '2400' : '0,6'; } }
+  if (key === 'r' && v !== BW.r){ if (v === 'd'){ $('bw-rp').value = '0,05'; $('bw-rs').value = '0,1'; } else { $('bw-rp').value = '1'; $('bw-rs').value = '20'; } }
+  if (key === 'u' && v !== BW.u){ const fs = parseNum($('bw-fs').value) || 8000, conv_ = s => (parseList(s) || []).map(x => v === 'hz' ? x * fs / 2 : 2 * x / fs).map(x => fmt(x, 4)).join(' '); $('bw-wp').value = conv_($('bw-wp').value); $('bw-ws').value = conv_($('bw-ws').value); }
+  BW[key] = v; renderBw(); }));
+['bw-fs', 'bw-wp', 'bw-ws', 'bw-rp', 'bw-rs'].forEach(id => $(id).addEventListener('input', renderBw));
+document.querySelectorAll('[data-bw]').forEach(b => b.addEventListener('click', () => { setBw(b.dataset.bw); renderBw(); }));
+Lab.copy('ml-copy', 'ml-code'); Lab.copy('ml-copy2', 'ml-code2');
+Lab.init({ss: renderSs, cd: renderCd, bw: renderBw, ml: renderMl, ex: renderEx}, 'iir-tab', 'cd');
+
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

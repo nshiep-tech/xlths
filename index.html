@@ -78,7 +78,7 @@ section.blk{padding-block:80px 0}
 .scope figcaption{margin-top:6px;font-size:13px;color:var(--muted)}
 
 /* ---------- Phần mềm mô phỏng ---------- */
-.tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .tool{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:box-shadow .2s,border-color .2s,transform .2s}
 .tool:hover{box-shadow:var(--shadow-lg);border-color:#C7D2E3;transform:translateY(-2px)}
 .tool .thumb{background:#F8FAFC;border-bottom:1px solid var(--line);display:grid;place-items:center;padding:18px;height:130px}
@@ -215,12 +215,12 @@ footer b{color:#fff}
 
 <main>
   <section class="blk wrap" id="phan-mem">
-    <div class="sec-h"><h2>Phần mềm mô phỏng</h2><p>Nhập số liệu, xem đồ thị và lời giải từng bước cập nhật ngay.</p></div>
+    <div class="sec-h"><h2>Phần mềm mô phỏng</h2><p>9 phần mềm ứng với 9 buổi học. Nhập số liệu, xem đồ thị và lời giải từng bước cập nhật ngay.</p></div>
     <div class="tools" id="tools"></div>
   </section>
 
   <section class="blk wrap" id="bai-hoc">
-    <div class="sec-h"><h2>Bài học</h2><p>9 buổi chia thành 4 chương. Buổi có phần mềm: bấm để vào thực hành.</p></div>
+    <div class="sec-h"><h2>Bài học</h2><p>9 buổi chia thành 4 chương. Buổi nào cũng có phần mềm thực hành: bấm vào tên buổi để mở.</p></div>
     <div class="course" id="course"></div>
   </section>
 
@@ -265,6 +265,9 @@ footer b{color:#fff}
             <tr><td><code>roots(a)</code></td><td>Điểm cực (nghiệm mẫu số)</td></tr>
             <tr><td><code>zplane(b, a)</code></td><td>Đồ thị cực – không</td></tr>
             <tr><td><code>residuez(b, a)</code></td><td>Phân thức tối giản cho Z ngược</td></tr>
+            <tr><td><code>freqz(b, a, n)</code></td><td>Đáp ứng tần số H(e<sup>jω</sup>)</td></tr>
+            <tr><td><code>fir1(n, Wn, 'low', hamming(N))</code></td><td>Thiết kế FIR bằng cửa sổ</td></tr>
+            <tr><td><code>buttord, butter</code></td><td>Thiết kế IIR Butterworth</td></tr>
           </tbody>
         </table></div></div>
       </details>
@@ -319,19 +322,29 @@ footer b{color:#fff}
     ['top', 'phan-mem', 'bai-hoc', 'tai-lieu'].forEach(function(id){ io.observe($(id)); });
   }
 
-  /* ---------- Phần mềm mô phỏng (4 công cụ) ---------- */
+  /* ---------- Phần mềm mô phỏng (9 công cụ) ---------- */
   var mono = 'font-family="JetBrains Mono,monospace"';
   var TH = {
     seq: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 50h152" stroke="#94A3B8"/>' + [0,1,2,3,4,5,6,7,8,9,10].map(function(k){ var x = 12 + k * 14.5, y = 50 - 34 * Math.sin(k * 0.75); return '<path d="M' + x + ' 50V' + y.toFixed(1) + '" stroke="#1E40AF" stroke-width="2"/><circle cx="' + x + '" cy="' + y.toFixed(1) + '" r="3.2" fill="#1E40AF"/>'; }).join('') + '</svg>',
     conv: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 88h152" stroke="#94A3B8"/>' + [1,3,5,3].map(function(v, k){ var x = 42 + k * 28, y = 88 - v * 13; return '<path d="M' + x + ' 88V' + y + '" stroke="#BE123C" stroke-width="2.4"/><circle cx="' + x + '" cy="' + y + '" r="4" fill="#BE123C"/>'; }).join('') + '<text x="10" y="14" ' + mono + ' font-size="12" fill="#142B4A">x * h</text></svg>',
     z: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M84 4v92M30 50h108" stroke="#94A3B8"/><circle cx="84" cy="50" r="38" fill="none" stroke="#047857" stroke-width="2"/><circle cx="84" cy="50" r="24" fill="#ECFDF5" stroke="#047857" stroke-dasharray="4 3"/><path d="M98 32l8 8M106 32l-8 8M98 60l8 8M106 60l-8 8" stroke="#BE123C" stroke-width="2.4"/><circle cx="63" cy="50" r="4.5" fill="#fff" stroke="#1E40AF" stroke-width="2"/></svg>',
-    sys: '<svg viewBox="0 0 168 100" aria-hidden="true"><g fill="none" stroke="#142B4A" stroke-width="1.6"><path d="M6 30h30M76 30h34M146 30h16"/><rect x="36" y="18" width="40" height="24" rx="4" fill="#EEF2F8"/><rect x="110" y="18" width="36" height="24" rx="4" fill="#EEF2F8"/><circle cx="56" cy="76" r="9" fill="#fff"/><path d="M56 42v25M65 76h63V42M50 76h-6M56 70v12"/></g><text x="47" y="34" ' + mono + ' font-size="11" fill="#142B4A">z⁻¹</text><text x="119" y="34" ' + mono + ' font-size="11" fill="#142B4A">z⁻¹</text></svg>'
+    sys: '<svg viewBox="0 0 168 100" aria-hidden="true"><g fill="none" stroke="#142B4A" stroke-width="1.6"><path d="M6 30h30M76 30h34M146 30h16"/><rect x="36" y="18" width="40" height="24" rx="4" fill="#EEF2F8"/><rect x="110" y="18" width="36" height="24" rx="4" fill="#EEF2F8"/><circle cx="56" cy="76" r="9" fill="#fff"/><path d="M56 42v25M65 76h63V42M50 76h-6M56 70v12"/></g><text x="47" y="34" ' + mono + ' font-size="11" fill="#142B4A">z⁻¹</text><text x="119" y="34" ' + mono + ' font-size="11" fill="#142B4A">z⁻¹</text></svg>',
+    four: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 88h152" stroke="#94A3B8"/>' + [0.2,0.5,1,0.5,0.2,0.1,0.35,0.7,0.35,0.1].map(function(v, k){ var x = 18 + k * 15; return '<rect x="' + (x - 4) + '" y="' + (88 - v * 70) + '" width="8" height="' + (v * 70) + '" rx="1.5" fill="' + (k < 5 ? '#1E40AF' : '#BE123C') + '"/>'; }).join('') + '<text x="10" y="14" ' + mono + ' font-size="12" fill="#142B4A">|X(e^jω)|</text></svg>',
+    freq: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 88h152M12 10v80" stroke="#94A3B8"/><path d="M12 30C40 30 52 32 70 40S100 82 158 84" fill="none" stroke="#1E40AF" stroke-width="2.6"/><path d="M12 60L158 30" fill="none" stroke="#BE123C" stroke-width="1.8" stroke-dasharray="5 4"/><text x="120" y="22" ' + mono + ' font-size="11" fill="#142B4A">|H|</text></svg>',
+    ideal: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 84h152M84 8v80" stroke="#94A3B8"/><rect x="54" y="24" width="60" height="60" fill="#ECFDF5" stroke="#047857" stroke-width="2.4"/><text x="58" y="18" ' + mono + ' font-size="11" fill="#142B4A">−ωc</text><text x="100" y="18" ' + mono + ' font-size="11" fill="#142B4A">ωc</text></svg>',
+    fir: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M8 70h152" stroke="#94A3B8"/>' + [-0.05,-0.1,0,0.3,0.75,1,0.75,0.3,0,-0.1,-0.05].map(function(v, k){ var x = 14 + k * 14, y = 70 - v * 56; return '<path d="M' + x + ' 70V' + y.toFixed(1) + '" stroke="#BE123C" stroke-width="2"/><circle cx="' + x + '" cy="' + y.toFixed(1) + '" r="3.2" fill="#BE123C"/>'; }).join('') + '<path d="M84 8v84" stroke="#047857" stroke-dasharray="3 3"/></svg>',
+    iir: '<svg viewBox="0 0 168 100" aria-hidden="true"><path d="M84 4v92M30 50h108" stroke="#94A3B8"/><circle cx="84" cy="50" r="40" fill="#ECFDF5" stroke="#142B4A" stroke-dasharray="3 3"/>' + [[0.75,0.45],[0.65,0.3],[0.6,0.12],[0.6,-0.12],[0.65,-0.3],[0.75,-0.45]].map(function(p){ var x = 84 + p[0] * 40 - 24, y = 50 - p[1] * 40 * 1.6; return '<path d="M' + (x - 4) + ' ' + (y - 4) + 'L' + (x + 4) + ' ' + (y + 4) + 'M' + (x - 4) + ' ' + (y + 4) + 'L' + (x + 4) + ' ' + (y - 4) + '" stroke="#BE123C" stroke-width="2.2"/>'; }).join('') + '<circle cx="44" cy="50" r="4.5" fill="#fff" stroke="#047857" stroke-width="2"/></svg>'
   };
   var T = [
     {n: 1, href: 'day-tin-hieu.html', th: 'seq', t: 'Tín hiệu rời rạc', d: 'Lấy mẫu, lượng tử hóa, các dãy cơ bản.'},
     {n: 2, href: 'tich-chap.html', th: 'conv', t: 'Tích chập', d: 'Tích chập từng bước, phương trình sai phân.'},
     {n: 3, href: 'bien-doi-z.html', th: 'z', t: 'Biến đổi Z', d: 'Miền hội tụ, cực – không, Z ngược.'},
-    {n: 4, href: 'he-thong-z.html', th: 'sys', t: 'Hệ thống miền Z', d: 'Hàm truyền, sơ đồ khối, ổn định.'}
+    {n: 4, href: 'he-thong-z.html', th: 'sys', t: 'Hệ thống miền Z', d: 'Hàm truyền, sơ đồ khối, ổn định.'},
+    {n: 5, href: 'fourier.html', th: 'four', t: 'Biến đổi Fourier', d: 'Phổ biên độ, phổ pha, tính chất, Parseval.'},
+    {n: 6, href: 'dap-ung-tan-so.html', th: 'freq', t: 'Đáp ứng tần số', d: 'H(e^jω), đánh giá hình học, freqz.'},
+    {n: 7, href: 'bo-loc-ly-tuong.html', th: 'ideal', t: 'Bộ lọc lý tưởng', d: 'Bốn bộ lọc lý tưởng, dạng nối tiếp, song song.'},
+    {n: 8, href: 'thiet-ke-fir.html', th: 'fir', t: 'Thiết kế FIR', d: 'Phương pháp cửa sổ, Gibbs, lấy mẫu tần số.'},
+    {n: 9, href: 'thiet-ke-iir.html', th: 'iir', t: 'Thiết kế IIR', d: 'Bất biến xung, song tuyến, Butterworth.'}
   ];
   $('tools').innerHTML = T.map(function(x){
     return '<a class="tool" href="' + x.href + '"><div class="thumb">' + TH[x.th] + '</div><div class="tb"><span class="meta">Buổi ' + x.n + '</span><h3>' + x.t + '</h3><p>' + x.d + '</p><span class="go">Mở công cụ ' + ARROW + '</span></div></a>';
@@ -346,12 +359,12 @@ footer b{color:#fff}
       ['Biến đổi Z và các tính chất của biến đổi Z', 'bien-doi-z.html'],
       ['Biểu diễn hệ thống trong miền Z và thực hiện trên MATLAB', 'he-thong-z.html']]},
     {t: 'Phân tích trong miền tần số', b: [
-      ['Biến đổi Fourier và tính chất'],
-      ['Biểu diễn hệ thống trên miền tần số và vẽ đáp ứng tần số bằng MATLAB']]},
+      ['Biến đổi Fourier và tính chất', 'fourier.html'],
+      ['Biểu diễn hệ thống trên miền tần số và vẽ đáp ứng tần số bằng MATLAB', 'dap-ung-tan-so.html']]},
     {t: 'Bộ lọc số', b: [
-      ['Bộ lọc số lý tưởng và cấu trúc bộ lọc số'],
-      ['Thiết kế bộ lọc FIR'],
-      ['Thiết kế bộ lọc IIR']]}
+      ['Bộ lọc số lý tưởng và cấu trúc bộ lọc số', 'bo-loc-ly-tuong.html'],
+      ['Thiết kế bộ lọc FIR', 'thiet-ke-fir.html'],
+      ['Thiết kế bộ lọc IIR', 'thiet-ke-iir.html']]}
   ];
   var k = 0, html = '';
   CH.forEach(function(c, ci){
@@ -403,8 +416,8 @@ footer b{color:#fff}
   function check(){
     caches.keys().then(function(ks){
       if (!ks.length) return false;
-      return caches.open(ks[ks.length - 1]).then(function(c){ return Promise.all(['day-tin-hieu.html', 'tich-chap.html', 'bien-doi-z.html', 'he-thong-z.html', 'assets/zcore.js', 'assets/theme.css'].map(function(u){ return c.match(u); })); }).then(function(r){ return r.every(Boolean); });
-    }).then(function(ok){ ok ? set(true, 'Đã lưu vào máy: cả 4 phần mềm dùng được khi không có mạng.') : set(false, 'Đang lưu phần mềm vào máy để dùng offline…'); }).catch(function(){});
+      return caches.open(ks[ks.length - 1]).then(function(c){ return Promise.all(['day-tin-hieu.html', 'tich-chap.html', 'bien-doi-z.html', 'he-thong-z.html', 'fourier.html', 'dap-ung-tan-so.html', 'bo-loc-ly-tuong.html', 'thiet-ke-fir.html', 'thiet-ke-iir.html', 'assets/zcore.js', 'assets/fcore.js', 'assets/lab.css', 'assets/theme.css'].map(function(u){ return c.match(u); })); }).then(function(r){ return r.every(Boolean); });
+    }).then(function(ok){ ok ? set(true, 'Đã lưu vào máy: cả 9 phần mềm dùng được khi không có mạng.') : set(false, 'Đang lưu phần mềm vào máy để dùng offline…'); }).catch(function(){});
   }
   addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').then(function(){ return navigator.serviceWorker.ready; }).then(function(){ setTimeout(check, 500); }).catch(function(){ set(false, 'Chưa lưu được để dùng offline. Hãy tải lại trang khi có mạng.'); });

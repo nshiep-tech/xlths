@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Đáp ứng tần số – DSP Lab</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DSP Lab">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="stylesheet" href="assets/lab.css">
+
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
+    <a href="he-thong-z.html"><span class="n">04</span>Hệ thống Z</a>
+    <a href="fourier.html"><span class="n">05</span>Fourier</a>
+    <a href="dap-ung-tan-so.html" aria-current="page"><span class="n">06</span>Đáp ứng tần số</a>
+    <a href="bo-loc-ly-tuong.html"><span class="n">07</span>Bộ lọc lý tưởng</a>
+    <a href="thiet-ke-fir.html"><span class="n">08</span>Thiết kế FIR</a>
+    <a href="thiet-ke-iir.html"><span class="n">09</span>Thiết kế IIR</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 6</div>
+      <h1>Hệ thống trên <span class="z">miền tần số</span></h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của bài">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="zf" id="tb-zf"><span class="no">1</span>Fourier và Z</button>
+      <button class="tab" role="tab" data-tab="hh" id="tb-hh"><span class="no">2</span>Đánh giá hình học</button>
+      <button class="tab" role="tab" data-tab="fr" id="tb-fr"><span class="no">3</span>Đáp ứng tần số</button>
+      <button class="tab" role="tab" data-tab="ml" id="tb-ml"><span class="no">4</span>MATLAB freqz</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+<!-- Bảng nhập hệ thống dùng chung cho tab 1–4 được lặp lại trong từng tab để luôn ở cạnh đồ thị -->
+<!-- ============ 1. FOURIER = Z TRÊN VÒNG TRÒN ============ -->
+<section class="tabpanel" id="p-zf" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">H(z) = B(z)/A(z), hệ số theo z⁻¹</span></div>
+      <div class="field"><span class="lbl">Tử số b₀ b₁ b₂ …</span><input type="text" class="sys-b" value="1"></div>
+      <div class="field"><span class="lbl">Mẫu số a₀ a₁ a₂ …</span><input type="text" class="sys-a" value="1 -0,5"></div>
+      <small class="muted">Hệ được coi là nhân quả: ROC nằm ngoài cực xa gốc nhất.</small>
+      <div class="field"><span class="lbl">Ví dụ bài giảng</span>
+        <div class="chips">
+          <button class="chip small" data-sys="1|1 -0,5">x₁ = (1/2)ⁿu(n)</button>
+          <button class="chip small" data-sys="1|1 -2">x₂ = 2ⁿu(n)</button>
+          <button class="chip small" data-sys="1|1 -0,9">y(n) − 0,9y(n−1) = x(n)</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Biến đổi Fourier chính là biến đổi Z trên vòng tròn đơn vị</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Đã có H(z) từ Buổi 4. Muốn biết hệ làm gì với từng tần số chỉ cần thay z = e<sup>jω</sup>, không phải tính lại từ đầu.</div>
+          <div class="what"><b>Quan hệ</b>z = r·e<sup>jω</sup>. Trên vòng tròn r = 1 thì X(z) trở thành X(e<sup>jω</sup>). Chỉ làm được khi ROC chứa vòng tròn |z| = 1.</div>
+          <div class="use"><b>Ý nghĩa</b>Hệ nhân quả ổn định (mọi cực trong vòng tròn) thì luôn có đáp ứng tần số. Ổn định và "có phổ" là cùng một điều kiện.</div>
+        </div>
+        <p class="ref">Mục 6.1.1 bài giảng.</p>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Mặt phẳng z</h2><div class="zbox" id="zf-z"></div><div class="legend"><span><i style="background:#ECFDF5;border:1px solid #047857"></i>ROC</span><span style="color:#BE123C">× cực</span><span style="color:#047857">○ không</span></div></div>
+        <div class="card"><h2>Từng bước</h2><ol class="steps" id="zf-steps"></ol></div>
+      </div>
+      <div class="card" id="zf-pc">
+        <div class="plot-hd"><h3>|H(e<sup>jω</sup>)| trên vòng tròn đơn vị</h3></div>
+        <div class="plot" id="zf-plot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. ĐÁNH GIÁ HÌNH HỌC ============ -->
+<section class="tabpanel" id="p-hh" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tử số b₀ b₁ b₂ …</span><input type="text" class="sys-b" value="1"></div>
+      <div class="field"><span class="lbl">Mẫu số a₀ a₁ a₂ …</span><input type="text" class="sys-a" value="1 -0,5"></div>
+      <div class="field"><span class="lbl">Điểm M = e<sup>jω</sup> trên vòng tròn, ω (phần của π)</span>
+        <div class="rangeRow"><input type="range" id="hh-w" min="0" max="1" step="0.01" value="0.25"><output id="hh-wo">π/4</output></div></div>
+      <div class="field"><span class="lbl">Ví dụ</span>
+        <div class="chips">
+          <button class="chip small" data-sys="1|1 -0,5">Một cực 0,5</button>
+          <button class="chip small" data-sys="1 -1|1 -0,5">Không tại 1, cực 0,5</button>
+          <button class="chip small" data-sys="1 1|1">Một không tại −1</button>
+          <button class="chip small" data-sys="0,15 0 -0,15|1 -0,5 0,7">Cực phức (TH 7)</button>
+        </div></div>
+      <button class="btn ghost" id="hh-play">Cho M chạy quanh vòng tròn</button>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Đọc |H| bằng thước kẻ trên mặt phẳng z</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Nhìn vị trí cực, không là đoán được bộ lọc thông thấp hay thông cao mà không cần tính.</div>
+          <div class="what"><b>Quy tắc</b>|H(e<sup>jω</sup>)| = |C|·(tích độ dài vectơ từ các điểm không đến M) / (tích độ dài vectơ từ các cực đến M).</div>
+          <div class="use"><b>Áp dụng</b>M gần cực thì |H| lớn (đỉnh). M gần điểm không thì |H| nhỏ (lõm). Đặt cực, không đúng chỗ là thiết kế được bộ lọc.</div>
+        </div>
+        <p class="ref">Mục 6.1.2 bài giảng: M<sub>0r</sub> = |e<sup>jω</sup> − z<sub>0r</sub>|, M<sub>pl</sub> = |e<sup>jω</sup> − z<sub>pl</sub>|.</p>
+      </div>
+      <div class="two">
+        <div class="card"><h2>Vectơ từ cực, không đến M</h2><div class="zbox" id="hh-z"></div></div>
+        <div class="card"><h2>Tính tại ω = <span id="hh-wt"></span></h2><div class="tbl-wrap" id="hh-tbl"></div><div id="hh-res"></div></div>
+      </div>
+      <div class="card">
+        <div class="plot-hd"><h3>|H(e<sup>jω</sup>)|, chấm đỏ là vị trí M hiện tại</h3></div>
+        <div class="plot" id="hh-plot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. ĐÁP ỨNG TẦN SỐ ============ -->
+<section class="tabpanel" id="p-fr" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tử số b₀ b₁ b₂ …</span><input type="text" class="sys-b" value="1"></div>
+      <div class="field"><span class="lbl">Mẫu số a₀ a₁ a₂ …</span><input type="text" class="sys-a" value="1 -0,5"></div>
+      <div class="field"><span class="lbl">Bài thực hành (mục 6.3)</span>
+        <div class="chips">
+          <button class="chip small" data-sys="1|1 -0,5">Bài 1a: z/(z − 0,5)</button>
+          <button class="chip small" data-sys="1 -0,5|1">Bài 1b: 1 − 0,5z⁻¹</button>
+          <button class="chip small" data-sys="1 -0,9 0,81|1 -0,6 0,36">TH 2</button>
+          <button class="chip small" data-sys="1 2 1|1 -0,5 0,25">TH 4</button>
+          <button class="chip small" data-sys="0,15 0 -0,15|1 -0,5 0,7">TH 7</button>
+        </div></div>
+      <div class="field"><span class="lbl">Thang biên độ</span><div class="seg2" id="fr-sc"><button data-s="lin" aria-pressed="true">Tuyến tính</button><button data-s="db" aria-pressed="false">dB</button></div></div>
+      <div class="field"><span class="lbl">Dải tần</span><div class="seg2" id="fr-rg"><button data-r="half" aria-pressed="true">0 → π</button><button data-r="whole" aria-pressed="false">−π → π</button></div></div>
+      <div class="field"><span class="lbl">Tần số lấy mẫu F<sub>s</sub> (Hz), để trống nếu dùng ω</span><input type="text" id="fr-fs" value=""></div>
+      <div class="field"><span class="lbl">Thử với đầu vào cos(ω₀n), ω₀ (phần của π)</span>
+        <div class="rangeRow"><input type="range" id="fr-w0" min="0" max="1" step="0.01" value="0.5"><output id="fr-w0o">π/2</output></div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Đáp ứng tần số H(e<sup>jω</sup>): hệ làm gì với từng tần số</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Đưa e<sup>jωn</sup> vào hệ LTI thì ra đúng tín hiệu đó nhân với một số phức H(e<sup>jω</sup>). Biết H là biết hệ khuếch đại, làm suy giảm, làm lệch pha mỗi tần số bao nhiêu.</div>
+          <div class="what"><b>Hai thành phần</b>|H(e<sup>jω</sup>)|: đáp ứng biên độ (to ra hay nhỏ đi). φ(ω) = arg H: đáp ứng pha (trễ bao nhiêu).</div>
+          <div class="use"><b>Ứng dụng</b>Bộ chỉnh âm (equalizer), lọc nhiễu điện lưới 50 Hz, kiểm tra một bộ lọc vừa thiết kế có đạt yêu cầu không.</div>
+        </div>
+        <p class="ref">Mục 6.2 bài giảng. H(e<sup>jω</sup>) = FT[h(n)], tức biến đổi Fourier của đáp ứng xung.</p>
+      </div>
+      <div class="card"><div class="math big" id="fr-sys"></div><div class="kv" id="fr-kv"></div><div id="fr-type"></div></div>
+      <div class="card">
+        <div class="plot-hd"><h3 id="fr-mt">Đáp ứng biên độ |H(e<sup>jω</sup>)|</h3></div>
+        <div class="plot" id="fr-m"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3>Đáp ứng pha φ(ω) (độ, đã nối liền như unwrap)</h3></div>
+        <div class="plot" id="fr-p"></div>
+      </div>
+      <div class="card">
+        <h2>Kiểm chứng: đưa cos(ω₀n) vào hệ</h2>
+        <p id="fr-sin-t"></p>
+        <div class="plot" id="fr-sin"></div>
+        <div id="fr-sin-l"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. MATLAB ============ -->
+<section class="tabpanel" id="p-ml" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tử số b</span><input type="text" class="sys-b" value="1"></div>
+      <div class="field"><span class="lbl">Mẫu số a</span><input type="text" class="sys-a" value="1 -0,5"></div>
+      <div class="field"><span class="lbl">Số điểm n</span><input type="number" id="ml-n" value="1024" min="8" step="1"></div>
+      <small class="muted">Đổi H(z) ở đây hoặc ở tab 3, chương trình tự viết lại.</small>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <div class="hd-row"><h2>Chương trình vẽ đáp ứng biên độ và pha</h2><button class="btn ghost" id="ml-copy">Sao chép</button></div>
+        <pre class="code" id="ml-code"></pre>
+        <p class="key">Theo mẫu Bài 1, mục 6.3.1. Lưu ý: bài giảng đặt nhãn trục 'Magnitude(dB)' nhưng vẽ abs(h); muốn đúng dB phải vẽ 20*log10(abs(h)).</p>
+      </div>
+      <div class="card"><h2>Giải thích cú pháp freqz</h2>
+        <table class="t"><tr><th>Cú pháp</th><th>Ý nghĩa</th></tr>
+          <tr><td class="m">[h,w] = freqz(b,a,n)</td><td>n điểm đều trên nửa vòng tròn, w từ 0 đến π</td></tr>
+          <tr><td class="m">[h,f] = freqz(b,a,n,Fs)</td><td>Trục tần số tính bằng Hz, từ 0 đến Fs/2</td></tr>
+          <tr><td class="m">[h,w] = freqz(b,a,n,'whole')</td><td>n điểm trên cả vòng tròn, w từ 0 đến 2π</td></tr>
+          <tr><td class="m">h = freqz(b,a,w)</td><td>Tính H tại đúng các tần số trong vectơ w</td></tr>
+          <tr><td class="m">freqz(b,a)</td><td>Không gán biến: vẽ luôn biên độ (dB) và pha</td></tr>
+        </table></div>
+      <div class="card"><h2>Kết quả để đối chiếu</h2><div class="tbl-wrap" id="ml-out"></div></div>
+      <div class="card"><div class="hd-row"><h2>Bài nâng cao (mục 6.3.3)</h2><button class="btn ghost" id="ml-copy2">Sao chép</button></div><pre class="code" id="ml-adv"></pre><div id="ml-adv-r"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải, bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Fourier và Z</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. Hình học</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Đáp ứng</button>
+          <button class="chip small" data-g="D" aria-pressed="false">D. Ứng dụng</button>
+        </div></div>
+    </aside>
+    <div class="out" id="ex-list"></div>
+  </div>
+</section>
+
+<footer>Đáp ứng tần số · Xử lý tín hiệu số · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+<script>(function(){var a=document.querySelector('.sitenav a[aria-current]');if(a&&a.scrollIntoView){var n=a.parentNode;n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.clientWidth/2;}})();</script>
+<script src="assets/zcore.js"></script>
+<script src="assets/fcore.js"></script>
+<script>
+/* =================== BUỔI 6: ĐÁP ỨNG TẦN SỐ =================== */
+let SYS = {b: [1], a: [1, -0.5]};
+function syncInputs(){ document.querySelectorAll('.sys-b').forEach(i => { if (document.activeElement !== i) i.value = SYS.b.map(v => fmt(v, 6)).join(' '); }); document.querySelectorAll('.sys-a').forEach(i => { if (document.activeElement !== i) i.value = SYS.a.map(v => fmt(v, 6)).join(' '); }); }
+function readFrom(el){ const box = el.closest('aside'); const b = parseList(box.querySelector('.sys-b').value), a = parseList(box.querySelector('.sys-a').value); if (!b || !a || isZ(a[0])) return false; SYS = {b, a}; return true; }
+function pzOf(b, a){ // dạng cực–không trên z: H = K·z^(N−M)·Π(z − z_r)/Π(z − p_l)
+  let d = 0; while (d < b.length - 1 && isZ(b[d])) d++;
+  const bt = b.slice(d), K = bt[0] / a[0];
+  const zs = bt.length > 1 ? roots(bt) : [], ps = a.length > 1 ? roots(a) : [];
+  const M = b.length - 1, N = a.length - 1, ex = N - M;
+  for (let i = 0; i < ex; i++) zs.push(C(0)); for (let i = 0; i < -ex; i++) ps.push(C(0));
+  return {zs, ps, K, ex: 0, d};
+}
+const Hsys = w => Hw(SYS.b, SYS.a, w);
+const W2 = wGrid(721), WF = wGrid(721, true);
+function sysStr(){ return `H(z) = ${frac(polyW(SYS.b), polyW(SYS.a))}`; }
+
+/* ---------- TAB 1 ---------- */
+function renderZf(){
+  const P = pzOf(SYS.b, SYS.a), rmax = P.ps.length ? Math.max(...P.ps.map(cabs)) : 0, ok = rmax < 1 - 1e-12;
+  zPlane($('zf-z'), {poles: groupRoots(P.ps), zeros: groupRoots(P.zs), roc: {rin: rmax, rout: Infinity}, size: 330});
+  const st = [];
+  st.push(`<b>Hàm truyền:</b> <span class="math">${sysStr()}</span>`);
+  st.push(`<b>Cực:</b> ${P.ps.length ? P.ps.map(p => `z = ${fmtc(p, 4)} (|z| = ${fmt(cabs(p), 4)})`).join('; ') : 'không có cực ngoài gốc'}. Hệ nhân quả nên ROC: |z| &gt; ${fmt(rmax, 4)}.`);
+  if (ok){
+    st.push(`<b>ROC chứa vòng tròn |z| = 1</b> (vì ${fmt(rmax, 4)} &lt; 1), nên được phép thay z = e<sup>jω</sup>.`);
+    st.push(`<b>Kết quả:</b> <span class="math">H(e<sup>jω</sup>) = ${frac(polyW(SYS.b).replace(/z<sup>−(\d+)<\/sup>/g, 'e<sup>−j$1ω</sup>').replace(/e<sup>−j1ω<\/sup>/g, 'e<sup>−jω</sup>'), polyW(SYS.a).replace(/z<sup>−(\d+)<\/sup>/g, 'e<sup>−j$1ω</sup>').replace(/e<sup>−j1ω<\/sup>/g, 'e<sup>−jω</sup>'))}</span>`);
+  } else st.push(`<b>ROC không chứa vòng tròn đơn vị</b> (|z| &gt; ${fmt(rmax, 4)} ≥ 1): không tồn tại H(e<sup>jω</sup>). Hệ cũng không ổn định, đúng như Buổi 4.`);
+  $('zf-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  $('zf-pc').hidden = !ok;
+  if (ok) linePlot($('zf-plot'), {x: W2, series: [{y: W2.map(w => cabs(Hsys(w))), color: COL.x, w: 2.4}], ylabel: '|H|', label: 'Đáp ứng biên độ'});
+}
+
+/* ---------- TAB 2 ---------- */
+function geoPlane(el, P, w){
+  const S = Math.max(260, Math.min(el.clientWidth || 340, 380)); const pts = [...P.zs, ...P.ps].map(cabs);
+  const ext = Math.min(3, Math.max(1.35, ...pts.map(r => r * 1.2))); const c = S / 2, k = (S / 2 - 24) / ext, X = z => c + z.re * k, Y = z => c - z.im * k;
+  const M = cexpj(w); let s = `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" role="img" aria-label="Vectơ đến điểm M"><rect x="4" y="4" width="${S - 8}" height="${S - 8}" rx="8" fill="#fff" stroke="#E2E8F0"/>`;
+  s += `<line x1="10" x2="${S - 10}" y1="${c}" y2="${c}" stroke="#94A3B8"/><line x1="${c}" x2="${c}" y1="10" y2="${S - 10}" stroke="#94A3B8"/><circle cx="${c}" cy="${c}" r="${k}" fill="none" stroke="#142B4A" stroke-dasharray="3 3"/>`;
+  P.zs.forEach(z => { s += `<line x1="${X(z)}" y1="${Y(z)}" x2="${X(M)}" y2="${Y(M)}" stroke="#047857" stroke-width="2"/>`; });
+  P.ps.forEach(z => { s += `<line x1="${X(z)}" y1="${Y(z)}" x2="${X(M)}" y2="${Y(M)}" stroke="#BE123C" stroke-width="2"/>`; });
+  P.zs.forEach(z => { s += `<circle cx="${X(z)}" cy="${Y(z)}" r="6.5" fill="#fff" stroke="#047857" stroke-width="2.2"/>`; });
+  P.ps.forEach(z => { const x = X(z), y = Y(z); s += `<path d="M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x - 6} ${y + 6}L${x + 6} ${y - 6}" stroke="#BE123C" stroke-width="2.4"/>`; });
+  s += `<circle cx="${X(M)}" cy="${Y(M)}" r="7" fill="#1E40AF"/><text x="${X(M) + 10}" y="${Y(M) - 8}" font-size="13" font-weight="700" fill="#1E40AF">M</text>`;
+  s += `<text x="${S - 14}" y="${c - 6}" text-anchor="end" font-size="11.5" fill="#64748B">Re</text><text x="${c + 6}" y="20" font-size="11.5" fill="#64748B">Im</text>`;
+  el.innerHTML = s + '</svg>';
+}
+let HHW = 0.25, hhTimer = null;
+function renderHh(){
+  const w = HHW * PI; $('hh-wo').textContent = piStr(w); $('hh-wt').textContent = piStr(w);
+  const P = pzOf(SYS.b, SYS.a), M = cexpj(w);
+  geoPlane($('hh-z'), P, w);
+  let rows = '', num = 1, den = 1, ang = carg(C(P.K)) + P.ex * w;
+  P.zs.forEach((z, i) => { const v = csub(M, z), L = cabs(v); num *= L; ang += carg(v); rows += `<tr><td>Không z<sub>0${i + 1}</sub> = ${fmtc(z, 3)}</td><td class="m" style="color:#047857">${fmt(L, 4)}</td><td class="m">${fmt(carg(v) * 180 / PI, 2)}°</td></tr>`; });
+  P.ps.forEach((z, i) => { const v = csub(M, z), L = cabs(v); den *= L; ang -= carg(v); rows += `<tr><td>Cực z<sub>p${i + 1}</sub> = ${fmtc(z, 3)}</td><td class="m" style="color:#BE123C">${fmt(L, 4)}</td><td class="m">${fmt(carg(v) * 180 / PI, 2)}°</td></tr>`; });
+  const mag = Math.abs(P.K) * num / den, Hd = Hsys(w);
+  let ph = ang; while (ph > PI) ph -= 2 * PI; while (ph <= -PI) ph += 2 * PI;
+  $('hh-tbl').innerHTML = `<table class="t"><tr><th>Vectơ đến M</th><th>Độ dài</th><th>Góc</th></tr>${rows || '<tr><td colspan="3">Không có cực, không ngoài gốc</td></tr>'}</table>`;
+  $('hh-res').innerHTML = `<div class="res math">|H| = |C|·ΠM<sub>0r</sub>/ΠM<sub>pl</sub> = ${fmt(Math.abs(P.K), 4)}·${fmt(num, 4)}/${fmt(den, 4)} = <b>${fmt(mag, 4)}</b><br>φ = ${fmt(ph * 180 / PI, 2)}°</div><p class="key">Tính trực tiếp H(e<sup>jω</sup>) = ${fmtc(Hd, 4)}: |H| = ${fmt(cabs(Hd), 4)}, φ = ${fmt(carg(Hd) * 180 / PI, 2)}° ${Math.abs(cabs(Hd) - mag) < 1e-6 ? '<span class="ok">✓ Khớp</span>' : ''}</p>`;
+  const m = W2.map(t => cabs(Hsys(t)));
+  linePlot($('hh-plot'), {x: W2, series: [{y: m, color: COL.x, w: 2.2}], dots: [{x: w, y: mag, color: COL.y, r: 6, label: fmt(mag, 3)}], vlines: [{x: w, color: COL.y, dash: '3 3'}], ylabel: '|H|', label: 'Đáp ứng biên độ'});
+}
+
+/* ---------- TAB 3 ---------- */
+let FR = {sc: 'lin', rg: 'half', w0: 0.5};
+function classify(m, w){
+  const lo = m[0], hi = m[m.length - 1], pk = Math.max(...m), i = m.indexOf(pk), mid = w[i];
+  if (pk < 1e-12) return '';
+  const r = (a, b) => Math.abs(a - b) / Math.max(pk, 1e-12) < 0.08;
+  if (Math.max(...m) - Math.min(...m) < 0.02 * pk) return 'Biên độ gần như không đổi: hệ cho mọi tần số đi qua như nhau (thông tất cả).';
+  if (lo >= 0.7 * pk && lo >= 2 * hi) return `Lớn ở tần số thấp (|H(0)| = ${fmt(lo, 3)}), nhỏ ở tần số cao (|H(π)| = ${fmt(hi, 3)}): tác dụng <b>thông thấp</b>.`;
+  if (hi >= 0.7 * pk && hi >= 2 * lo) return `Nhỏ ở tần số thấp (|H(0)| = ${fmt(lo, 3)}), lớn ở tần số cao (|H(π)| = ${fmt(hi, 3)}): tác dụng <b>thông cao</b>.`;
+  if (lo <= 0.3 * pk && hi <= 0.3 * pk && i > 0 && i < m.length - 1) return `Nhỏ ở hai đầu, đỉnh tại ω ≈ ${fmt(mid / PI, 3)}π: tác dụng <b>thông dải</b>.`;
+  const mn = Math.min(...m), j = m.indexOf(mn); if (mn <= 0.3 * pk && j > 0 && j < m.length - 1 && !r(lo, mn)) return `Lõm sâu tại ω ≈ ${fmt(w[j] / PI, 3)}π: tác dụng <b>chắn dải</b>.`;
+  return '';
+}
+function renderFr(){
+  setPressed('#fr-sc button', 's', FR.sc); setPressed('#fr-rg button', 'r', FR.rg);
+  const fs = parseNum($('fr-fs').value), useHz = isFinite(fs) && fs > 0;
+  const W = FR.rg === 'whole' ? WF : W2, H = W.map(Hsys), m = H.map(cabs);
+  const ph = unwrap(H.map(carg)).map(v => v * 180 / PI);
+  const xs = useHz ? W.map(w => w * fs / (2 * PI)) : W;
+  $('fr-sys').innerHTML = sysStr();
+  const at = w => Hsys(w), H0 = at(0), Hp = at(PI), Hh = at(PI / 2);
+  $('fr-kv').innerHTML = [['|H| tại ω = 0', fmt(cabs(H0), 4)], ['|H| tại ω = π/2', fmt(cabs(Hh), 4)], ['|H| tại ω = π', fmt(cabs(Hp), 4)], ['|H| lớn nhất', fmt(Math.max(...m), 4)]].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+  const P = pzOf(SYS.b, SYS.a), rmax = P.ps.length ? Math.max(...P.ps.map(cabs)) : 0;
+  $('fr-type').innerHTML = rmax >= 1 - 1e-12 ? '<div class="warn">Có cực nằm ngoài hoặc trên vòng tròn đơn vị: hệ không ổn định, đồ thị chỉ là H(z) trên vòng tròn, không phải đáp ứng thực của hệ.</div>' : (classify(W2.map(w => cabs(Hsys(w))), W2) ? `<div class="close">${classify(W2.map(w => cabs(Hsys(w))), W2)}</div>` : '');
+  const xo = useHz ? {xmode: 'hz'} : {};
+  $('fr-mt').innerHTML = FR.sc === 'db' ? 'Đáp ứng biên độ 20·log<sub>10</sub>|H(e<sup>jω</sup>)| (dB)' : 'Đáp ứng biên độ |H(e<sup>jω</sup>)|';
+  const ym = FR.sc === 'db' ? m.map(db) : m;
+  linePlot($('fr-m'), Object.assign({x: xs, series: [{y: ym, color: COL.x, w: 2.4}], ylabel: FR.sc === 'db' ? 'dB' : '|H|', ymin: FR.sc === 'db' ? Math.max(Math.min(...ym), Math.max(...ym) - 80) : undefined, zero: FR.sc !== 'db', label: 'Đáp ứng biên độ'}, xo));
+  linePlot($('fr-p'), Object.assign({x: xs, series: [{y: ph, color: COL.y, w: 2.2}], ylabel: 'độ', label: 'Đáp ứng pha'}, xo));
+  // đầu vào sin
+  const w0 = FR.w0 * PI; $('fr-w0o').textContent = piStr(w0);
+  const Hw0 = Hsys(w0), L = 48, x = [], n = []; for (let i = 0; i < L; i++){ x.push(Math.cos(w0 * i)); n.push(i); }
+  const y = filt(SYS.b, SYS.a, x), pred = n.map(i => cabs(Hw0) * Math.cos(w0 * i + carg(Hw0)));
+  $('fr-sin-t').innerHTML = `Lý thuyết: cos(${piStr(w0)}·n) đi qua hệ thành <b>${fmt(cabs(Hw0), 4)}·cos(${piStr(w0)}·n ${carg(Hw0) < 0 ? '−' : '+'} ${fmt(Math.abs(carg(Hw0) * 180 / PI), 2)}°)</b> khi đã qua giai đoạn quá độ. Đồ thị là kết quả tính đệ quy y(n) từ phương trình sai phân.`;
+  stemPlot($('fr-sin'), {nmin: 0, nmax: L - 1, series: [{n, v: x, color: '#94A3B8'}, {n, v: y, color: COL.y}], height: 230, label: 'Đầu vào và đầu ra'});
+  let err = 0; for (let i = 30; i < L; i++) err = Math.max(err, Math.abs(y[i] - pred[i]));
+  $('fr-sin-l').innerHTML = legendHTML([['#94A3B8', 'x(n) = cos(ω₀n)'], [COL.y, 'y(n) tính đệ quy']]) + (rmax < 1 ? `<p class="key">Từ n = 30 trở đi, y(n) và công thức |H|·cos(ω₀n + φ) lệch nhau tối đa ${fmt(err, 6)} ${err < 1e-3 ? '<span class="ok">✓</span>' : ''}.</p>` : '');
+}
+
+/* ---------- TAB 4 ---------- */
+function renderMl(){
+  const n = Math.max(8, parseInt($('ml-n').value, 10) || 1024);
+  $('ml-code').textContent = `b = ${mvec(SYS.b)};          % hệ số tử số\na = ${mvec(SYS.a)};          % hệ số mẫu số\n[h, w] = freqz(b, a, ${n});\nphi = 180*unwrap(angle(h))/pi;\nsubplot(2,1,1), plot(w, abs(h)), grid;\nxlabel('Frequency (radians)'), ylabel('Magnitude')\nsubplot(2,1,2), plot(w, phi), grid;\nxlabel('Frequency (radians)'), ylabel('Phase (degrees)')\n\n% Vẽ theo dB và chỉ ra cực, không:\n% plot(w, 20*log10(abs(h)))\n% zplane(b, a)`;
+  const pts = [0, PI / 4, PI / 2, 3 * PI / 4, PI];
+  $('ml-out').innerHTML = `<table class="t"><tr><th>w (rad)</th><th>h = H(e<sup>jw</sup>)</th><th>abs(h)</th><th>20log10|h| (dB)</th><th>angle(h) (độ)</th></tr>${pts.map(w => { const H = Hsys(w); return `<tr><td class="m">${piStr(w)} = ${fmt(w, 4)}</td><td class="m">${fmtc(H, 4)}</td><td class="m">${fmt(cabs(H), 4)}</td><td class="m">${fmt(db(cabs(H)), 2)}</td><td class="m">${fmt(carg(H) * 180 / PI, 2)}</td></tr>`; }).join('')}</table>`;
+  $('ml-adv').textContent = `% Bài 1: y(n) - 0,9y(n-1) = x(n)  =>  H(z) = 1/(1 - 0,9z^-1)\nb = 1; a = [1 -0.9];\nzplane(b, a)            % cực z = 0,9 (×), không z = 0 (o)\n\n% Bài 2: biến đổi Z của x(n) = 0,5^n u(n)\nsyms n z\nztrans(0.5^n)           % kết quả: z/(z - 1/2)\n\n% Bài 3: X(z) = z/(3z^2 - 4z + 1) = (1/3)z^-1 / (1 - (4/3)z^-1 + (1/3)z^-2)\n[r, p, k] = residuez([0 1], [3 -4 1])`;
+  const ps = parallelSecs([0, 1], [3, -4, 1]);
+  $('ml-adv-r').innerHTML = ps.err ? '' : `<p class="key">Kết quả Bài 3: p = ${ps.res.map(o => fmt(o.p.re, 4)).join('; ')} (hai cực), r = ${ps.res.map(o => fmt(o.r.re, 4)).join('; ')}, k = []. Tức X(z) = ${ps.res.map(o => `${fmt(o.r.re, 4)}/(1 − ${fmt(o.p.re, 4)}z⁻¹)`).join(' + ')}.</p>`;
+}
+
+/* ---------- BÀI TẬP ---------- */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Ví dụ bài giảng 6.1.1', q: 'Cho x₁(n) = (1/2)ⁿu(n), x₂(n) = 2ⁿu(n). Tìm X₁(z), X₂(z), X₁(e<sup>jω</sup>), X₂(e<sup>jω</sup>).', s: ['X₁(z) = 1/(1 − ½z⁻¹), ROC |z| > 1/2: chứa vòng tròn đơn vị.', 'X₂(z) = 1/(1 − 2z⁻¹), ROC |z| > 2: không chứa vòng tròn đơn vị.', 'Thay z = e<sup>jω</sup> vào X₁.'], a: 'X₁(e<sup>jω</sup>) = 1/(1 − ½e<sup>−jω</sup>); X₂(e<sup>jω</sup>) không tồn tại.', m: 'Fourier là Z "đi dạo" trên vòng tròn |z| = 1; ROC không chứa vòng tròn thì không đi được.', load: {tab: 'zf', b: '1', a: '1 -0,5'}},
+ {g: 'A', id: 'A2', t: 'Từ phương trình sai phân', q: 'Hệ y(n) − 0,9y(n−1) = x(n). Tìm H(e<sup>jω</sup>), |H| tại ω = 0 và ω = π.', s: ['H(z) = 1/(1 − 0,9z⁻¹), cực 0,9 nằm trong vòng tròn.', 'H(e<sup>jω</sup>) = 1/(1 − 0,9e<sup>−jω</sup>).', 'ω = 0: 1/0,1 = 10. ω = π: 1/1,9 ≈ 0,526.'], a: '|H(0)| = 10, |H(π)| ≈ 0,526: thông thấp.', m: 'Cực gần z = 1 (ω = 0) làm tần số thấp được khuếch đại mạnh.', load: {tab: 'fr', b: '1', a: '1 -0,9'}},
+ {g: 'B', id: 'B1', t: 'Đọc bằng vectơ', q: 'H(z) = (z − 1)/(z − 0,5). Dùng vectơ tính |H| tại ω = 0 và ω = π.', s: ['ω = 0: M = 1. Vectơ từ không z = 1 dài 0, từ cực 0,5 dài 0,5.', '|H(0)| = 0/0,5 = 0.', 'ω = π: M = −1. Từ không dài 2, từ cực dài 1,5: |H(π)| = 2/1,5 ≈ 1,333.'], a: '|H(0)| = 0, |H(π)| = 4/3: thông cao.', m: 'Đặt điểm không tại z = 1 là cách chặn thành phần một chiều (DC).', load: {tab: 'hh', b: '1 -1', a: '1 -0,5', w: '0'}},
+ {g: 'B', id: 'B2', t: 'Một điểm không', q: 'H(z) = 1 + z⁻¹ = (z + 1)/z. Tìm |H| tại ω = π/2 bằng hình học.', s: ['M = e<sup>jπ/2</sup> = j. Vectơ từ không −1 đến j dài √2.', 'Vectơ từ cực 0 đến j dài 1.'], a: '|H(e<sup>jπ/2</sup>)| = √2 ≈ 1,414.', m: 'Tổng quát |H| = 2|cos(ω/2)|, bằng 0 tại ω = π: bộ lọc trung bình 2 điểm.', load: {tab: 'hh', b: '1 1', a: '1', w: '0.5'}},
+ {g: 'C', id: 'C1', t: 'Bài 1a (6.3.1)', q: 'H(z) = z/(z − 0,5). Tìm |H| và φ tại ω = 0, π/2, π.', s: ['H(e<sup>jω</sup>) = 1/(1 − 0,5e<sup>−jω</sup>).', 'ω = 0: 1/0,5 = 2. ω = π: 1/1,5 ≈ 0,667.', 'ω = π/2: 1/(1 + 0,5j), |H| = 1/√1,25 ≈ 0,894, φ = −arctan 0,5 ≈ −26,57°.'], a: '2; 0,894∠−26,57°; 0,667. Thông thấp.', m: 'Khớp với đồ thị mẫu của bài giảng.', load: {tab: 'fr', b: '1', a: '1 -0,5'}},
+ {g: 'C', id: 'C2', t: 'Bài 1b (6.3.1)', q: 'H(z) = 1 − 0,5z⁻¹. Tìm |H| tại ω = 0, π/2, π.', s: ['H(e<sup>jω</sup>) = 1 − 0,5e<sup>−jω</sup>.', 'ω = 0: 0,5. ω = π: 1,5. ω = π/2: 1 + 0,5j ⇒ 1,118∠26,57°.'], a: '0,5; 1,118; 1,5. Thông cao.', m: 'Đảo ngược Bài 1a: cực 0,5 trở thành điểm không 0,5, đặc tính lật từ thông thấp sang thông cao.', load: {tab: 'fr', b: '1 -0,5', a: '1'}},
+ {g: 'C', id: 'C3', t: 'Thực hành cơ bản 4', q: 'H(z) = (1 + 2z⁻¹ + z⁻²)/(1 − 0,5z⁻¹ + 0,25z⁻²). Tìm |H(0)|, |H(π)|.', s: ['Tử số = (1 + z⁻¹)²: điểm không kép tại z = −1.', 'ω = 0: 4/(1 − 0,5 + 0,25) = 4/0,75 ≈ 5,333.', 'ω = π: tử số = 1 − 2 + 1 = 0.'], a: '|H(0)| ≈ 5,333; |H(π)| = 0. Thông thấp.', m: 'Không kép tại −1 triệt hoàn toàn tần số π.', load: {tab: 'fr', b: '1 2 1', a: '1 -0,5 0,25'}},
+ {g: 'C', id: 'C4', t: 'Thực hành cơ bản 7', q: 'H(z) = 0,15(1 − z⁻²)/(1 − 0,5z⁻¹ + 0,7z⁻²). Bộ lọc loại gì?', s: ['Tử số 1 − z⁻² = (1 − z⁻¹)(1 + z⁻¹): không tại z = ±1, nên |H(0)| = |H(π)| = 0.', 'Cực: r = √0,7 ≈ 0,837, cos θ = 0,25/0,837 ⇒ θ ≈ 72,6° ≈ 0,403π.'], a: 'Thông dải, đỉnh gần ω ≈ 0,4π.', m: 'Cực càng gần vòng tròn (r → 1), đỉnh càng nhọn: dùng làm bộ cộng hưởng.', load: {tab: 'fr', b: '0,15 0 -0,15', a: '1 -0,5 0,7'}},
+ {g: 'D', id: 'D1', t: 'Sin đi qua hệ', q: 'Đưa x(n) = cos(πn/2) vào hệ H(z) = z/(z − 0,5). Tìm đầu ra xác lập.', s: ['H(e<sup>jπ/2</sup>) = 1/(1 + 0,5j) = 0,894∠−26,57°.', 'Hệ LTI giữ nguyên tần số, nhân biên độ với |H|, cộng pha φ.'], a: 'y(n) = 0,894·cos(πn/2 − 26,57°).', m: 'Đây là ý nghĩa thực tế của đáp ứng tần số.', load: {tab: 'fr', b: '1', a: '1 -0,5', w0: '0.5'}},
+ {g: 'D', id: 'D2', t: 'Bài nâng cao 3 (6.3.3)', q: 'X(z) = z/(3z² − 4z + 1). Dùng residuez tìm cực và hệ số.', s: ['Chia tử và mẫu cho 3z²: X = (1/3)z⁻¹/(1 − (4/3)z⁻¹ + (1/3)z⁻²).', 'Mẫu 3z² − 4z + 1 = (3z − 1)(z − 1): cực z = 1 và z = 1/3.', 'Phân thức: X = 0,5/(1 − z⁻¹) − 0,5/(1 − (1/3)z⁻¹).'], a: 'p = 1; 0,3333. r = 0,5; −0,5.', m: 'Trong MATLAB gọi [r,p,k] = residuez([0 1],[3 -4 1]).', load: {tab: 'ml', b: '0 1', a: '3 -4 1'}}
+];
+function loadEx(L){
+  SYS = {b: parseList(L.b), a: parseList(L.a)}; syncInputs();
+  if (L.w != null) HHW = parseFloat(L.w), $('hh-w').value = L.w;
+  if (L.w0 != null){ FR.w0 = parseFloat(L.w0); $('fr-w0').value = L.w0; }
+  Lab.show(L.tab);
+}
+const renderEx = Lab.exercises(EX, {A: 'Nhóm A. Fourier và biến đổi Z', B: 'Nhóm B. Đánh giá hình học', C: 'Nhóm C. Đáp ứng biên độ và pha', D: 'Nhóm D. Ứng dụng và MATLAB'}, loadEx);
+
+/* =================== SỰ KIỆN =================== */
+const rerender = () => Lab.RENDER[Lab.current]();
+document.querySelectorAll('.sys-b, .sys-a').forEach(i => i.addEventListener('input', () => { if (readFrom(i)){ syncInputs(); rerender(); } }));
+document.querySelectorAll('[data-sys]').forEach(b => b.addEventListener('click', () => { const [bb, aa] = b.dataset.sys.split('|'); SYS = {b: parseList(bb), a: parseList(aa)}; syncInputs(); rerender(); }));
+$('hh-w').addEventListener('input', () => { HHW = parseFloat($('hh-w').value); renderHh(); });
+$('hh-play').addEventListener('click', () => {
+  if (hhTimer){ clearInterval(hhTimer); hhTimer = null; $('hh-play').textContent = 'Cho M chạy quanh vòng tròn'; return; }
+  $('hh-play').textContent = 'Dừng';
+  hhTimer = setInterval(() => { HHW = +(HHW + 0.01).toFixed(2); if (HHW > 1) HHW = 0; $('hh-w').value = HHW; if (Lab.current === 'hh') renderHh(); else { clearInterval(hhTimer); hhTimer = null; $('hh-play').textContent = 'Cho M chạy quanh vòng tròn'; } }, 90);
+});
+$('fr-sc').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b){ FR.sc = b.dataset.s; renderFr(); } });
+$('fr-rg').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b){ FR.rg = b.dataset.r; renderFr(); } });
+$('fr-fs').addEventListener('input', renderFr);
+$('fr-w0').addEventListener('input', () => { FR.w0 = parseFloat($('fr-w0').value); renderFr(); });
+$('ml-n').addEventListener('input', renderMl);
+Lab.copy('ml-copy', 'ml-code'); Lab.copy('ml-copy2', 'ml-adv');
+syncInputs();
+Lab.init({zf: renderZf, hh: renderHh, fr: renderFr, ml: renderMl, ex: renderEx}, 'fr-tab', 'zf');
+
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

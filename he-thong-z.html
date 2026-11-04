@@ -171,7 +171,12 @@ input:disabled{opacity:.45}
     <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
     <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
     <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
-    <a href="he-thong-z.html" aria-current="page"><span class="n">04</span>Hệ thống miền Z</a>
+    <a href="he-thong-z.html" aria-current="page"><span class="n">04</span>Hệ thống Z</a>
+    <a href="fourier.html"><span class="n">05</span>Fourier</a>
+    <a href="dap-ung-tan-so.html"><span class="n">06</span>Đáp ứng tần số</a>
+    <a href="bo-loc-ly-tuong.html"><span class="n">07</span>Bộ lọc lý tưởng</a>
+    <a href="thiet-ke-fir.html"><span class="n">08</span>Thiết kế FIR</a>
+    <a href="thiet-ke-iir.html"><span class="n">09</span>Thiết kế IIR</a>
   </nav>
 </div></header>
 <div class="pagehead">
@@ -974,6 +979,7 @@ let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTime
 let start = 'ht'; try { const s = localStorage.getItem('htz-tab'); if (s && RENDER[s]) start = s; } catch (e) {} { const hs = (location.hash || '').slice(1); if (RENDER[hs]) start = hs; } addEventListener('hashchange', () => { const hs = (location.hash || '').slice(1); if (RENDER[hs]) showTab(hs); });
 showTab(start);
 </script>
+<script>(function(){var a=document.querySelector('.sitenav a[aria-current]');if(a&&a.scrollIntoView){var n=a.parentNode;n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.clientWidth/2;}})();</script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body>
 </html>

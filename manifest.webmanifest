@@ -1,7 +1,7 @@
 {
   "name": "DSP Lab – Phòng thí nghiệm Xử lý tín hiệu số",
   "short_name": "DSP Lab",
-  "description": "Phần mềm học Xử lý tín hiệu số Buổi 1–4. Trường ĐH Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên.",
+  "description": "Phòng thí nghiệm Xử lý tín hiệu số: 9 phần mềm mô phỏng Buổi 1–9. Trường ĐH Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên.",
   "lang": "vi",
   "start_url": "./",
   "scope": "./",

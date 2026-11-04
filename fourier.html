@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biến đổi Fourier – DSP Lab</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DSP Lab">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="stylesheet" href="assets/lab.css">
+
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
+    <a href="he-thong-z.html"><span class="n">04</span>Hệ thống Z</a>
+    <a href="fourier.html" aria-current="page"><span class="n">05</span>Fourier</a>
+    <a href="dap-ung-tan-so.html"><span class="n">06</span>Đáp ứng tần số</a>
+    <a href="bo-loc-ly-tuong.html"><span class="n">07</span>Bộ lọc lý tưởng</a>
+    <a href="thiet-ke-fir.html"><span class="n">08</span>Thiết kế FIR</a>
+    <a href="thiet-ke-iir.html"><span class="n">09</span>Thiết kế IIR</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 5</div>
+      <h1>Biến đổi <span class="z">Fourier</span> và tính chất</h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của bài">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="dn" id="tb-dn"><span class="no">1</span>Định nghĩa, phổ</button>
+      <button class="tab" role="tab" data-tab="ton" id="tb-ton"><span class="no">2</span>Sự tồn tại</button>
+      <button class="tab" role="tab" data-tab="ng" id="tb-ng"><span class="no">3</span>Fourier ngược</button>
+      <button class="tab" role="tab" data-tab="tc" id="tb-tc"><span class="no">4</span>Tính chất</button>
+      <button class="tab" role="tab" data-tab="par" id="tb-par"><span class="no">5</span>Parseval</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+<!-- ============ 1. ĐỊNH NGHĨA ============ -->
+<section class="tabpanel" id="p-dn" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Loại tín hiệu</span>
+        <div class="seg2" id="dn-kind"><button data-k="fin" aria-pressed="true">Dãy hữu hạn</button><button data-k="exp" aria-pressed="false">aⁿ·u(n)</button></div></div>
+      <div id="dn-fin">
+        <div class="field"><span class="lbl">Các mẫu x(n)</span><input type="text" id="dn-x" value="1 1 1"><small>Cách nhau bằng dấu cách.</small></div>
+        <div class="field" style="margin-top:10px"><span class="lbl">Mẫu đầu tiên ở n =</span><input type="number" id="dn-n0" value="-1" step="1"></div>
+      </div>
+      <div id="dn-exp" hidden>
+        <div class="field"><span class="lbl">Hệ số a (|a| &lt; 1)</span><input type="text" id="dn-a" value="0,5"></div>
+      </div>
+      <div class="field"><span class="lbl">Ví dụ có sẵn</span>
+        <div class="chips">
+          <button class="chip small" data-dn="fin|1 1 1|-1">δ(n−1)+δ(n)+δ(n+1)</button>
+          <button class="chip small" data-dn="fin|1 1 1|0">rect₃(n)</button>
+          <button class="chip small" data-dn="fin|1 1 1 1|0">rect₄(n)</button>
+          <button class="chip small" data-dn="exp|0,5">(1/2)ⁿu(n)</button>
+          <button class="chip small" data-dn="exp|-0,8">(−0,8)ⁿu(n)</button>
+          <button class="chip small" data-dn="fin|1 2 1|0">{1; 2; 1}</button>
+        </div></div>
+      <div class="field"><span class="lbl">Cách thể hiện X(e<sup>jω</sup>)</span>
+        <div class="seg2" id="dn-view"><button data-v="ma" aria-pressed="true">Biên độ và pha</button><button data-v="ri" aria-pressed="false">Thực và ảo</button></div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Biến đổi Fourier: phân tích tín hiệu thành các tần số</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Buổi 1–4 nhìn tín hiệu theo thời gian n. Nhiều câu hỏi lại là về tần số: tín hiệu có những âm trầm, âm cao nào, bộ lọc giữ lại tần số nào.</div>
+          <div class="what"><b>Là gì</b>X(e<sup>jω</sup>) = Σ x(n)·e<sup>−jωn</sup>. Mỗi tần số ω cho một số phức: độ lớn cho biết thành phần ω mạnh hay yếu, góc cho biết nó lệch pha bao nhiêu.</div>
+          <div class="use"><b>Ứng dụng</b>Phổ âm thanh, nén MP3, lọc nhiễu, phân tích rung động máy móc. Buổi 6 dùng nó để mô tả hệ thống, Buổi 7–9 để thiết kế bộ lọc.</div>
+        </div>
+        <p class="ref">Mục 5.1.1 bài giảng. X(e<sup>jω</sup>) tuần hoàn chu kỳ 2π nên chỉ cần xét ω trong [−π, π].</p>
+      </div>
+      <div class="card">
+        <h2>Từng bước tính X(e<sup>jω</sup>)</h2>
+        <ol class="steps" id="dn-steps"></ol>
+      </div>
+      <div class="card">
+        <div class="plot-hd"><h3>Tín hiệu x(n)</h3></div>
+        <div class="plot" id="dn-xplot"></div>
+      </div>
+      <div class="card">
+        <div class="plot-hd"><h3 id="dn-p1t">Phổ biên độ |X(e<sup>jω</sup>)|</h3></div>
+        <div class="plot" id="dn-p1"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3 id="dn-p2t">Phổ pha φ(ω)</h3></div>
+        <div class="plot" id="dn-p2"></div>
+        <div class="tbl-wrap" id="dn-tbl" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h2>Độ lớn A(e<sup>jω</sup>) khác modun |X(e<sup>jω</sup>)| thế nào</h2>
+        <p>Ví dụ bài giảng: X(e<sup>jω</sup>) = e<sup>−jω</sup>·sin 2ω. Độ lớn A(e<sup>jω</sup>) = sin 2ω là số <b>thực, có thể âm</b>; modun |X| = |sin 2ω| luôn dương. Chỗ A đổi dấu, pha nhảy một lượng π.</p>
+        <div class="plot" id="dn-A"></div>
+        <div id="dn-Aleg"></div>
+        <div class="res math">Re[X] = cos ω·sin 2ω &nbsp;·&nbsp; Im[X] = −sin ω·sin 2ω &nbsp;·&nbsp; A(e<sup>jω</sup>) = sin 2ω, θ(ω) = −ω</div>
+        <p class="key">Chú ý dấu: e<sup>−jω</sup> = cos ω − j·sin ω nên phần ảo mang dấu trừ.</p>
+      </div>
+      <div class="card">
+        <div class="hd-row"><h2>Lệnh MATLAB tương ứng</h2><button class="btn ghost" id="dn-copy">Sao chép</button></div>
+        <pre class="code" id="dn-code"></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. SỰ TỒN TẠI ============ -->
+<section class="tabpanel" id="p-ton" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Dãy x(n) = aⁿ·u(n − k)</span></div>
+      <div class="row2">
+        <div class="field"><span class="lbl">a</span><input type="text" id="ton-a" value="0,5"></div>
+        <div class="field"><span class="lbl">k</span><input type="number" id="ton-k" value="0" step="1"></div>
+      </div>
+      <div class="field"><span class="lbl">Ví dụ bài giảng</span>
+        <div class="chips">
+          <button class="chip small" data-ton="3|1">3ⁿ·u(n−1)</button>
+          <button class="chip small" data-ton="1|0">u(n)</button>
+          <button class="chip small" data-ton="0,5|0">(1/2)ⁿ·u(n)</button>
+          <button class="chip small" data-ton="0,8|0">(0,8)ⁿ·u(n)</button>
+          <button class="chip small" data-ton="-0,9|0">(−0,9)ⁿ·u(n)</button>
+        </div></div>
+      <small class="muted">Dãy hữu hạn như δ(n−1) + δ(n) luôn có biến đổi Fourier vì tổng chỉ có vài số hạng.</small>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Khi nào biến đổi Fourier tồn tại?</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>X(e<sup>jω</sup>) là tổng vô hạn. Nếu tổng to ra mãi thì không có phổ để vẽ.</div>
+          <div class="what"><b>Điều kiện</b>Σ|x(n)| &lt; ∞ (tổng tuyệt đối hội tụ). Tín hiệu có năng lượng hữu hạn thì biến đổi Fourier luôn tồn tại.</div>
+          <div class="use"><b>Nối với Buổi 3–4</b>Fourier là biến đổi Z trên vòng tròn |z| = 1. Tồn tại khi ROC chứa vòng tròn đơn vị, giống điều kiện ổn định.</div>
+        </div>
+        <p class="ref">Mục 5.1.2 bài giảng, công thức (5.9).</p>
+      </div>
+      <div class="card">
+        <h2>Kiểm tra từng bước</h2>
+        <ol class="steps" id="ton-steps"></ol>
+        <div id="ton-verdict"></div>
+      </div>
+      <div class="card">
+        <div class="plot-hd"><h3>Tổng tuyệt đối cộng dồn S<sub>N</sub> = Σ<sub>n≤N</sub> |x(n)|</h3></div>
+        <div class="plot" id="ton-plot"></div>
+        <p class="key">Đường nằm ngang dần: tổng hội tụ, Fourier tồn tại. Đường dốc lên mãi: tổng vô hạn, không tồn tại.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. FOURIER NGƯỢC ============ -->
+<section class="tabpanel" id="p-ng" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">X(e<sup>jω</sup>) = e<sup>−jkω</sup> khi |ω| ≤ ω<sub>c</sub>, bằng 0 khi khác</span></div>
+      <div class="field"><span class="lbl">ω<sub>c</sub> (phần của π)</span>
+        <div class="rangeRow"><input type="range" id="ng-wc" min="0.05" max="1" step="0.05" value="0.5"><output id="ng-wco">π/2</output></div></div>
+      <div class="field"><span class="lbl">Độ trễ k</span><input type="number" id="ng-k" value="4" step="1"></div>
+      <div class="chips"><button class="chip small" data-ng="0.5|4">Ví dụ bài giảng</button><button class="chip small" data-ng="0.25|0">ω<sub>c</sub> = π/4, k = 0</button></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Biến đổi Fourier ngược: từ phổ quay về dãy số</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Bộ lọc thường được mô tả bằng phổ mong muốn. Muốn làm ra bộ lọc phải biết dãy h(n) tương ứng.</div>
+          <div class="what"><b>Công thức</b>x(n) = (1/2π)·∫<sub>−π</sub><sup>π</sup> X(e<sup>jω</sup>)·e<sup>jωn</sup> dω.</div>
+          <div class="use"><b>Ứng dụng</b>Chính là cách tìm h(n) của bộ lọc lý tưởng ở Buổi 7 và bước 2 của phương pháp cửa sổ ở Buổi 8.</div>
+        </div>
+        <p class="ref">Mục 5.1.3 bài giảng.</p>
+      </div>
+      <div class="card"><h2>Lời giải từng bước</h2><ol class="steps" id="ng-steps"></ol></div>
+      <div class="card">
+        <div class="plot-hd"><h3>|X(e<sup>jω</sup>)| (khung chữ nhật)</h3></div>
+        <div class="plot" id="ng-X"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3>x(n) tìm được</h3></div>
+        <div class="plot" id="ng-x"></div>
+        <div id="ng-check"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. TÍNH CHẤT ============ -->
+<section class="tabpanel" id="p-tc" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Tính chất</span>
+        <select id="tc-prop">
+          <option value="lin">Tuyến tính</option>
+          <option value="tre" selected>Trễ</option>
+          <option value="dich">Trễ tần số (điều chế)</option>
+          <option value="chap">Tích chập</option>
+          <option value="dao">Đảo biến số</option>
+          <option value="dx">Đối xứng (tín hiệu thực)</option>
+          <option value="vp">Vi phân trong miền tần số</option>
+        </select></div>
+      <div class="field"><span class="lbl">x₁(n)</span><input type="text" id="tc-x1" value="1 1 1"></div>
+      <div class="field"><span class="lbl">x₁ bắt đầu ở n =</span><input type="number" id="tc-n1" value="0" step="1"></div>
+      <div class="field" id="tc-x2f"><span class="lbl">x₂(n) (bắt đầu ở n = 0)</span><input type="text" id="tc-x2" value="1 0,5 0 -0,5"></div>
+      <div class="field" id="tc-pf"><span class="lbl" id="tc-pl">Tham số</span><input type="text" id="tc-p" value="2"></div>
+      <small class="muted" id="tc-hint"></small>
+    </aside>
+    <div class="out">
+      <div class="card"><h2 id="tc-title"></h2><div id="tc-what"></div></div>
+      <div class="card">
+        <div class="plot-hd"><h3>Tín hiệu</h3></div>
+        <div class="plot" id="tc-xp"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3 id="tc-p1t"></h3></div>
+        <div class="plot" id="tc-p1"></div>
+        <div id="tc-p1l"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3 id="tc-p2t"></h3></div>
+        <div class="plot" id="tc-p2"></div>
+        <div id="tc-p2l"></div>
+        <div id="tc-check"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. PARSEVAL ============ -->
+<section class="tabpanel" id="p-par" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Loại tín hiệu</span>
+        <div class="seg2" id="par-kind"><button data-k="exp" aria-pressed="true">aⁿ·u(n)</button><button data-k="fin" aria-pressed="false">Dãy hữu hạn</button></div></div>
+      <div class="field" id="par-ef"><span class="lbl">a (|a| &lt; 1)</span><input type="text" id="par-a" value="0,5"></div>
+      <div class="field" id="par-ff" hidden><span class="lbl">Các mẫu (bắt đầu n = 0)</span><input type="text" id="par-x" value="1 2 3"></div>
+      <div class="chips"><button class="chip small" data-par="exp|0,5">Ví dụ bài giảng (1/2)ⁿu(n)</button><button class="chip small" data-par="fin|1 2 3">{1; 2; 3}</button><button class="chip small" data-par="exp|0,9">(0,9)ⁿu(n)</button></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Quan hệ Parseval: năng lượng đo ở miền nào cũng như nhau</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Muốn biết năng lượng của tín hiệu nằm ở tần số nào: nhiễu tập trung ở đâu, bộ lọc bỏ đi bao nhiêu năng lượng.</div>
+          <div class="what"><b>Công thức</b>Σ|x(n)|² = (1/2π)·∫|X(e<sup>jω</sup>)|² dω. S<sub>xx</sub>(e<sup>jω</sup>) = |X(e<sup>jω</sup>)|² gọi là phổ mật độ năng lượng.</div>
+          <div class="use"><b>Ứng dụng</b>Đo công suất nhiễu theo dải tần, đánh giá bộ lọc giữ lại bao nhiêu phần trăm năng lượng.</div>
+        </div>
+        <p class="ref">Mục 5.2.7 bài giảng.</p>
+      </div>
+      <div class="card"><h2>Tính hai vế</h2><ol class="steps" id="par-steps"></ol><div id="par-res"></div></div>
+      <div class="card">
+        <div class="plot-hd"><h3>Phổ mật độ năng lượng S<sub>xx</sub>(e<sup>jω</sup>) = |X(e<sup>jω</sup>)|²</h3></div>
+        <div class="plot" id="par-plot"></div>
+        <p class="key">Diện tích dưới đường cong chia cho 2π đúng bằng năng lượng E<sub>x</sub>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải, bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Tính phổ</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. Tồn tại</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Ngược</button>
+          <button class="chip small" data-g="D" aria-pressed="false">D. Tính chất</button>
+          <button class="chip small" data-g="E" aria-pressed="false">E. Parseval</button>
+        </div></div>
+    </aside>
+    <div class="out" id="ex-list"></div>
+  </div>
+</section>
+
+<footer>Biến đổi Fourier · Xử lý tín hiệu số · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+<script>(function(){var a=document.querySelector('.sitenav a[aria-current]');if(a&&a.scrollIntoView){var n=a.parentNode;n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.clientWidth/2;}})();</script>
+<script src="assets/zcore.js"></script>
+<script src="assets/fcore.js"></script>
+<script>
+/* =================== BUỔI 5: BIẾN ĐỔI FOURIER =================== */
+const WW = wGrid(721, true);
+const ej = (k) => { // chuỗi e^{-jωk}
+  if (k === 0) return '';
+  const e = -k; return `e<sup>${e < 0 ? '−' : ''}j${Math.abs(e) === 1 ? '' : Math.abs(e)}ω</sup>`;
+};
+function sumStr(x, n0){ // Σ x(n)e^{-jωn}
+  let s = '';
+  x.forEach((v, i) => { if (isZ(v)) return; const n = n0 + i, A = Math.abs(v); const co = (Math.abs(A - 1) < 1e-12 && n !== 0) ? '' : fmt(A); const t = co + (co && n !== 0 ? '·' : '') + ej(n); s += (s ? (v < 0 ? ' − ' : ' + ') : (v < 0 ? '−' : '')) + (t || '1'); });
+  return s || '0';
+}
+function seqPlot(el, x, n0, color = COL.x, label){ const n = x.map((_, i) => n0 + i); const lo = Math.min(n[0], 0) - 2, hi = Math.max(n[n.length - 1], 0) + 2; stemPlot(el, {nmin: lo, nmax: hi, series: [{n, v: x, color}], values: true, height: 190, label}); }
+function specPlots(id1, id2, H, view, extra = {}){
+  if (view === 'ri'){
+    linePlot($(id1), Object.assign({x: WW, series: [{y: H.map(c => c.re), color: COL.x}], ylabel: 'Re', label: 'Phần thực'}, extra));
+    linePlot($(id2), {x: WW, series: [{y: H.map(c => c.im), color: COL.y}], ylabel: 'Im', label: 'Phần ảo'});
+  } else {
+    linePlot($(id1), Object.assign({x: WW, series: [{y: H.map(cabs), color: COL.x}], ylabel: '|X|', label: 'Phổ biên độ'}, extra));
+    linePlot($(id2), {x: WW, series: [{y: H.map(c => cabs(c) < 1e-9 ? NaN : carg(c)), color: COL.y, jump: PI}], ymin: -PI * 1.1, ymax: PI * 1.1, ylabel: 'φ (rad)', label: 'Phổ pha'});
+  }
+}
+
+/* ---------- TAB 1 ---------- */
+let DN = {kind: 'fin', view: 'ma'};
+function getDN(){
+  if (DN.kind === 'fin'){ const x = parseList($('dn-x').value); const n0 = parseInt($('dn-n0').value, 10); if (!x || !isFinite(n0)) return null; return {fin: true, x, n0}; }
+  const a = parseNum($('dn-a').value); if (!isFinite(a)) return null; return {fin: false, a};
+}
+function renderDn(){
+  setPressed('#dn-kind button', 'k', DN.kind); setPressed('#dn-view button', 'v', DN.view);
+  $('dn-fin').hidden = DN.kind !== 'fin'; $('dn-exp').hidden = DN.kind !== 'exp';
+  const S = getDN(); if (!S){ $('dn-steps').innerHTML = '<li><div class="bad">Dữ liệu chưa hợp lệ.</div></li>'; return; }
+  let st = [], H, xs, n0s;
+  if (S.fin){
+    H = WW.map(w => dtft(S.x, S.n0, w)); xs = S.x; n0s = S.n0;
+    st.push(`<b>Viết định nghĩa:</b> X(e<sup>jω</sup>) = Σ x(n)·e<sup>−jωn</sup>, chỉ cộng các mẫu khác 0.`);
+    st.push(`<b>Thay từng mẫu:</b> <span class="math">X(e<sup>jω</sup>) = ${sumStr(S.x, S.n0)}</span>`);
+    // đối xứng quanh n = 0 → dạng cos
+    const get = n => { const i = n - S.n0; return i >= 0 && i < S.x.length ? S.x[i] : 0; };
+    const L = Math.max(Math.abs(S.n0), Math.abs(S.n0 + S.x.length - 1));
+    let sym = true; for (let n = 1; n <= L; n++) if (Math.abs(get(n) - get(-n)) > 1e-12) sym = false;
+    if (sym && S.n0 <= 0){
+      let s = isZ(get(0)) ? '' : fmt(get(0)); for (let n = 1; n <= L; n++){ const v = 2 * get(n); if (isZ(v)) continue; s += (s ? (v < 0 ? ' − ' : ' + ') : (v < 0 ? '−' : '')) + (Math.abs(Math.abs(v) - 1) < 1e-12 ? '' : fmt(Math.abs(v)) + '·') + `cos(${n === 1 ? '' : n}ω)`; }
+      st.push(`<b>Gộp cặp đối xứng</b> (e<sup>jnω</sup> + e<sup>−jnω</sup> = 2cos nω): <span class="math">X(e<sup>jω</sup>) = ${s || '0'}</span>. Phổ là số thực, pha chỉ là 0 hoặc π.`);
+    } else if (S.n0 >= 0 && S.x.every(v => Math.abs(v - S.x[0]) < 1e-12) && S.x.length > 1 && !isZ(S.x[0])){
+      const N = S.x.length, D = (N - 1) / 2 + S.n0, c = S.x[0];
+      st.push(`<b>Cấp số nhân:</b> Σ e<sup>−jωn</sup> = (1 − e<sup>−j${N}ω</sup>)/(1 − e<sup>−jω</sup>) = <span class="math">${isZ(c - 1) ? '' : fmt(c) + '·'}e<sup>−j${fmt(D)}ω</sup>·sin(${N}ω/2)/sin(ω/2)</span>. Độ lớn A = sin(${N}ω/2)/sin(ω/2), pha tuyến tính θ(ω) = −${fmt(D)}ω.`);
+    }
+  } else {
+    xs = []; for (let n = 0; n <= 14; n++) xs.push(Math.pow(S.a, n)); n0s = 0;
+    H = WW.map(w => cdiv(C(1), csub(C(1), cscale(cexpj(-w), S.a))));
+    st.push(`<b>Viết định nghĩa:</b> X(e<sup>jω</sup>) = Σ<sub>n≥0</sub> (${fmt(S.a)})ⁿ·e<sup>−jωn</sup> = Σ (${fmt(S.a)}·e<sup>−jω</sup>)ⁿ.`);
+    if (Math.abs(S.a) < 1){
+      st.push(`<b>Cấp số nhân công bội q = ${fmt(S.a)}·e<sup>−jω</sup>:</b> |q| = ${fmt(Math.abs(S.a))} &lt; 1 nên chuỗi hội tụ.`);
+      st.push(`<b>Kết quả:</b> <span class="math">X(e<sup>jω</sup>) = 1/(1 ${S.a < 0 ? '+' : '−'} ${fmt(Math.abs(S.a))}·e<sup>−jω</sup>)</span>. Tại ω = 0: X = ${fmt(1 / (1 - S.a))}; tại ω = π: X = ${fmt(1 / (1 + S.a))}.`);
+      st.push(`<b>Đọc phổ:</b> ${S.a > 0 ? 'a > 0 nên phổ lớn nhất ở ω = 0: tín hiệu biến đổi chậm, giàu tần số thấp.' : 'a < 0 nên dãy đổi dấu liên tục, phổ lớn nhất ở ω = ±π: giàu tần số cao.'}`);
+    } else { st.push(`<b>|a| = ${fmt(Math.abs(S.a))} ≥ 1</b> nên chuỗi không hội tụ: dãy này không có biến đổi Fourier (xem tab Sự tồn tại).`); H = H.map(() => C(NaN)); }
+  }
+  $('dn-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  seqPlot($('dn-xplot'), xs, n0s, COL.x, 'x(n)');
+  $('dn-p1t').innerHTML = DN.view === 'ri' ? 'Phần thực Re[X(e<sup>jω</sup>)]' : 'Phổ biên độ |X(e<sup>jω</sup>)|';
+  $('dn-p2t').innerHTML = DN.view === 'ri' ? 'Phần ảo Im[X(e<sup>jω</sup>)]' : 'Phổ pha φ(ω) = arg X(e<sup>jω</sup>)';
+  if (H.some(c => isFinite(c.re))) specPlots('dn-p1', 'dn-p2', H, DN.view); else { $('dn-p1').innerHTML = '<div class="warn">Không có phổ để vẽ.</div>'; $('dn-p2').innerHTML = ''; }
+  const pick = [0, PI / 2, PI].map(w => { const X = S.fin ? dtft(S.x, S.n0, w) : (Math.abs(S.a) < 1 ? cdiv(C(1), csub(C(1), cscale(cexpj(-w), S.a))) : C(NaN)); return [w, X]; });
+  $('dn-tbl').innerHTML = `<table class="t"><tr><th>ω</th><th>X(e<sup>jω</sup>)</th><th>|X|</th><th>φ (độ)</th></tr>${pick.map(([w, X]) => `<tr><td class="m">${piStr(w)}</td><td class="m">${isFinite(X.re) ? fmtc(X, 4) : '—'}</td><td class="m">${isFinite(X.re) ? fmt(cabs(X), 4) : '—'}</td><td class="m">${isFinite(X.re) && cabs(X) > 1e-9 ? fmt(carg(X) * 180 / PI, 2) : '—'}</td></tr>`).join('')}</table>`;
+  // A vs |X|
+  linePlot($('dn-A'), {x: WW, series: [{y: WW.map(w => Math.sin(2 * w)), color: COL.g, w: 2.2}, {y: WW.map(w => Math.abs(Math.sin(2 * w))), color: COL.x, dash: '6 4'}], ymin: -1.2, ymax: 1.2, label: 'A và |X|'});
+  $('dn-Aleg').innerHTML = legendHTML([[COL.g, 'A(e<sup>jω</sup>) = sin 2ω (có thể âm)'], [COL.x, '|X(e<sup>jω</sup>)| = |sin 2ω| (luôn dương)', true]]);
+  // MATLAB
+  let code;
+  if (S.fin){ code = `n = ${S.n0}:${S.n0 + S.x.length - 1};\nx = ${mvec(S.x)};\nw = linspace(-pi, pi, 1001);\nX = x * exp(-1j * n' * w);      % X(e^jw) = sum x(n) e^(-jwn)\nsubplot(2,1,1), plot(w/pi, abs(X)), grid on\nxlabel('\\omega / \\pi'), ylabel('|X(e^{j\\omega})|')\nsubplot(2,1,2), plot(w/pi, angle(X)), grid on\nxlabel('\\omega / \\pi'), ylabel('Pha (rad)')`; }
+  else code = `a = ${+S.a};\nw = linspace(-pi, pi, 1001);\nX = 1 ./ (1 - a*exp(-1j*w));    % X(e^jw) = 1/(1 - a e^(-jw))\n% hoặc: [X, w] = freqz(1, [1 -a], 1001, 'whole');\nsubplot(2,1,1), plot(w/pi, abs(X)), grid on\nsubplot(2,1,2), plot(w/pi, angle(X)), grid on`;
+  $('dn-code').textContent = code;
+}
+
+/* ---------- TAB 2 ---------- */
+function renderTon(){
+  const a = parseNum($('ton-a').value), k = parseInt($('ton-k').value, 10);
+  if (!isFinite(a) || !isFinite(k)){ $('ton-steps').innerHTML = '<li><div class="bad">Dữ liệu chưa hợp lệ.</div></li>'; return; }
+  const name = `${isZ(a - 1) ? '' : `(${fmt(a)})ⁿ·`}u(n${k ? (k > 0 ? '−' + k : '+' + (-k)) : ''})`;
+  const conv_ = Math.abs(a) < 1;
+  const st = [];
+  st.push(`<b>Dãy cần xét:</b> x(n) = ${name}, khác 0 từ n = ${k} trở đi.`);
+  st.push(`<b>Tổng tuyệt đối:</b> Σ|x(n)| = Σ<sub>n≥${k}</sub> ${fmt(Math.abs(a))}ⁿ. Đây là cấp số nhân công bội ${fmt(Math.abs(a))}.`);
+  if (conv_){
+    const S = Math.pow(Math.abs(a), k) / (1 - Math.abs(a)), E = Math.pow(a * a, k) / (1 - a * a);
+    st.push(`<b>Công bội &lt; 1 nên tổng hữu hạn:</b> Σ|x(n)| = ${fmt(Math.abs(a))}<sup>${k}</sup>/(1 − ${fmt(Math.abs(a))}) = <b>${fmt(S)}</b>.`);
+    st.push(`<b>Năng lượng:</b> E<sub>x</sub> = Σ|x(n)|² = ${fmt(a * a)}<sup>${k}</sup>/(1 − ${fmt(a * a)}) = <b>${fmt(E)}</b> &lt; ∞.`);
+    $('ton-verdict').innerHTML = `<div class="close">Biến đổi Fourier tồn tại: X(e<sup>jω</sup>) = ${k ? `e<sup>−j${k === 1 ? '' : k}ω</sup>·(${fmt(a)})<sup>${k}</sup>·` : ''}1/(1 ${a < 0 ? '+' : '−'} ${fmt(Math.abs(a))}e<sup>−jω</sup>).</div>`;
+  } else {
+    st.push(`<b>Công bội ${fmt(Math.abs(a))} ≥ 1</b> nên các số hạng không nhỏ dần${Math.abs(a) > 1 ? ', thậm chí lớn dần' : ''}: Σ|x(n)| = ∞ và E<sub>x</sub> = ∞.`);
+    $('ton-verdict').innerHTML = `<div class="next">Không tồn tại biến đổi Fourier của x(n) = ${name}.${Math.abs(a) > 1 ? ' Trong miền Z, ROC là |z| > ' + fmt(Math.abs(a)) + ', không chứa vòng tròn đơn vị.' : ' Trong miền Z, cực z = 1 nằm ngay trên vòng tròn đơn vị.'}</div>`;
+  }
+  $('ton-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  const N = 40, xs = [], ys = []; let s = 0;
+  for (let n = Math.min(k, 0); n <= N; n++){ if (n >= k) s += Math.abs(Math.pow(a, n)); xs.push(n); ys.push(s); }
+  const lim = conv_ ? Math.pow(Math.abs(a), k) / (1 - Math.abs(a)) : null;
+  linePlot($('ton-plot'), {x: xs, xmode: 'num', xlabel: 'N', series: [{y: ys, color: conv_ ? COL.g : COL.y, w: 2.4}], hlines: lim != null ? [{y: lim, color: COL.n, label: 'giới hạn ' + fmt(lim)}] : [], ymax: Math.min(Math.max(...ys) * 1.1, conv_ ? lim * 1.3 + 0.5 : Math.max(...ys) * 1.1), label: 'Tổng cộng dồn'});
+}
+
+/* ---------- TAB 3 ---------- */
+function renderNg(){
+  const q = parseFloat($('ng-wc').value), wc = q * PI, k = parseInt($('ng-k').value, 10) || 0;
+  $('ng-wco').textContent = piStr(wc);
+  const st = [];
+  st.push(`<b>Viết công thức ngược,</b> chỉ lấy tích phân trong khoảng X khác 0: x(n) = (1/2π)·∫<sub>−${piStr(wc)}</sub><sup>${piStr(wc)}</sup> e<sup>−j${k}ω</sup>·e<sup>jωn</sup> dω = (1/2π)·∫ e<sup>j(n−${k})ω</sup> dω.`);
+  st.push(`<b>Lấy nguyên hàm</b> (n ≠ ${k}): (1/2π)·[e<sup>j(n−${k})ω</sup>/(j(n−${k}))] từ −${piStr(wc)} đến ${piStr(wc)} = (1/2π)·2j·sin(${piStr(wc)}·(n−${k}))/(j(n−${k})).`);
+  st.push(`<b>Rút gọn:</b> <span class="math">x(n) = sin(${piStr(wc)}·(n − ${k}))/(π(n − ${k}))</span>.`);
+  st.push(`<b>Riêng tại n = ${k}</b> (mẫu số bằng 0): tích phân của 1 trên đoạn dài 2·${piStr(wc)}, nên x(${k}) = ${piStr(wc)}/π = <b>${fmt(q)}</b>.`);
+  st.push(`<b>Ý nghĩa:</b> pha e<sup>−j${k}ω</sup> làm dãy dịch sang phải ${k} mẫu (tâm đối xứng tại n = ${k}). Dãy kéo dài vô hạn hai phía nên không nhân quả: đây là lý do bộ lọc lý tưởng không làm được.`);
+  $('ng-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  linePlot($('ng-X'), {x: WW, series: [{y: WW.map(w => Math.abs(w) <= wc + 1e-12 ? 1 : 0), color: COL.x, w: 2.4}], ymin: -0.1, ymax: 1.25, vlines: [{x: -wc, color: COL.a}, {x: wc, color: COL.a, label: 'ω_c = ' + piStr(wc)}], label: 'Phổ chữ nhật'});
+  const n = [], v = []; for (let i = k - 16; i <= k + 16; i++){ n.push(i); v.push(sincLP(wc, i - k)); }
+  stemPlot($('ng-x'), {nmin: k - 16, nmax: k + 16, series: [{n, v, color: COL.y}], height: 220, label: 'x(n)'});
+  // kiểm tra bằng tích phân số
+  let err = 0; for (let i = k - 6; i <= k + 6; i++){ const K = 4000; let s = 0; for (let j = 0; j <= K; j++){ const w = -wc + 2 * wc * j / K, f = Math.cos((i - k) * w); s += (j === 0 || j === K ? 0.5 : 1) * f; } s *= (2 * wc / K) / (2 * PI); err = Math.max(err, Math.abs(s - sincLP(wc, i - k))); }
+  $('ng-check').innerHTML = `<div class="res">Kiểm tra bằng tích phân số cho 13 mẫu quanh n = ${k}: sai khác lớn nhất ${err < 1e-6 ? '&lt; 10⁻⁶' : fmt(err, 6)} <span class="ok">✓ Khớp</span></div>`;
+}
+
+/* ---------- TAB 4 ---------- */
+const TC = {
+  lin: {t: 'Tuyến tính: a·x₁(n) + b·x₂(n) ↔ a·X₁ + b·X₂', w: 'Phổ của tổng bằng tổng các phổ. Nhờ đó tách tín hiệu phức tạp thành các phần đơn giản để tính.', p: 'a b', pd: '1 2', x2: true},
+  tre: {t: 'Trễ: x(n − n₀) ↔ e<sup>−jωn₀</sup>·X(e<sup>jω</sup>)', w: 'Làm trễ tín hiệu không đổi phổ biên độ, chỉ cộng thêm pha tuyến tính −ωn₀. Nghe một bài hát muộn 2 giây, âm sắc vẫn y nguyên.', p: 'n₀', pd: '2', x2: false},
+  dich: {t: 'Trễ tần số: e<sup>jω₀n</sup>·x(n) ↔ X(e<sup>j(ω − ω₀)</sup>)', w: 'Nhân với cos ω₀n làm phổ dời sang ±ω₀, mỗi bên còn một nửa. Đây là nguyên lý điều chế của radio, điện thoại.', p: 'ω₀ (phần của π)', pd: '0,5', x2: false},
+  chap: {t: 'Tích chập: x₁(n) * x₂(n) ↔ X₁·X₂', w: 'Giống biến đổi Z: tích chập ở miền n thành phép nhân ở miền tần số. Hệ thống "nhân" phổ đầu vào với đáp ứng tần số của nó.', p: '', x2: true},
+  dao: {t: 'Đảo biến số: x(−n) ↔ X(e<sup>−jω</sup>)', w: 'Lật tín hiệu theo thời gian thì phổ lật theo tần số. Với tín hiệu thực, biên độ giữ nguyên, pha đổi dấu.', p: '', x2: false},
+  dx: {t: 'Đối xứng: x(n) thực ⇒ X*(e<sup>−jω</sup>) = X(e<sup>jω</sup>)', w: 'Tín hiệu thực có phổ biên độ đối xứng chẵn, phổ pha đối xứng lẻ. Vì vậy chỉ cần vẽ ω từ 0 đến π.', p: '', x2: false},
+  vp: {t: 'Vi phân trong miền tần số: n·x(n) ↔ j·dX(e<sup>jω</sup>)/dω', w: 'Nhân tín hiệu với n tương ứng đạo hàm phổ theo ω. Dùng để tính phổ của n·aⁿu(n) từ phổ đã biết của aⁿu(n).', p: '', x2: false}
+};
+function renderTc(){
+  const k = $('tc-prop').value, P = TC[k];
+  $('tc-title').innerHTML = P.t; $('tc-what').innerHTML = `<p>${P.w}</p><p class="ref">Mục 5.2 bài giảng.</p>`;
+  $('tc-x2f').hidden = !P.x2; $('tc-pf').hidden = !P.p; $('tc-pl').textContent = P.p;
+  if ($('tc-p').dataset.k !== k){ $('tc-p').value = P.pd || ''; $('tc-p').dataset.k = k; }
+  const x1 = parseList($('tc-x1').value), n1 = parseInt($('tc-n1').value, 10), x2 = parseList($('tc-x2').value) || [0];
+  if (!x1 || !isFinite(n1)){ $('tc-check').innerHTML = '<div class="bad">Dữ liệu chưa hợp lệ.</div>'; return; }
+  let y, ny, Y, F, lab1, lab2, leg1, leg2, sig;
+  const X1 = WW.map(w => dtft(x1, n1, w)), X2 = WW.map(w => dtft(x2, 0, w));
+  if (k === 'lin'){ const pr = parseList($('tc-p').value) || [1, 1]; const a = pr[0], b = pr[1] != null ? pr[1] : 1; const lo = Math.min(n1, 0), hi = Math.max(n1 + x1.length, x2.length); y = []; for (let n = lo; n < hi; n++){ const g1 = n - n1 >= 0 && n - n1 < x1.length ? x1[n - n1] : 0, g2 = n >= 0 && n < x2.length ? x2[n] : 0; y.push(a * g1 + b * g2); } ny = lo; F = WW.map((w, i) => cadd(cscale(X1[i], a), cscale(X2[i], b))); lab1 = `Re của FT[y] và a·X₁ + b·X₂`; sig = [[x1, n1, COL.x, 'x₁'], [x2, 0, COL.g, 'x₂'], [y, ny, COL.y, 'y']]; }
+  if (k === 'tre'){ const d = parseInt($('tc-p').value, 10) || 0; y = x1; ny = n1 + d; F = WW.map((w, i) => cmul(cexpj(-w * d), X1[i])); sig = [[x1, n1, COL.x, 'x'], [y, ny, COL.y, 'y']]; }
+  if (k === 'dich'){ const q = parseNum($('tc-p').value) || 0, w0 = q * PI; y = x1.map((v, i) => v * Math.cos(w0 * (n1 + i))); ny = n1; F = WW.map(w => cadd(cscale(dtft(x1, n1, w - w0), 0.5), cscale(dtft(x1, n1, w + w0), 0.5))); sig = [[x1, n1, COL.x, 'x'], [y, ny, COL.y, 'y = cos(ω₀n)·x']]; }
+  if (k === 'chap'){ y = conv(x1, x2); ny = n1; F = WW.map((w, i) => cmul(X1[i], X2[i])); sig = [[x1, n1, COL.x, 'x₁'], [x2, 0, COL.g, 'x₂'], [y, ny, COL.y, 'y = x₁ * x₂']]; }
+  if (k === 'dao'){ y = x1.slice().reverse(); ny = -(n1 + x1.length - 1); F = WW.map(w => dtft(x1, n1, -w)); sig = [[x1, n1, COL.x, 'x(n)'], [y, ny, COL.y, 'x(−n)']]; }
+  if (k === 'dx'){ y = x1; ny = n1; F = WW.map(w => cconj(dtft(x1, n1, -w))); sig = [[x1, n1, COL.x, 'x(n)']]; }
+  if (k === 'vp'){ y = x1.map((v, i) => v * (n1 + i)); ny = n1; const h = 1e-5; F = WW.map(w => cmul(C(0, 1), cscale(csub(dtft(x1, n1, w + h), dtft(x1, n1, w - h)), 1 / (2 * h)))); sig = [[x1, n1, COL.x, 'x(n)'], [y, ny, COL.y, 'n·x(n)']]; }
+  Y = WW.map(w => dtft(y, ny, w));
+  // tín hiệu
+  const all = sig.flatMap(([v, n0]) => [n0, n0 + v.length - 1]); const lo = Math.min(...all, 0) - 1, hi = Math.max(...all, 0) + 1;
+  stemPlot($('tc-xp'), {nmin: lo, nmax: hi, series: sig.map(([v, n0, c]) => ({n: v.map((_, i) => n0 + i), v, color: c})), height: 200, label: 'Tín hiệu'});
+  $('tc-xp').insertAdjacentHTML('beforeend', legendHTML(sig.map(([, , c, t]) => [c, t])));
+  // phổ
+  const sx = k === 'lin' || k === 'chap' ? [[X1, COL.x, '|X₁|'], [X2, COL.g, '|X₂|']] : [[X1, COL.x, '|X|']];
+  $('tc-p1t').innerHTML = 'Phổ biên độ';
+  linePlot($('tc-p1'), {x: WW, series: sx.map(([H, c]) => ({y: H.map(cabs), color: c, w: 1.6})).concat(k === 'dx' ? [] : [{y: Y.map(cabs), color: COL.y, w: 2.6}, {y: F.map(cabs), color: COL.n, dash: '4 4', w: 1.6}]), label: 'Phổ biên độ'});
+  $('tc-p1l').innerHTML = legendHTML(sx.map(([, c, t]) => [c, t]).concat(k === 'dx' ? [] : [[COL.y, '|FT[y]| tính trực tiếp'], [COL.n, 'theo công thức tính chất', true]]));
+  $('tc-p2t').innerHTML = k === 'dx' ? 'Pha φ(ω): đối xứng lẻ' : 'Phổ pha';
+  linePlot($('tc-p2'), {x: WW, series: (k === 'dx' ? [{y: X1.map(c => cabs(c) < 1e-9 ? NaN : carg(c)), color: COL.x, jump: PI}] : [{y: X1.map(c => cabs(c) < 1e-9 ? NaN : carg(c)), color: COL.x, w: 1.4, jump: PI}, {y: Y.map(c => cabs(c) < 1e-9 ? NaN : carg(c)), color: COL.y, w: 2.2, jump: PI}]), ymin: -PI * 1.1, ymax: PI * 1.1, ylabel: 'rad', label: 'Phổ pha'});
+  $('tc-p2l').innerHTML = k === 'dx' ? '' : legendHTML([[COL.x, 'pha của X (hoặc X₁)'], [COL.y, 'pha của FT[y]']]);
+  let err = 0; WW.forEach((w, i) => { err = Math.max(err, cabs(csub(Y[i], F[i]))); });
+  let extra = '';
+  if (k === 'dx'){ let e2 = 0; WW.forEach((w, i) => { e2 = Math.max(e2, Math.abs(cabs(X1[i]) - cabs(X1[WW.length - 1 - i]))); }); extra = ` |X(e<sup>jω</sup>)| − |X(e<sup>−jω</sup>)|: sai khác lớn nhất ${fmt(e2, 8)}.`; }
+  if (k === 'chap') extra = ` y(n) = {${y.map(v => fmt(v, 4)).join('; ')}} bắt đầu tại n = ${ny}.`;
+  $('tc-check').innerHTML = `<div class="res">So sánh FT tính trực tiếp với công thức tính chất trên 721 điểm tần số: sai khác lớn nhất ${err < 1e-6 ? '&lt; 10⁻⁶' : fmt(err, 8)} ${err < 1e-4 ? '<span class="ok">✓ Khớp</span>' : '<span class="no-ok">Chưa khớp</span>'}.${extra}</div>`;
+  $('tc-hint').textContent = k === 'chap' ? 'Ví dụ bài giảng: x₁ = rect₄ = 1 1 1 1, x₂ = (1 − n/2)·rect₄ = 1 0,5 0 −0,5.' : k === 'dich' ? 'ω₀ = 0,5 nghĩa là ω₀ = π/2 như ví dụ bài giảng.' : k === 'tre' ? 'Ví dụ bài giảng: x = rect₃(n), n₀ = 2.' : '';
+}
+
+/* ---------- TAB 5 ---------- */
+let PAR = 'exp';
+function renderPar(){
+  setPressed('#par-kind button', 'k', PAR); $('par-ef').hidden = PAR !== 'exp'; $('par-ff').hidden = PAR !== 'fin';
+  let X, Ex, st = [];
+  if (PAR === 'exp'){
+    const a = parseNum($('par-a').value); if (!isFinite(a) || Math.abs(a) >= 1){ $('par-steps').innerHTML = '<li><div class="bad">Cần |a| &lt; 1.</div></li>'; $('par-res').innerHTML = ''; return; }
+    X = WW.map(w => cdiv(C(1), csub(C(1), cscale(cexpj(-w), a)))); Ex = 1 / (1 - a * a);
+    st.push(`<b>Miền n:</b> E<sub>x</sub> = Σ<sub>n≥0</sub> (${fmt(a)})<sup>2n</sup> = 1/(1 − ${fmt(a * a)}) = <b>${fmt(Ex)}</b>.`);
+    st.push(`<b>Phổ:</b> X(e<sup>jω</sup>) = 1/(1 ${a < 0 ? '+' : '−'} ${fmt(Math.abs(a))}e<sup>−jω</sup>) ⇒ S<sub>xx</sub> = |X|² = 1/(1 + ${fmt(a * a)} − ${fmt(2 * a)}·cos ω) = 1/(${fmt(1 + a * a)} − ${fmt(2 * a)}cos ω).`);
+  } else {
+    const x = parseList($('par-x').value); if (!x){ $('par-steps').innerHTML = '<li><div class="bad">Dữ liệu chưa hợp lệ.</div></li>'; return; }
+    X = WW.map(w => dtft(x, 0, w)); Ex = x.reduce((s, v) => s + v * v, 0);
+    st.push(`<b>Miền n:</b> E<sub>x</sub> = ${x.map(v => fmt(v) + '²').join(' + ')} = <b>${fmt(Ex)}</b>.`);
+    st.push(`<b>Phổ:</b> X(e<sup>jω</sup>) = ${sumStr(x, 0)}, rồi S<sub>xx</sub> = |X|².`);
+  }
+  // tích phân số trên lưới dày
+  const K = 8192; let s = 0; const xf = PAR === 'exp' ? parseNum($('par-a').value) : null, xv = PAR === 'fin' ? parseList($('par-x').value) : null;
+  for (let j = 0; j < K; j++){ const w = -PI + 2 * PI * j / K; const v = PAR === 'exp' ? cabs(cdiv(C(1), csub(C(1), cscale(cexpj(-w), xf)))) : cabs(dtft(xv, 0, w)); s += v * v; }
+  const Ef = s * (2 * PI / K) / (2 * PI);
+  st.push(`<b>Miền tần số:</b> (1/2π)·∫<sub>−π</sub><sup>π</sup> S<sub>xx</sub> dω ≈ <b>${fmt(Ef, 6)}</b> (tính số với ${K} điểm).`);
+  $('par-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  $('par-res').innerHTML = `<div class="close">Hai vế bằng nhau: ${fmt(Ex, 6)} ≈ ${fmt(Ef, 6)} ${Math.abs(Ex - Ef) < 1e-6 * Math.max(1, Ex) ? '✓' : ''}</div>`;
+  linePlot($('par-plot'), {x: WW, series: [{y: X.map(c => cabs(c) ** 2), color: COL.p, w: 2.4}], ylabel: 'S_xx', label: 'Phổ mật độ năng lượng'});
+}
+
+/* ---------- BÀI TẬP ---------- */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Ba cách thể hiện (bài giảng 5.1.1)', q: 'Cho X(e<sup>jω</sup>) = e<sup>−jω</sup>·sin 2ω. Tìm Re, Im; A(e<sup>jω</sup>), θ(ω); |X| và φ(ω).', s: ['Khai triển e<sup>−jω</sup> = cos ω − j·sin ω: X = cos ω·sin 2ω − j·sin ω·sin 2ω.', 'Re[X] = cos ω·sin 2ω; Im[X] = −sin ω·sin 2ω.', 'Đối chiếu dạng A(e<sup>jω</sup>)·e<sup>jθ(ω)</sup>: A = sin 2ω (thực, có thể âm), θ(ω) = −ω.', '|X| = |sin 2ω|; φ(ω) = −ω khi sin 2ω > 0, −ω + π khi sin 2ω < 0.'], a: 'Re = cos ω sin 2ω, Im = −sin ω sin 2ω, A = sin 2ω, θ = −ω, |X| = |sin 2ω|.', m: 'Bài giảng ghi Im = sin ω·sin 2ω; đúng ra mang dấu trừ. A có thể âm, còn modun luôn dương: khác biệt nằm ở pha nhảy π.', load: {tab: 'dn'}},
+ {g: 'A', id: 'A2', t: 'Dãy đối xứng (bài giảng)', q: 'Tìm biến đổi Fourier của x₁(n) = δ(n−1) + δ(n) + δ(n+1).', s: ['X₁ = Σ x₁(n)e<sup>−jωn</sup> = e<sup>jω</sup> + 1 + e<sup>−jω</sup>.', 'e<sup>jω</sup> + e<sup>−jω</sup> = 2cos ω.'], a: 'X₁(e<sup>jω</sup>) = 1 + 2cos ω.', m: 'Dãy đối xứng quanh n = 0 cho phổ thực. Tại ω = 0 phổ bằng tổng các mẫu: 3.', load: {tab: 'dn', k: 'fin', x: '1 1 1', n0: '-1'}},
+ {g: 'A', id: 'A3', t: 'Dãy chữ nhật', q: 'Tìm X(e<sup>jω</sup>) và |X(e<sup>jω</sup>)| của x(n) = rect₃(n).', s: ['X = 1 + e<sup>−jω</sup> + e<sup>−j2ω</sup> = (1 − e<sup>−j3ω</sup>)/(1 − e<sup>−jω</sup>).', 'Rút e<sup>−j3ω/2</sup> ở tử, e<sup>−jω/2</sup> ở mẫu: X = e<sup>−jω</sup>·sin(3ω/2)/sin(ω/2).'], a: '|X| = |sin(3ω/2)/sin(ω/2)|, |X(e<sup>j0</sup>)| = 3.', m: 'Pha −ω tuyến tính. Đây cũng là phổ cửa sổ chữ nhật ở Buổi 8.', load: {tab: 'dn', k: 'fin', x: '1 1 1', n0: '0'}},
+ {g: 'A', id: 'A4', t: 'Dãy mũ', q: 'Tìm X(e<sup>jω</sup>) của x(n) = (−0,8)ⁿ·u(n). Phổ lớn nhất ở đâu?', s: ['X = Σ (−0,8e<sup>−jω</sup>)ⁿ = 1/(1 + 0,8e<sup>−jω</sup>).', 'X(e<sup>j0</sup>) = 1/1,8 ≈ 0,556; X(e<sup>jπ</sup>) = 1/0,2 = 5.'], a: 'X = 1/(1 + 0,8e<sup>−jω</sup>), lớn nhất tại ω = ±π.', m: 'Dãy đổi dấu liên tục là tín hiệu "rung nhanh", năng lượng dồn về tần số cao.', load: {tab: 'dn', k: 'exp', a: '-0,8'}},
+ {g: 'B', id: 'B1', t: 'Không tồn tại (bài giảng)', q: 'Xét biến đổi Fourier của x₂(n) = 3ⁿ·u(n−1).', s: ['X₂ = Σ<sub>n≥1</sub> 3ⁿe<sup>−jωn</sup>, chuỗi có công bội 3e<sup>−jω</sup>.', '|3e<sup>−jω</sup>| = 3 > 1 nên chuỗi không hội tụ.'], a: 'Không tồn tại X₂(e<sup>jω</sup>).', m: 'Dãy tăng vô hạn không có phổ. Trong miền Z: ROC |z| > 3 không chứa vòng tròn đơn vị.', load: {tab: 'ton', a: '3', k: '1'}},
+ {g: 'B', id: 'B2', t: 'Năng lượng hữu hạn (bài giảng)', q: 'Xét sự tồn tại và tính E<sub>x</sub> của x₁(n) = δ(n−1) + δ(n), x₂(n) = u(n).', s: ['x₁: Σ|x₁| = 1 + 1 = 2 < ∞, E<sub>x</sub> = 2.', 'x₂: Σ|x₂| = 1 + 1 + 1 + … = ∞, E<sub>x</sub> = ∞.'], a: 'X₁ tồn tại; X₂ không tồn tại theo nghĩa thông thường.', m: 'u(n) nằm ở ranh giới: cực z = 1 nằm ngay trên vòng tròn đơn vị.', load: {tab: 'ton', a: '1', k: '0'}},
+ {g: 'B', id: 'B3', t: 'Dãy mũ tắt dần', q: 'x(n) = (0,8)ⁿ·u(n) có biến đổi Fourier không? Tính Σ|x(n)| và E<sub>x</sub>.', s: ['Σ|x| = 1/(1 − 0,8) = 5.', 'E<sub>x</sub> = 1/(1 − 0,64) ≈ 2,778.'], a: 'Có, X = 1/(1 − 0,8e<sup>−jω</sup>).', m: '|a| < 1 là điều kiện đủ cho mọi dãy aⁿu(n).', load: {tab: 'ton', a: '0,8', k: '0'}},
+ {g: 'C', id: 'C1', t: 'Fourier ngược (bài giảng)', q: 'X(e<sup>jω</sup>) = e<sup>−j4ω</sup> khi |ω| ≤ π/2, bằng 0 khi khác. Tìm x(n).', s: ['x(n) = (1/2π)∫<sub>−π/2</sub><sup>π/2</sup> e<sup>j(n−4)ω</sup>dω.', '= (1/2π)·2sin((n−4)π/2)/(n−4).'], a: 'x(n) = sin((n−4)π/2)/(π(n−4)), x(4) = 1/2.', m: 'Đây là h(n) của bộ lọc thông thấp lý tưởng ω<sub>c</sub> = π/2 làm trễ 4 mẫu. Các mẫu n − 4 chẵn khác 0 đều bằng 0.', load: {tab: 'ng', wc: '0.5', k: '4'}},
+ {g: 'C', id: 'C2', t: 'Băng hẹp hơn', q: 'X(e<sup>jω</sup>) = 1 khi |ω| ≤ π/4, bằng 0 khi khác. Tìm x(0), x(2), x(4).', s: ['x(n) = sin(πn/4)/(πn), x(0) = 1/4.', 'x(2) = sin(π/2)/(2π) = 1/(2π) ≈ 0,159; x(4) = sin π/(4π) = 0.'], a: 'x(0) = 0,25; x(2) ≈ 0,159; x(4) = 0.', m: 'Băng tần càng hẹp, dãy x(n) càng trải rộng theo thời gian.', load: {tab: 'ng', wc: '0.25', k: '0'}},
+ {g: 'D', id: 'D1', t: 'Tuyến tính (bài giảng)', q: 'x(n) = x₁(n) + 2x₂(n) với x₁ = (1/2)ⁿu(n), x₂ = (1/4)ⁿu(n). Tìm X(e<sup>jω</sup>).', s: ['X₁ = 2/(2 − e<sup>−jω</sup>), X₂ = 4/(4 − e<sup>−jω</sup>).', 'X = X₁ + 2X₂ = [2(4 − e<sup>−jω</sup>) + 8(2 − e<sup>−jω</sup>)]/[(2 − e<sup>−jω</sup>)(4 − e<sup>−jω</sup>)].'], a: 'X(e<sup>jω</sup>) = (24 − 10e<sup>−jω</sup>)/(8 − 6e<sup>−jω</sup> + e<sup>−j2ω</sup>).', m: 'Bài giảng ghi tử số 16 − 6e<sup>−jω</sup>, đó là kết quả của X₁ + X₂. Có hệ số 2 thì tử số là 24 − 10e<sup>−jω</sup>.'},
+ {g: 'D', id: 'D2', t: 'Trễ (bài giảng)', q: 'x(n) = rect₃(n), x₁(n) = rect₃(n − 2). So sánh |X| và |X₁|.', s: ['X = e<sup>−jω</sup>·sin(3ω/2)/sin(ω/2).', 'X₁ = e<sup>−j2ω</sup>·X = e<sup>−j3ω</sup>·sin(3ω/2)/sin(ω/2).'], a: '|X₁| = |X| = |sin(3ω/2)/sin(ω/2)|; chỉ khác pha.', m: 'Trễ không làm thay đổi phổ biên độ.', load: {tab: 'tc', p: 'tre', x1: '1 1 1', n1: '0', par: '2'}},
+ {g: 'D', id: 'D3', t: 'Tích chập (bài giảng)', q: 'x₁ = rect₄(n), x₂ = (1 − n/2)·rect₄(n). Tìm x = x₁ * x₂ bằng biến đổi Fourier.', s: ['X₁ = 1 + e<sup>−jω</sup> + e<sup>−j2ω</sup> + e<sup>−j3ω</sup>; X₂ = 1 + 0,5e<sup>−jω</sup> − 0,5e<sup>−j3ω</sup>.', 'Nhân hai đa thức: X = 1 + 1,5e<sup>−jω</sup> + 1,5e<sup>−j2ω</sup> + e<sup>−j3ω</sup> + 0·e<sup>−j4ω</sup> − 0,5e<sup>−j5ω</sup> − 0,5e<sup>−j6ω</sup>.'], a: 'x(n) = {1; 1,5; 1,5; 1; 0; −0,5; −0,5}, x(0) = 1.', m: 'Bài giảng chỉ ghi 4 mẫu đầu; tích của hai đa thức bậc 3 có 7 hệ số, đủ 7 mẫu như trên (tổng 4 = 4 × 1).', load: {tab: 'tc', p: 'chap', x1: '1 1 1 1', n1: '0', x2: '1 0,5 0 -0,5'}},
+ {g: 'D', id: 'D4', t: 'Điều chế (bài giảng)', q: 'Cho X(e<sup>jω</sup>). Tìm Y(e<sup>jω</sup>) với y(n) = cos(πn/2)·x(n).', s: ['cos(πn/2) = [e<sup>jπn/2</sup> + e<sup>−jπn/2</sup>]/2.', 'Áp dụng trễ tần số cho từng số hạng.'], a: 'Y(e<sup>jω</sup>) = ½X(e<sup>j(ω−π/2)</sup>) + ½X(e<sup>j(ω+π/2)</sup>).', m: 'Phổ bị dời đến ±π/2 và giảm một nửa: chính là điều chế biên độ.', load: {tab: 'tc', p: 'dich', x1: '1 2 3 2 1', n1: '-2', par: '0,5'}},
+ {g: 'E', id: 'E1', t: 'Phổ mật độ năng lượng (bài giảng)', q: 'Cho x(n) = (1/2)ⁿu(n). Tính S<sub>xx</sub>(e<sup>jω</sup>) và E<sub>x</sub>.', s: ['Σ|x| = 2 < ∞ nên X tồn tại: X = 1/(1 − ½e<sup>−jω</sup>).', 'S<sub>xx</sub> = |X|² = 1/(1 − ½e<sup>−jω</sup>)(1 − ½e<sup>jω</sup>) = 1/(5/4 − cos ω).', 'E<sub>x</sub> = Σ(1/4)ⁿ = 4/3.'], a: 'S<sub>xx</sub> = 1/(1,25 − cos ω); E<sub>x</sub> = 4/3.', m: 'Kiểm tra Parseval: (1/2π)∫S<sub>xx</sub>dω cũng ra 4/3.', load: {tab: 'par', k: 'exp', a: '0,5'}}
+];
+function loadEx(L){
+  if (L.tab === 'dn'){ if (L.k){ DN.kind = L.k; if (L.x) $('dn-x').value = L.x; if (L.n0) $('dn-n0').value = L.n0; if (L.a) $('dn-a').value = L.a; } }
+  if (L.tab === 'ton'){ $('ton-a').value = L.a; $('ton-k').value = L.k; }
+  if (L.tab === 'ng'){ $('ng-wc').value = L.wc; $('ng-k').value = L.k; }
+  if (L.tab === 'tc'){ $('tc-prop').value = L.p; $('tc-x1').value = L.x1; $('tc-n1').value = L.n1; if (L.x2) $('tc-x2').value = L.x2; $('tc-p').dataset.k = L.p; if (L.par) $('tc-p').value = L.par; else $('tc-p').value = TC[L.p].pd || ''; }
+  if (L.tab === 'par'){ PAR = L.k; $('par-a').value = L.a; }
+  Lab.show(L.tab);
+}
+const renderEx = Lab.exercises(EX, {A: 'Nhóm A. Tính phổ, ba cách thể hiện', B: 'Nhóm B. Sự tồn tại', C: 'Nhóm C. Fourier ngược', D: 'Nhóm D. Tính chất', E: 'Nhóm E. Parseval'}, loadEx);
+
+/* =================== SỰ KIỆN =================== */
+$('dn-kind').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b){ DN.kind = b.dataset.k; renderDn(); } });
+$('dn-view').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b){ DN.view = b.dataset.v; renderDn(); } });
+['dn-x', 'dn-n0', 'dn-a'].forEach(id => $(id).addEventListener('input', renderDn));
+document.querySelectorAll('[data-dn]').forEach(b => b.addEventListener('click', () => { const p = b.dataset.dn.split('|'); DN.kind = p[0]; if (p[0] === 'fin'){ $('dn-x').value = p[1]; $('dn-n0').value = p[2]; } else $('dn-a').value = p[1]; renderDn(); }));
+Lab.copy('dn-copy', 'dn-code');
+['ton-a', 'ton-k'].forEach(id => $(id).addEventListener('input', renderTon));
+document.querySelectorAll('[data-ton]').forEach(b => b.addEventListener('click', () => { const [a, k] = b.dataset.ton.split('|'); $('ton-a').value = a; $('ton-k').value = k; renderTon(); }));
+['ng-wc', 'ng-k'].forEach(id => $(id).addEventListener('input', renderNg));
+document.querySelectorAll('[data-ng]').forEach(b => b.addEventListener('click', () => { const [w, k] = b.dataset.ng.split('|'); $('ng-wc').value = w; $('ng-k').value = k; renderNg(); }));
+['tc-prop', 'tc-x1', 'tc-n1', 'tc-x2', 'tc-p'].forEach(id => $(id).addEventListener('input', renderTc));
+$('par-kind').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b){ PAR = b.dataset.k; renderPar(); } });
+['par-a', 'par-x'].forEach(id => $(id).addEventListener('input', renderPar));
+document.querySelectorAll('[data-par]').forEach(b => b.addEventListener('click', () => { const [k, v] = b.dataset.par.split('|'); PAR = k; if (k === 'exp') $('par-a').value = v; else $('par-x').value = v; renderPar(); }));
+Lab.init({dn: renderDn, ton: renderTon, ng: renderNg, tc: renderTc, par: renderPar, ex: renderEx}, 'ft-tab', 'dn');
+
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

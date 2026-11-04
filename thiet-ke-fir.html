@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thiết kế bộ lọc FIR – DSP Lab</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DSP Lab">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="stylesheet" href="assets/lab.css">
+
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+<header class="sitebar tools"><div class="sitebar-in">
+  <a class="brand" href="./" aria-label="DSP Lab – Trang chủ"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20" stroke="#5B7299" stroke-width="1"/><path d="M4.5 12V6M8 12V4.5M11.5 12V8M15 12v5M18.5 12v6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="#fff"/><circle cx="8" cy="4.5" r="1.6" fill="#fff"/><circle cx="11.5" cy="8" r="1.6" fill="#fff"/><circle cx="15" cy="17" r="1.6" fill="#FB7185"/><circle cx="18.5" cy="18.5" r="1.6" fill="#FB7185"/></svg></span><span class="brand-t"><b><span class="full">DIGITAL SIGNAL PROCESSING LAB</span><span class="short">DSP LAB</span></b><small>ICTU · Đại học Thái Nguyên</small></span></a>
+  <nav class="sitenav" aria-label="Các phần mềm">
+    <a class="home" href="./">Trang chủ</a>
+    <a href="day-tin-hieu.html"><span class="n">01</span>Dãy tín hiệu</a>
+    <a href="tich-chap.html"><span class="n">02</span>Tích chập</a>
+    <a href="bien-doi-z.html"><span class="n">03</span>Biến đổi Z</a>
+    <a href="he-thong-z.html"><span class="n">04</span>Hệ thống Z</a>
+    <a href="fourier.html"><span class="n">05</span>Fourier</a>
+    <a href="dap-ung-tan-so.html"><span class="n">06</span>Đáp ứng tần số</a>
+    <a href="bo-loc-ly-tuong.html"><span class="n">07</span>Bộ lọc lý tưởng</a>
+    <a href="thiet-ke-fir.html" aria-current="page"><span class="n">08</span>Thiết kế FIR</a>
+    <a href="thiet-ke-iir.html"><span class="n">09</span>Thiết kế IIR</a>
+  </nav>
+</div></header>
+<div class="pagehead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Xử lý tín hiệu số · Buổi 8</div>
+      <h1>Thiết kế bộ lọc <span class="z">FIR</span></h1>
+    </div>
+    <div class="author"><small>Giảng viên</small><b>NGUYỄN SỸ HIỆP</b><span>Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</span></div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Các phần của bài">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" data-tab="tk" id="tb-tk"><span class="no">1</span>Thiết kế bằng cửa sổ</button>
+      <button class="tab" role="tab" data-tab="cs" id="tb-cs"><span class="no">2</span>Các loại cửa sổ</button>
+      <button class="tab" role="tab" data-tab="ct" id="tb-ct"><span class="no">3</span>Chọn cửa sổ theo chỉ tiêu</button>
+      <button class="tab" role="tab" data-tab="gb" id="tb-gb"><span class="no">4</span>Hiện tượng Gibbs</button>
+      <button class="tab" role="tab" data-tab="ls" id="tb-ls"><span class="no">5</span>Lấy mẫu tần số</button>
+      <button class="tab" role="tab" data-tab="cu" id="tb-cu"><span class="no">6</span>Cấu trúc FIR</button>
+      <button class="tab" role="tab" data-tab="ml" id="tb-ml"><span class="no">7</span>MATLAB fir1</button>
+      <button class="tab" role="tab" data-tab="ex" id="tb-ex"><span class="no">BT</span>Bài tập</button>
+    </div>
+    <button class="toggle" id="toggleCtl" aria-pressed="false" aria-label="Ẩn hoặc hiện bảng điều khiển"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9.5" y1="4" x2="9.5" y2="20" stroke="currentColor" stroke-width="2"/></svg><span id="toggleTxt">Ẩn bảng điều khiển</span></button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+<!-- ============ 1. THIẾT KẾ BẰNG CỬA SỔ ============ -->
+<section class="tabpanel" id="p-tk" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Loại bộ lọc</span>
+        <div class="seg2" id="tk-type"><button data-t="lp" aria-pressed="true">Thông thấp</button><button data-t="hp" aria-pressed="false">Thông cao</button><button data-t="bp" aria-pressed="false">Thông dải</button><button data-t="bs" aria-pressed="false">Chắn dải</button></div></div>
+      <div class="field"><span class="lbl">Tần số lấy mẫu F<sub>s</sub> (Hz)</span><input type="text" id="tk-fs" value="8000"></div>
+      <div class="row2">
+        <div class="field"><span class="lbl" id="tk-l1">Tần số cắt f<sub>c</sub> (Hz)</span><input type="text" id="tk-f1" value="800"></div>
+        <div class="field" id="tk-f2f" hidden><span class="lbl">f<sub>c2</sub> (Hz)</span><input type="text" id="tk-f2" value="1800"></div>
+      </div>
+      <div class="field"><span class="lbl">Chiều dài N</span><input type="number" id="tk-N" value="3" min="1" step="1"><small id="tk-Nh"></small></div>
+      <div class="field"><span class="lbl">Cửa sổ</span><select id="tk-win"><option value="rect">Chữ nhật</option><option value="tri">Tam giác</option><option value="hann">Hanning</option><option value="hamming" selected>Hamming</option><option value="blackman">Blackman</option></select></div>
+      <label class="switch"><input type="checkbox" id="tk-scale"> Chuẩn hóa như fir1 (|H| = 1 ở giữa dải thông)</label>
+      <div class="field"><span class="lbl">Ví dụ bài giảng</span>
+        <div class="chips">
+          <button class="chip small" data-tk="lp|8000|800||3|hamming|0">Ví dụ 3</button>
+          <button class="chip small" data-tk="lp|8000|1600||25|hamming|1">Bài mẫu 1</button>
+          <button class="chip small" data-tk="bp|8000|1600|1800|5|hamming|1">TH 1 (thông dải)</button>
+          <button class="chip small" data-tk="bs|8000|1600|2400|5|hamming|1">TH 2 (chắn dải)</button>
+          <button class="chip small" data-tk="lp|8000|1500||3|rect|0">TH 3</button>
+          <button class="chip small" data-tk="hp|8000|1600||3|rect|0">TH 4</button>
+        </div></div>
+      <div class="field"><span class="lbl">Thang biên độ</span><div class="seg2" id="tk-sc"><button data-s="lin" aria-pressed="false">Tuyến tính</button><button data-s="db" aria-pressed="true">dB</button></div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Phương pháp cửa sổ: lấy bộ lọc lý tưởng rồi "cắt" cho vừa</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Bộ lọc lý tưởng có h(n) dài vô hạn, không nhân quả (Buổi 7). Cần một bộ lọc thật, ngắn, chạy được trên chip mà vẫn gần với lý tưởng.</div>
+          <div class="what"><b>5 bước</b>Chọn chỉ tiêu → h<sub>d</sub>(n) lý tưởng → chọn cửa sổ → h(n) = h<sub>d</sub>(n)·w(n) → kiểm tra lại trong miền tần số, chưa đạt thì tăng N.</div>
+          <div class="use"><b>Ưu điểm FIR</b>Chỉ có cực tại z = 0 nên luôn ổn định. h(n) đối xứng nên pha tuyến tính: mọi tần số bị trễ như nhau, tín hiệu không méo dạng.</div>
+        </div>
+        <p class="ref">Mục 8.1.2 bài giảng.</p>
+      </div>
+      <div class="card"><h2>Lời giải từng bước</h2><ol class="steps" id="tk-steps"></ol></div>
+      <div class="card"><h2>Bảng hệ số</h2><div class="tbl-wrap" id="tk-tbl"></div><div class="res math" id="tk-hz"></div></div>
+      <div class="card">
+        <div class="plot-hd"><h3>Đáp ứng xung h(n)</h3></div><div class="plot" id="tk-h"></div><div id="tk-hl"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3 id="tk-mt">Đáp ứng biên độ</h3></div><div class="plot" id="tk-m"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3>Đáp ứng pha (độ): đường thẳng trong dải thông</h3></div><div class="plot" id="tk-p"></div>
+        <div class="kv" id="tk-kv"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. CÁC LOẠI CỬA SỔ ============ -->
+<section class="tabpanel" id="p-cs" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Chiều dài N</span><div class="rangeRow"><input type="range" id="cs-N" min="5" max="81" step="2" value="31"><output id="cs-No">31</output></div></div>
+      <div class="field"><span class="lbl">Hiển thị</span>
+        <div class="chips" id="cs-sel">
+          <button class="chip small" data-w="rect" aria-pressed="true">Chữ nhật</button>
+          <button class="chip small" data-w="tri" aria-pressed="false">Tam giác</button>
+          <button class="chip small" data-w="hann" aria-pressed="false">Hanning</button>
+          <button class="chip small" data-w="hamming" aria-pressed="true">Hamming</button>
+          <button class="chip small" data-w="blackman" aria-pressed="true">Blackman</button>
+        </div></div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Cửa sổ quyết định độ gợn và độ dốc của bộ lọc</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Cắt thẳng tay (cửa sổ chữ nhật) gây gợn lớn. Cửa sổ "mềm" giảm dần về hai đầu nên ít gợn hơn.</div>
+          <div class="what"><b>Hai thông số</b>Bề rộng đỉnh trung tâm ⇒ độ rộng dải chuyển tiếp. Tỷ số đỉnh thứ cấp/đỉnh trung tâm ⇒ độ gợn và độ suy giảm dải chắn.</div>
+          <div class="use"><b>Đánh đổi</b>Gợn càng nhỏ thì đỉnh trung tâm càng rộng: muốn vừa ít gợn vừa dốc thì phải tăng N, tốn thêm phép nhân.</div>
+        </div>
+        <p class="ref">Mục 8.1.2, bảng 8.1 bài giảng.</p>
+      </div>
+      <div class="card"><div class="plot-hd"><h3>Hình dạng w(n)</h3></div><div class="plot" id="cs-w"></div><div id="cs-wl"></div></div>
+      <div class="card"><div class="plot-hd"><h3>Phổ cửa sổ |W(e<sup>jω</sup>)| (dB, chuẩn hóa đỉnh = 0 dB)</h3></div><div class="plot" id="cs-W"></div></div>
+      <div class="card"><h2>So sánh với bảng 8.1 (đo trực tiếp trên phổ)</h2><div class="tbl-wrap" id="cs-tbl"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. CHỌN CỬA SỔ THEO CHỈ TIÊU ============ -->
+<section class="tabpanel" id="p-ct" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="row2">
+        <div class="field"><span class="lbl">f<sub>pass</sub> (Hz)</span><input type="text" id="ct-fp" value="1850"></div>
+        <div class="field"><span class="lbl">f<sub>stop</sub> (Hz)</span><input type="text" id="ct-fst" value="2150"></div>
+      </div>
+      <div class="field"><span class="lbl">Tần số lấy mẫu f<sub>s</sub> (Hz)</span><input type="text" id="ct-fs" value="8000"></div>
+      <div class="row2">
+        <div class="field"><span class="lbl">Suy hao dải chắn (dB)</span><input type="text" id="ct-As" value="20"></div>
+        <div class="field"><span class="lbl">Gợn dải thông (dB)</span><input type="text" id="ct-Ap" value="1"></div>
+      </div>
+      <div class="chips"><button class="chip small" data-ct="1850|2150|8000|20|1">Ví dụ 4</button><button class="chip small" data-ct="1500|2000|8000|50|0,1">Cần 50 dB</button><button class="chip small" data-ct="1500|2000|8000|60|0,01">Cần 60 dB</button></div>
+      <button class="btn" id="ct-go">Mở thiết kế này ở tab 1</button>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Từ chỉ tiêu kỹ thuật ra loại cửa sổ, N và f<sub>c</sub></h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Trong thực tế người ta cho yêu cầu (dải thông, dải chắn, suy hao), không cho sẵn N và cửa sổ.</div>
+          <div class="what"><b>Cách làm</b>Suy hao dải chắn chọn loại cửa sổ; độ rộng dải chuyển Δf = (f<sub>stop</sub> − f<sub>pass</sub>)/f<sub>s</sub> chọn N; tần số cắt đặt giữa hai mép.</div>
+          <div class="use"><b>Kiểm tra</b>Phần mềm thiết kế ngay bộ lọc vừa chọn và đo lại xem có đạt chỉ tiêu không.</div>
+        </div>
+        <p class="ref">Mục 8.1.2, bảng 8.2 và Ví dụ 4 bài giảng.</p>
+      </div>
+      <div class="card"><h2>Bảng 8.2</h2><div class="tbl-wrap" id="ct-tbl"></div></div>
+      <div class="card"><h2>Lời giải từng bước</h2><ol class="steps" id="ct-steps"></ol></div>
+      <div class="card"><div class="plot-hd"><h3>Bộ lọc thu được (dB) và vùng chỉ tiêu</h3></div><div class="plot" id="ct-plot"></div><div id="ct-res"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. GIBBS ============ -->
+<section class="tabpanel" id="p-gb" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Chiều dài N</span><div class="rangeRow"><input type="range" id="gb-N" min="5" max="151" step="2" value="21"><output id="gb-No">21</output></div></div>
+      <div class="field"><span class="lbl">ω<sub>c</sub> (phần của π)</span><div class="rangeRow"><input type="range" id="gb-wc" min="0.1" max="0.9" step="0.05" value="0.5"><output id="gb-wco">π/2</output></div></div>
+      <label class="switch"><input type="checkbox" id="gb-ham" checked> So sánh với cửa sổ Hamming</label>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Hiện tượng Gibbs: gợn 9% không mất đi khi tăng N</h2>
+        <div class="intro">
+          <div class="why"><b>Hiện tượng</b>Cắt h(n) bằng cửa sổ chữ nhật làm |H| gợn sóng cạnh tần số cắt. Đỉnh gợn đầu tiên luôn vượt khoảng 9%, dù N lớn bao nhiêu.</div>
+          <div class="what"><b>Nguyên nhân</b>|H| là tích chập của bộ lọc lý tưởng với phổ cửa sổ. Đỉnh thứ cấp −13 dB của cửa sổ chữ nhật không phụ thuộc N.</div>
+          <div class="use"><b>Cách khắc phục</b>Dùng cửa sổ có đỉnh thứ cấp thấp hơn (Hamming, Blackman). Tăng N chỉ làm gợn dồn sát tần số cắt.</div>
+        </div>
+      </div>
+      <div class="card"><div class="plot-hd"><h3>|H(e<sup>jω</sup>)| tuyến tính</h3></div><div class="plot" id="gb-plot"></div><div id="gb-leg"></div><div class="kv" id="gb-kv"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. LẤY MẪU TẦN SỐ ============ -->
+<section class="tabpanel" id="p-ls" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Loại bộ lọc</span>
+        <div class="seg2" id="ls-type"><button data-t="lp" aria-pressed="true">Thông thấp</button><button data-t="hp" aria-pressed="false">Thông cao</button><button data-t="bp" aria-pressed="false">Thông dải</button><button data-t="bs" aria-pressed="false">Chắn dải</button></div></div>
+      <div class="field"><span class="lbl">Số hệ số N (lẻ)</span><input type="number" id="ls-N" value="25" min="3" step="2"></div>
+      <div class="field"><span class="lbl">F<sub>s</sub> (Hz)</span><input type="text" id="ls-fs" value="8000"></div>
+      <div class="row2">
+        <div class="field"><span class="lbl" id="ls-l1">f<sub>c</sub> (Hz)</span><input type="text" id="ls-f1" value="2000"></div>
+        <div class="field" id="ls-f2f" hidden><span class="lbl">f<sub>c2</sub> (Hz)</span><input type="text" id="ls-f2" value="1800"></div>
+      </div>
+      <div class="chips">
+        <button class="chip small" data-ls="lp|25|8000|2000|">Nâng cao 1</button>
+        <button class="chip small" data-ls="hp|31|8000|2400|">Nâng cao 2</button>
+        <button class="chip small" data-ls="bp|5|8000|1600|1800">Nâng cao 3</button>
+        <button class="chip small" data-ls="bs|5|8000|1600|2400">Nâng cao 4</button>
+      </div>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Lấy mẫu tần số: cho trước |H| tại N điểm rồi tính ngược h(n)</h2>
+        <div class="intro">
+          <div class="why"><b>Ý tưởng</b>Thay vì cắt h(n), ta quy định đáp ứng tần số tại các điểm cách đều ω<sub>k</sub> = 2πk/N: bằng 1 trong dải thông, 0 trong dải chắn.</div>
+          <div class="what"><b>Công thức (N lẻ, pha tuyến tính)</b>h(n) = (1/N)·[H₀ + 2·Σ<sub>k=1</sub><sup>(N−1)/2</sup> H<sub>k</sub>·cos(2πk(n − α)/N)], α = (N−1)/2.</div>
+          <div class="use"><b>Đặc điểm</b>|H| đi qua đúng các điểm mẫu; giữa các điểm vẫn có gợn. Thuận tiện khi muốn đáp ứng có hình dạng tùy ý.</div>
+        </div>
+        <p class="ref">Bài thực hành nâng cao, mục 8.3.3.</p>
+      </div>
+      <div class="card"><h2>Từng bước</h2><ol class="steps" id="ls-steps"></ol></div>
+      <div class="card"><div class="plot-hd"><h3>|H(e<sup>jω</sup>)| và các điểm mẫu H<sub>k</sub></h3></div><div class="plot" id="ls-m"></div>
+        <div class="plot-hd" style="margin-top:12px"><h3>h(n)</h3></div><div class="plot" id="ls-h"></div><div class="tbl-wrap" id="ls-tbl"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. CẤU TRÚC FIR ============ -->
+<section class="tabpanel" id="p-cu" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <div class="field"><span class="lbl">Hệ số h(0), h(1), …</span><input type="text" id="cu-h" value="0,2 0,5 -0,3 0,5 0,2"></div>
+      <div class="field"><span class="lbl">Dạng</span><div class="seg2" id="cu-f"><button data-f="tt" aria-pressed="false">Thông thường</button><button data-f="tt2" aria-pressed="true">Pha tuyến tính</button></div></div>
+      <div class="chips"><button class="chip small" data-cu="0,2 0,5 -0,3 0,5 0,2">Ví dụ 6</button><button class="chip small" data-cu="0,01497 0,2 0,01497">Ví dụ 3</button><button class="chip small" data-cu="1 2 3 3 2 1">N chẵn</button></div>
+      <small class="muted" id="cu-hint"></small>
+    </aside>
+    <div class="out">
+      <div class="card">
+        <h2>Lắp bộ lọc FIR: dạng thông thường và dạng pha tuyến tính</h2>
+        <div class="intro">
+          <div class="why"><b>Vì sao cần</b>Bộ lọc FIR dài vài chục đến vài trăm hệ số, phép nhân tốn tài nguyên nhất trên chip.</div>
+          <div class="what"><b>Mẹo đối xứng</b>h(n) = h(N−1−n) nên cộng hai mẫu vào đối xứng trước, nhân sau: b₀[x(n) + x(n−4)] thay vì b₀x(n) + b₀x(n−4).</div>
+          <div class="use"><b>Lợi ích</b>Số phép nhân giảm gần một nửa, số phép cộng giữ nguyên.</div>
+        </div>
+        <p class="ref">Mục 8.2 bài giảng, Ví dụ 6.</p>
+      </div>
+      <div class="card"><div class="math big" id="cu-eq"></div><div class="kv" id="cu-kv"></div></div>
+      <div class="card"><h2 id="cu-t"></h2><div class="diag" id="cu-svg"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. MATLAB ============ -->
+<section class="tabpanel" id="p-ml" hidden>
+  <div class="panel-grid">
+    <aside class="controls"><small class="muted">Chương trình lấy bộ lọc đang thiết kế ở tab 1.</small><button class="btn ghost" id="ml-copy">Sao chép</button></aside>
+    <div class="out">
+      <div class="card"><h2>Chương trình fir1</h2><pre class="code" id="ml-code"></pre></div>
+      <div class="card"><h2>Kết quả để đối chiếu</h2><div class="tbl-wrap" id="ml-out"></div></div>
+      <div class="card"><h2>Cú pháp fir1</h2><table class="t"><tr><th>Tham số</th><th>Ý nghĩa</th></tr>
+        <tr><td class="m">n</td><td>Bậc bộ lọc, n = N − 1 (N là chiều dài)</td></tr>
+        <tr><td class="m">Wn</td><td>Tần số cắt chuẩn hóa từ 0 đến 1, với 1 ứng với F<sub>s</sub>/2: Wn = 2f<sub>c</sub>/F<sub>s</sub>. Thông dải, chắn dải: Wn = [W1 W2]</td></tr>
+        <tr><td class="m">'low' 'high' 'stop'</td><td>Thông thấp, thông cao, chắn dải; thông dải là mặc định khi Wn có 2 phần tử</td></tr>
+        <tr><td class="m">window</td><td>rectwin(N), bartlett(N), hann(N), hamming(N), blackman(N)</td></tr></table>
+        <p class="key">fir1 tự chuẩn hóa để |H| = 1 ở giữa dải thông, nên hệ số lệch một chút so với cách tính tay ở Ví dụ 3. Bỏ chuẩn hóa: thêm tham số 'noscale'. Cửa sổ tam giác trong bài giảng (8.20) trùng với bartlett(N); triang(N) của MATLAB không có hai mẫu 0 ở đầu.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÀI TẬP ============ -->
+<section class="tabpanel" id="p-ex" hidden>
+  <div class="panel-grid">
+    <aside class="controls">
+      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
+      <small class="muted">Bật để ẩn lời giải, bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
+      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+        <div class="chips" id="ex-filter">
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="A" aria-pressed="false">A. Cửa sổ</button>
+          <button class="chip small" data-g="B" aria-pressed="false">B. Chọn N</button>
+          <button class="chip small" data-g="C" aria-pressed="false">C. Cửa sổ, Gibbs</button>
+          <button class="chip small" data-g="D" aria-pressed="false">D. Cấu trúc, lấy mẫu</button>
+        </div></div>
+    </aside>
+    <div class="out" id="ex-list"></div>
+  </div>
+</section>
+
+<footer>Thiết kế bộ lọc FIR · Xử lý tín hiệu số · NGUYỄN SỸ HIỆP · Trường Đại học Công nghệ Thông tin và Truyền thông – ĐH Thái Nguyên</footer>
+</div>
+</main>
+<script>(function(){var a=document.querySelector('.sitenav a[aria-current]');if(a&&a.scrollIntoView){var n=a.parentNode;n.scrollLeft=a.offsetLeft-n.clientWidth/2+a.clientWidth/2;}})();</script>
+<script src="assets/zcore.js"></script>
+<script src="assets/fcore.js"></script>
+<script>
+/* =================== BUỔI 8: THIẾT KẾ FIR =================== */
+const W2 = wGrid(1025);
+const TNAME = {lp: 'thông thấp', hp: 'thông cao', bp: 'thông dải', bs: 'chắn dải'};
+const ML_T = {lp: "'low'", hp: "'high'", bp: "'bandpass'", bs: "'stop'"};
+const WFORM = {rect: 'w(n) = 1', tri: 'w(n) = 1 − |2n/(N−1) − 1|', hann: 'w(n) = 0,5 − 0,5·cos(2πn/(N−1))', hamming: 'w(n) = 0,54 − 0,46·cos(2πn/(N−1))', blackman: 'w(n) = 0,42 − 0,5·cos(2πn/(N−1)) + 0,08·cos(4πn/(N−1))'};
+const fmtA = v => { const s = (+v.toFixed(5)).toString(); return s.replace('-', '−').replace('.', ','); };
+
+/* ---------- TAB 1 ---------- */
+let TK = {t: 'lp', sc: 'db'}, DES = null;
+function design(){
+  const fs = parseNum($('tk-fs').value), f1 = parseNum($('tk-f1').value), f2 = parseNum($('tk-f2').value); let N = parseInt($('tk-N').value, 10);
+  const two = TK.t === 'bp' || TK.t === 'bs';
+  if (!(fs > 0) || !(f1 > 0) || f1 >= fs / 2 || (two && !(f2 > f1 && f2 < fs / 2)) || !(N >= 1) || N > 401) return {err: 'Cần 0 < f<sub>c</sub> < F<sub>s</sub>/2' + (two ? ' và f<sub>c1</sub> < f<sub>c2</sub>' : '') + ', 1 ≤ N ≤ 401.'};
+  let note = '';
+  if ((TK.t === 'hp' || TK.t === 'bs') && N % 2 === 0){ N += 1; note = `Bộ lọc ${TNAME[TK.t]} pha tuyến tính cần N lẻ (h(n) đối xứng, H(e<sup>jπ</sup>) ≠ 0), phần mềm dùng N = ${N} như fir1.`; }
+  const w1 = 2 * PI * f1 / fs, w2 = two ? 2 * PI * f2 / fs : 0, win = $('tk-win').value, scale = $('tk-scale').checked;
+  const r = firWindow(TK.t, N, w1, w2, win, scale);
+  return Object.assign(r, {fs, f1, f2, N, w1, w2, win, scale, note, two, t: TK.t});
+}
+function renderTk(){
+  setPressed('#tk-type button', 't', TK.t); setPressed('#tk-sc button', 's', TK.sc);
+  const two = TK.t === 'bp' || TK.t === 'bs'; $('tk-f2f').hidden = !two; $('tk-l1').innerHTML = two ? 'f<sub>c1</sub> (Hz)' : 'Tần số cắt f<sub>c</sub> (Hz)';
+  const D = design(); DES = D;
+  if (D.err){ $('tk-steps').innerHTML = `<li><div class="bad">${D.err}</div></li>`; return; }
+  $('tk-Nh').innerHTML = D.note || `Bậc bộ lọc n = N − 1 = ${D.N - 1}; tâm đối xứng α = (N−1)/2 = ${fmt(D.M)}.`;
+  const st = [], wq1 = D.w1 / PI, wq2 = D.w2 / PI;
+  st.push(`<b>Chỉ tiêu, đổi tần số cắt ra rad:</b> ω<sub>c${two ? '1' : ''}</sub> = 2π·f<sub>c</sub>/F<sub>s</sub> = 2π·${fmt(D.f1)}/${fmt(D.fs)} = <b>${fmt(wq1, 4)}π</b> rad${two ? `; ω<sub>c2</sub> = 2π·${fmt(D.f2)}/${fmt(D.fs)} = <b>${fmt(wq2, 4)}π</b> rad` : ''}.`);
+  const sc = (w) => `sin(${fmt(w / PI, 4)}π·m)/(πm)`;
+  const hd = {lp: `h<sub>d</sub>(m) = ${sc(D.w1)}, h<sub>d</sub>(0) = ω<sub>c</sub>/π = ${fmt(wq1, 4)}`, hp: `h<sub>d</sub>(m) = δ(m) − ${sc(D.w1)}, h<sub>d</sub>(0) = 1 − ${fmt(wq1, 4)} = ${fmt(1 - wq1, 4)}`, bp: `h<sub>d</sub>(m) = ${sc(D.w2)} − ${sc(D.w1)}, h<sub>d</sub>(0) = ${fmt(wq2 - wq1, 4)}`, bs: `h<sub>d</sub>(m) = δ(m) − [${sc(D.w2)} − ${sc(D.w1)}], h<sub>d</sub>(0) = ${fmt(1 - wq2 + wq1, 4)}`}[D.t];
+  st.push(`<b>Đáp ứng xung lý tưởng</b> (Buổi 7), m = n − α là chỉ số tính từ tâm, m = −${fmt(D.M)} … ${fmt(D.M)}: <span class="math">${hd}</span>.`);
+  st.push(`<b>Chọn cửa sổ ${WIN[D.win].name}:</b> <span class="math">${WFORM[D.win]}</span>, n = 0 … ${D.N - 1}.`);
+  st.push(`<b>Nhân với cửa sổ:</b> h(n) = h<sub>d</sub>(n − α)·w(n)${D.scale ? `, rồi nhân hệ số chuẩn hóa g = ${fmt(D.g, 5)} để |H| = 1 ở giữa dải thông (như fir1)` : ''}. Xem bảng hệ số.`);
+  const ms = measure(D.h, [1], [], []); const fc = cabs(dtft(D.h, 0, D.w1));
+  st.push(`<b>Thử lại trong miền tần số:</b> |H| tại f<sub>c</sub> = ${fmt(fc, 4)} (${fmt(db(fc), 2)} dB). Nếu chưa đạt chỉ tiêu thì tăng N và làm lại từ bước 2 (tab 3 tự tính N).`);
+  $('tk-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  const rows = D.h.map((v, n) => `<tr><td class="m">${n}</td><td class="m">${fmt(n - D.M)}</td><td class="m">${fmtA(D.hd[n])}</td><td class="m">${fmtA(D.w[n])}</td><td class="m"><b>${fmtA(v)}</b></td></tr>`);
+  $('tk-tbl').innerHTML = `<table class="t"><tr><th>n</th><th>m = n − α</th><th>h<sub>d</sub></th><th>w(n)</th><th>h(n) = b<sub>n</sub></th></tr>${rows.length > 41 ? rows.slice(0, 20).join('') + `<tr><td colspan="5" class="muted">… ${rows.length - 40} hàng giữa …</td></tr>` + rows.slice(-20).join('') : rows.join('')}</table>`;
+  const hz = D.h.map((v, n) => ({v, n})).filter(o => !isZ(o.v));
+  $('tk-hz').innerHTML = D.N <= 15 ? `H(z) = ${hz.map(o => `${fmtA(o.v)}${o.n ? `z<sup>−${o.n}</sup>` : ''}`).join(' + ').replace(/\+ −/g, '− ')}<br>y(n) = ${hz.map(o => `${fmtA(o.v)}·x(n${o.n ? '−' + o.n : ''})`).join(' + ').replace(/\+ −/g, '− ')}` : `H(z) = Σ h(n)·z<sup>−n</sup>, n = 0 … ${D.N - 1}; y(n) = Σ h(n)·x(n − k). Hệ số đối xứng: h(n) = h(${D.N - 1} − n).`;
+  stemPlot($('tk-h'), {nmin: -1, nmax: D.N, series: [{n: D.h.map((_, i) => i), v: D.h, color: COL.y}], values: D.N <= 15, height: 210, label: 'h(n)'});
+  const f = W2.map(w => w * D.fs / (2 * PI)), H = W2.map(w => dtft(D.h, 0, w)), m = H.map(cabs);
+  $('tk-mt').innerHTML = TK.sc === 'db' ? 'Đáp ứng biên độ 20·log<sub>10</sub>|H| (dB)' : 'Đáp ứng biên độ |H|';
+  const vl = [{x: D.f1, color: COL.a, label: 'f_c' + (two ? '1' : '')}].concat(two ? [{x: D.f2, color: COL.a, label: 'f_c2'}] : []);
+  linePlot($('tk-m'), {x: f, xmode: 'hz', series: [{y: TK.sc === 'db' ? m.map(db) : m, color: COL.x, w: 2.4}], ymin: TK.sc === 'db' ? Math.max(-100, Math.min(...m.map(db))) : 0, ymax: TK.sc === 'db' ? 5 : undefined, zero: TK.sc !== 'db', vlines: vl, hlines: TK.sc === 'db' ? [{y: -3, color: '#94A3B8', label: '−3 dB'}] : [], ylabel: TK.sc === 'db' ? 'dB' : '|H|', label: 'Đáp ứng biên độ'});
+  const ph = unwrap(H.map(carg)).map(v => v * 180 / PI);
+  linePlot($('tk-p'), {x: f, xmode: 'hz', series: [{y: ph, color: COL.y, w: 2}], ylabel: 'độ', label: 'Đáp ứng pha'});
+  const sym = D.h.every((v, i) => Math.abs(v - D.h[D.N - 1 - i]) < 1e-12);
+  $('tk-kv').innerHTML = [['|H| tại f = 0', fmt(m[0], 4)], ['|H| tại f = F_s/2', fmt(m[m.length - 1], 4)], ['Độ trễ nhóm', `${fmt(D.M)} mẫu = ${fmt(D.M / D.fs * 1000, 3)} ms`], ['h(n) đối xứng', sym ? 'Có ⇒ pha tuyến tính' : 'Không']].map(([k, v]) => `<div><small>${k.replace('F_s', 'Fs')}</small><b>${v}</b></div>`).join('');
+}
+
+/* ---------- TAB 2 ---------- */
+let CSW = new Set(['rect', 'hamming', 'blackman']);
+const WC = {rect: '#BE123C', tri: '#B45309', hann: '#7C3AED', hamming: '#1E40AF', blackman: '#047857'};
+function winMeasure(key, N){
+  const w = winSeq(key, N), K = 4096, ws = [], m = []; for (let i = 0; i < K; i++){ const t = PI * i / (K - 1); ws.push(t); m.push(cabs(dtft(w, 0, t))); }
+  const m0 = m[0]; let i = 1; while (i < K - 1 && !(m[i] <= m[i - 1] && m[i] <= m[i + 1])) i++;
+  const null1 = ws[i]; let sl = 0; for (let j = i; j < K; j++) sl = Math.max(sl, m[j]);
+  return {w, ws, mdb: m.map(v => db(v / m0)), width: 2 * null1, sl: db(sl / m0)};
+}
+function renderCs(){
+  const N = parseInt($('cs-N').value, 10); $('cs-No').textContent = N;
+  document.querySelectorAll('#cs-sel .chip').forEach(c => c.setAttribute('aria-pressed', CSW.has(c.dataset.w)));
+  const keys = Object.keys(WIN).filter(k => CSW.has(k)); const R = {}; keys.forEach(k => R[k] = winMeasure(k, N));
+  const n = Array.from({length: N}, (_, i) => i);
+  linePlot($('cs-w'), {x: n, xmode: 'num', xlabel: 'n', series: keys.map(k => ({y: R[k].w, color: WC[k], w: 2.2})), ymin: 0, ymax: 1.1, label: 'Hình dạng cửa sổ'});
+  $('cs-wl').innerHTML = legendHTML(keys.map(k => [WC[k], WIN[k].name]));
+  if (keys.length) linePlot($('cs-W'), {x: R[keys[0]].ws, series: keys.map(k => ({y: R[k].mdb, color: WC[k], w: 1.8})), ymin: -110, ymax: 5, ylabel: 'dB', label: 'Phổ cửa sổ'});
+  const all = Object.keys(WIN).map(k => ({k, r: winMeasure(k, N)}));
+  $('cs-tbl').innerHTML = `<table class="t"><tr><th>Cửa sổ</th><th>Đỉnh trung tâm (bảng)</th><th>Đo với N = ${N}</th><th>Đỉnh thứ cấp (bài giảng)</th><th>Đo được</th><th>Suy giảm dải chắn tối thiểu</th></tr>${all.map(({k, r}) => `<tr><td><b style="color:${WC[k]}">${WIN[k].name}</b></td><td class="m">${WIN[k].ml} = ${fmt(({rect: 4, tri: 8, hann: 8, hamming: 8, blackman: 12})[k] / N, 3)}π</td><td class="m">${fmt(r.width / PI, 3)}π</td><td class="m">−${WIN[k].sl} dB</td><td class="m">${fmt(r.sl, 1)} dB</td><td class="m">${WIN[k].As} dB</td></tr>`).join('')}</table><p class="key">Bề rộng đỉnh trung tâm đo từ điểm 0 đầu tiên bên trái đến bên phải. Với cửa sổ tam giác, Hanning, Blackman công thức gần đúng 8π/N, 12π/N chính xác khi N lớn. Suy giảm dải chắn tối thiểu là của bộ lọc thiết kế bằng cửa sổ đó (bảng 8.1), khác với đỉnh thứ cấp của bản thân cửa sổ.</p>`;
+}
+
+/* ---------- TAB 3 ---------- */
+const T82 = ['rect', 'hann', 'hamming', 'blackman'];
+let CTD = null;
+function renderCt(){
+  $('ct-tbl').innerHTML = `<table class="t"><tr><th>Loại cửa sổ</th><th>Chiều dài cửa sổ</th><th>Độ gợn dải thông (dB)</th><th>Suy hao dải chắn (dB)</th></tr>${T82.map(k => `<tr><td>${WIN[k].name}</td><td class="m">N = ${fmt(WIN[k].coef)}/Δf</td><td class="m">${fmt(WIN[k].Ap)}</td><td class="m">${WIN[k].As}</td></tr>`).join('')}</table>`;
+  const fp = parseNum($('ct-fp').value), fst = parseNum($('ct-fst').value), fs = parseNum($('ct-fs').value), As = parseNum($('ct-As').value), Ap = parseNum($('ct-Ap').value);
+  if (!(fs > 0) || !(fp > 0) || !(fst > 0) || fp === fst || Math.max(fp, fst) >= fs / 2 || !(As > 0) || !(Ap > 0)){ $('ct-steps').innerHTML = '<li><div class="bad">Chỉ tiêu chưa hợp lệ (0 < f < f<sub>s</sub>/2).</div></li>'; return; }
+  const type = fp < fst ? 'lp' : 'hp';
+  const key = T82.find(k => WIN[k].As >= As && WIN[k].Ap <= Ap);
+  const st = [];
+  st.push(`<b>Loại bộ lọc:</b> f<sub>pass</sub> ${fp < fst ? '<' : '>'} f<sub>stop</sub> nên đây là bộ lọc <b>${TNAME[type]}</b>.`);
+  if (!key){ st.push(`<b>Không có cửa sổ nào trong bảng 8.2</b> đạt suy hao ${fmt(As)} dB và gợn ${fmt(Ap)} dB. Cần phương pháp khác (cửa sổ Kaiser, Parks–McClellan) hoặc nới chỉ tiêu.`); $('ct-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join(''); $('ct-res').innerHTML = ''; return; }
+  st.push(`<b>Chọn cửa sổ:</b> cần suy hao ≥ ${fmt(As)} dB, gợn ≤ ${fmt(Ap)} dB ⇒ cửa sổ đầu tiên trong bảng thỏa mãn là <b>${WIN[key].name}</b> (${WIN[key].As} dB, ${fmt(WIN[key].Ap)} dB).`);
+  const df = Math.abs(fst - fp) / fs;
+  st.push(`<b>Độ rộng dải chuyển chuẩn hóa:</b> Δf = |f<sub>stop</sub> − f<sub>pass</sub>|/f<sub>s</sub> = ${fmt(Math.abs(fst - fp))}/${fmt(fs)} = <b>${fmt(df, 5)}</b>.`);
+  const N0 = WIN[key].coef / df; let N = Math.ceil(N0 - 1e-9); const odd = N % 2 === 0 ? N + 1 : N;
+  st.push(`<b>Chiều dài:</b> N = ${fmt(WIN[key].coef)}/${fmt(df, 5)} = ${fmt(N0, 3)} ⇒ làm tròn lên số lẻ <b>N = ${odd}</b> (bậc ${odd - 1}).`);
+  const fc = (fp + fst) / 2;
+  st.push(`<b>Tần số cắt:</b> f<sub>c</sub> = (f<sub>pass</sub> + f<sub>stop</sub>)/2 = <b>${fmt(fc)} Hz</b>, tức ω<sub>c</sub> = ${fmt(2 * fc / fs, 4)}π.`);
+  $('ct-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  const wc = 2 * PI * fc / fs, r = firWindow(type, odd, wc, 0, key, true);
+  const wp = 2 * PI * fp / fs, ws = 2 * PI * fst / fs;
+  const pass = type === 'lp' ? [[0, wp]] : [[wp, PI]], stop = type === 'lp' ? [[ws, PI]] : [[0, ws]];
+  const ms = measure(r.h, [1], pass, stop);
+  CTD = {type, N: odd, fc, fs, win: key};
+  const f = ms.w.map(w => w * fs / (2 * PI)), y = ms.m.map(db);
+  const bands = [{x0: type === 'lp' ? 0 : fp, x1: type === 'lp' ? fp : fs / 2, y0: -Ap, y1: 0.5 * Ap + 0.2, color: 'rgba(4,120,87,.14)'}, {x0: type === 'lp' ? fst : 0, x1: type === 'lp' ? fs / 2 : fst, y0: -As, y1: 5, color: 'rgba(190,18,60,.10)'}];
+  linePlot($('ct-plot'), {x: f, xmode: 'hz', series: [{y, color: COL.x, w: 2.2}], ymin: Math.max(-110, Math.min(...y)), ymax: 5, bands, vlines: [{x: fp, color: COL.g, label: 'f_pass'}, {x: fst, color: COL.y, label: 'f_stop'}], hlines: [{y: -As, color: COL.y, label: `−${fmt(As)} dB`}], ylabel: 'dB', label: 'Kiểm tra chỉ tiêu'});
+  const okA = ms.As >= As - 0.05, okP = ms.Ap <= Ap + 0.05;
+  let Nmin = null; if (!(okA && okP)){ for (let n = odd + 2; n <= odd + 200; n += 2){ const q = measure(firWindow(type, n, wc, 0, key, true).h, [1], pass, stop); if (q.As >= As && q.Ap <= Ap){ Nmin = n; break; } } }
+  $('ct-res').innerHTML = `<div class="kv"><div><small>Gợn dải thông 20log₁₀(1+δ<sub>p</sub>)</small><b>${fmt(ms.Ap, 4)} dB ${okP ? '✓' : '✗'}</b></div><div><small>Suy hao dải chắn đo được</small><b>${fmt(ms.As, 2)} dB ${okA ? '✓' : '✗'}</b></div><div><small>Cửa sổ, N</small><b>${WIN[key].name}, ${odd}</b></div><div><small>f<sub>c</sub></small><b>${fmt(fc)} Hz</b></div></div>` + (okA && okP ? '<div class="close">Bộ lọc đạt chỉ tiêu. Vùng xanh là dải thông cho phép, vùng đỏ là dải chắn: đường đáp ứng phải nằm dưới mức −' + fmt(As) + ' dB trong vùng đỏ.</div>' : `<div class="next">Đo đúng tại mép dải thì chưa đạt hoàn toàn: công thức N trong bảng 8.2 là gần đúng. ${Nmin ? `Tăng lên <b>N = ${Nmin}</b> thì đạt chỉ tiêu (phần mềm đã thử từng giá trị N).` : 'Hãy tăng N thêm ở tab 1.'}</div>`);
+}
+
+/* ---------- TAB 4 ---------- */
+function renderGb(){
+  const N = parseInt($('gb-N').value, 10), q = parseFloat($('gb-wc').value), wc = q * PI; $('gb-No').textContent = N; $('gb-wco').textContent = piStr(wc);
+  const ham = $('gb-ham').checked;
+  const r = firWindow('lp', N, wc, 0, 'rect'), h2 = firWindow('lp', N, wc, 0, 'hamming');
+  const m1 = W2.map(w => cabs(dtft(r.h, 0, w))), m2 = W2.map(w => cabs(dtft(h2.h, 0, w)));
+  const s = [{y: W2.map(w => w <= wc ? 1 : 0), color: '#94A3B8', dash: '5 4', w: 1.4}, {y: m1, color: COL.y, w: 2.2}]; if (ham) s.push({y: m2, color: COL.x, w: 2.2});
+  linePlot($('gb-plot'), {x: W2, series: s, ymin: 0, ymax: 1.25, vlines: [{x: wc, color: COL.a, label: 'ω_c'}], label: 'Hiện tượng Gibbs'});
+  $('gb-leg').innerHTML = legendHTML([['#94A3B8', 'Lý tưởng', true], [COL.y, 'Cửa sổ chữ nhật']].concat(ham ? [[COL.x, 'Cửa sổ Hamming']] : []));
+  const pk1 = Math.max(...m1.filter((_, i) => W2[i] <= wc)), pk2 = Math.max(...m2.filter((_, i) => W2[i] <= wc));
+  const i1 = m1.indexOf(pk1);
+  $('gb-kv').innerHTML = [['Vượt quá (chữ nhật)', fmt((pk1 - 1) * 100, 2) + '%'], ['Đỉnh gợn ở ω ≈', fmt(W2[i1] / PI, 3) + 'π'], ['Vượt quá (Hamming)', fmt(Math.max(0, pk2 - 1) * 100, 3) + '%'], ['N', N]].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+}
+
+/* ---------- TAB 5 ---------- */
+let LS = {t: 'lp'};
+function renderLs(){
+  setPressed('#ls-type button', 't', LS.t);
+  const two = LS.t === 'bp' || LS.t === 'bs'; $('ls-f2f').hidden = !two; $('ls-l1').innerHTML = two ? 'f<sub>c1</sub> (Hz)' : 'f<sub>c</sub> (Hz)';
+  let N = parseInt($('ls-N').value, 10); const fs = parseNum($('ls-fs').value), f1 = parseNum($('ls-f1').value), f2 = parseNum($('ls-f2').value);
+  if (!(N >= 3) || !(fs > 0) || !(f1 > 0) || f1 >= fs / 2 || (two && !(f2 > f1 && f2 < fs / 2))){ $('ls-steps').innerHTML = '<li><div class="bad">Dữ liệu chưa hợp lệ.</div></li>'; return; }
+  let note = ''; if (N % 2 === 0){ N += 1; note = ` (phần mềm dùng N lẻ = ${N})`; }
+  const w1 = 2 * PI * f1 / fs, w2 = two ? 2 * PI * f2 / fs : 0, r = firFreqSamp(LS.t, N, w1, w2), K = (N - 1) / 2;
+  const ones = r.Hk.map((v, k) => v ? k : null).filter(v => v !== null);
+  const st = [];
+  st.push(`<b>Các điểm mẫu:</b> ω<sub>k</sub> = 2πk/N = 2πk/${N}, k = 0 … ${K}${note}. Mỗi điểm ứng với tần số f<sub>k</sub> = k·F<sub>s</sub>/N = k·${fmt(fs / N, 2)} Hz.`);
+  st.push(`<b>Đặt H<sub>k</sub>:</b> bằng 1 nếu f<sub>k</sub> nằm trong dải thông, 0 nếu trong dải chắn ⇒ H<sub>k</sub> = 1 với k = ${ones.length ? ones.join(', ') : 'không có'}; còn lại bằng 0.`);
+  st.push(`<b>Tính h(n):</b> <span class="math">h(n) = (1/${N})·[H₀ + 2Σ H<sub>k</sub>·cos(2πk(n − ${K})/${N})]</span>. Ví dụ h(${K}) = (1/${N})·[${r.Hk[0]} + 2·${ones.filter(k => k > 0).length}] = ${fmt(r.h[K], 5)}.`);
+  st.push(`<b>Kiểm tra:</b> |H(e<sup>jω<sub>k</sub></sup>)| = H<sub>k</sub> đúng tại mọi điểm mẫu (chấm tròn nằm trên đường cong).`);
+  $('ls-steps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  const f = W2.map(w => w * fs / (2 * PI)), m = W2.map(w => cabs(dtft(r.h, 0, w)));
+  linePlot($('ls-m'), {x: f, xmode: 'hz', series: [{y: m, color: COL.x, w: 2.2}], dots: r.Hk.map((v, k) => ({x: k * fs / N, y: v, color: COL.y, r: 4.5})), ymin: 0, label: 'Lấy mẫu tần số'});
+  stemPlot($('ls-h'), {nmin: -1, nmax: N, series: [{n: r.h.map((_, i) => i), v: r.h, color: COL.y}], height: 210, values: N <= 15, label: 'h(n)'});
+  $('ls-tbl').innerHTML = `<table class="t"><tr><th>n</th>${r.h.slice(0, K + 1).map((_, i) => `<th>${i}</th>`).join('')}</tr><tr><td>h(n)</td>${r.h.slice(0, K + 1).map(v => `<td class="m">${fmtA(v)}</td>`).join('')}</tr></table><p class="key">Nửa sau đối xứng: h(n) = h(${N - 1} − n).</p>`;
+}
+
+/* ---------- TAB 6 ---------- */
+let CU = 'tt2';
+function renderCu(){
+  setPressed('#cu-f button', 'f', CU);
+  const h = parseList($('cu-h').value); if (!h){ $('cu-eq').innerHTML = '<div class="bad">Hệ số chưa hợp lệ.</div>'; return; }
+  const N = h.length, sym = h.every((v, i) => Math.abs(v - h[N - 1 - i]) < 1e-12);
+  const f = CU === 'tt2' && sym ? 'lin' : 'dir';
+  $('cu-hint').textContent = CU === 'tt2' && !sym ? 'Hệ số không đối xứng nên không dùng được dạng pha tuyến tính, đang vẽ dạng thông thường.' : '';
+  const dirEq = h.map((v, k) => isZ(v) ? '' : `${fmtA(v)}·x(n${k ? '−' + k : ''})`).filter(Boolean).join(' + ').replace(/\+ −/g, '− ');
+  let linEq = '';
+  if (sym){ const P = Math.floor(N / 2); const t = []; for (let k = 0; k < P; k++) t.push(`${fmtA(h[k])}·[x(n${k ? '−' + k : ''}) + x(n−${N - 1 - k})]`); if (N % 2) t.push(`${fmtA(h[P])}·x(n−${P})`); linEq = t.join(' + ').replace(/\+ −/g, '− '); }
+  $('cu-eq').innerHTML = `H(z) = ${polyW(h)}<br>Thông thường: y(n) = ${dirEq}${sym ? `<br>Pha tuyến tính: y(n) = ${linEq}` : ''}`;
+  const mulD = h.filter(v => !isZ(v)).length, mulL = sym ? Math.ceil(N / 2) : mulD;
+  $('cu-kv').innerHTML = [['Chiều dài N', N], ['Phép nhân, dạng thông thường', mulD], ['Phép nhân, dạng pha tuyến tính', sym ? mulL : 'không áp dụng'], ['Phần tử trễ', N - 1]].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+  $('cu-t').textContent = f === 'lin' ? 'Dạng pha tuyến tính (Hình 8.3, 8.5)' : 'Dạng thông thường (Hình 8.2, 8.4)';
+  $('cu-svg').innerHTML = firSvg(h, f === 'lin');
+}
+
+/* ---------- TAB 7 ---------- */
+function renderMl(){
+  const D = DES && !DES.err ? DES : design(); if (D.err){ $('ml-code').textContent = '% Thiết kế ở tab 1 chưa hợp lệ'; return; }
+  const Wn = D.two ? `[${+(2 * D.f1 / D.fs).toFixed(6)} ${+(2 * D.f2 / D.fs).toFixed(6)}]` : `${+(2 * D.f1 / D.fs).toFixed(6)}`;
+  $('ml-code').textContent = `fs = ${D.fs};                         % tần số lấy mẫu (Hz)\nN  = ${D.N};                           % chiều dài bộ lọc\nWn = ${Wn};                  % = 2*fc/fs\nb  = fir1(N-1, Wn, ${ML_T[D.t]}, ${WIN[D.win].ml1}(N)${D.scale ? '' : ", 'noscale'"});\na  = 1;\n[h, f] = freqz(b, a, 512, fs);\nsubplot(2,1,1), plot(f, 20*log10(abs(h))), grid on\nxlabel('Tần số (Hz)'), ylabel('|H| (dB)')\nsubplot(2,1,2), plot(f, unwrap(angle(h))*180/pi), grid on\nxlabel('Tần số (Hz)'), ylabel('Pha (độ)')`;
+  const K = Math.min(D.N, 25);
+  $('ml-out').innerHTML = `<table class="t"><tr><th>Phần tử</th><th>Giá trị</th></tr>${D.h.slice(0, K).map((v, i) => `<tr><td class="m">b(${i + 1})</td><td class="m">${fmtA(v)}</td></tr>`).join('')}${D.N > K ? `<tr><td colspan="2" class="muted">… và ${D.N - K} hệ số nữa (đối xứng)</td></tr>` : ''}</table><p class="key">MATLAB đánh số từ 1 nên b(1) = h(0).${D.scale ? '' : ' Đã thêm \'noscale\' để trùng với cách tính tay.'}</p>`;
+}
+
+/* ---------- BÀI TẬP ---------- */
+const EX = [
+ {g: 'A', id: 'A1', t: 'Ví dụ 3 bài giảng', q: 'Thiết kế FIR thông thấp N = 3, f<sub>c</sub> = 800 Hz, f<sub>s</sub> = 8000 Hz, cửa sổ Hamming. Tìm H(z) và phương trình sai phân.', s: ['ω<sub>c</sub> = 2π·800/8000 = 0,2π rad.', 'h<sub>d</sub>(0) = 0,2; h<sub>d</sub>(±1) = sin(0,2π)/π ≈ 0,1871.', 'Hamming N = 3: w = {0,08; 1; 0,08} ⇒ h(±1) = 0,1871·0,08 ≈ 0,01497.', 'Dời về nhân quả: b₀ = h(−1), b₁ = h(0), b₂ = h(1).'], a: 'H(z) = 0,01497 + 0,2z⁻¹ + 0,01497z⁻²; y(n) = 0,01497x(n) + 0,2x(n−1) + 0,01497x(n−2).', m: 'Bài giảng viết 0,54 − 0,46 = 0,08: với N = 3, mẫu hai đầu cửa sổ Hamming bằng 0,08.', load: {tab: 'tk', v: 'lp|8000|800||3|hamming|0'}},
+ {g: 'A', id: 'A2', t: 'Thực hành cơ bản 3', q: 'FIR thông thấp N = 3, f<sub>c</sub> = 1500 Hz, f<sub>s</sub> = 8000 Hz, cửa sổ chữ nhật. Tìm các hệ số.', s: ['ω<sub>c</sub> = 2π·1500/8000 = 0,375π.', 'h(0) = 0,375; h(±1) = sin(0,375π)/π = 0,9239/π ≈ 0,2941.', 'Cửa sổ chữ nhật giữ nguyên.'], a: 'b = {0,2941; 0,375; 0,2941}.', m: 'Đổi sang Hamming thì hai hệ số đầu cuối còn 0,2941·0,08 ≈ 0,0235.', load: {tab: 'tk', v: 'lp|8000|1500||3|rect|0'}},
+ {g: 'A', id: 'A3', t: 'Thực hành cơ bản 4', q: 'FIR thông cao N = 3, f<sub>c</sub> = 1600 Hz, f<sub>s</sub> = 8000 Hz, cửa sổ chữ nhật.', s: ['ω<sub>c</sub> = 0,4π.', 'h<sub>d</sub>(0) = 1 − 0,4 = 0,6; h<sub>d</sub>(±1) = −sin(0,4π)/π ≈ −0,3027.'], a: 'b = {−0,3027; 0,6; −0,3027}.', m: 'Thông cao = δ(n) − thông thấp: hệ số hai bên mang dấu âm.', load: {tab: 'tk', v: 'hp|8000|1600||3|rect|0'}},
+ {g: 'A', id: 'A4', t: 'Bài mẫu fir1', q: 'Thiết kế FIR thông thấp f<sub>c</sub> = 1600 Hz, N = 25, f<sub>s</sub> = 8000 Hz, cửa sổ Hamming bằng fir1.', s: ['Bậc n = N − 1 = 24; Wn = 2·1600/8000 = 0,4.', 'b = fir1(24, 0.4, \'low\', hamming(25)).', 'Vẽ: [h, f] = freqz(b, 1, 512, 8000).'], a: '25 hệ số đối xứng, h(12) lớn nhất; |H| ≈ 0,5 (−6 dB) tại 1600 Hz.', m: 'Phương pháp cửa sổ đặt tần số cắt tại điểm |H| = 0,5, không phải −3 dB.', load: {tab: 'tk', v: 'lp|8000|1600||25|hamming|1'}},
+ {g: 'B', id: 'B1', t: 'Ví dụ 4 bài giảng', q: 'Thông thấp: dải thông 0–1850 Hz, dải chắn 2150–4000 Hz, suy hao 20 dB, gợn 1 dB, f<sub>s</sub> = 8000 Hz. Chọn cửa sổ, N, f<sub>c</sub>.', s: ['Suy hao 20 dB, gợn 1 dB ⇒ cửa sổ chữ nhật (21 dB, 0,7416 dB).', 'Δf = (2150 − 1850)/8000 = 0,0375.', 'N = 0,9/0,0375 = 24 ⇒ làm tròn lên số lẻ 25.', 'f<sub>c</sub> = (1850 + 2150)/2 = 2000 Hz.'], a: 'Chữ nhật, N = 25, f<sub>c</sub> = 2000 Hz.', m: 'Chọn N lẻ để h(n) có tâm đối xứng tại một mẫu.', load: {tab: 'ct', v: '1850|2150|8000|20|1'}},
+ {g: 'B', id: 'B2', t: 'Suy hao 50 dB', q: 'Thông thấp f<sub>pass</sub> = 1500 Hz, f<sub>stop</sub> = 2000 Hz, f<sub>s</sub> = 8000 Hz, suy hao 50 dB, gợn 0,1 dB.', s: ['50 dB ⇒ Hamming (53 dB, 0,0194 dB).', 'Δf = 500/8000 = 0,0625; N = 3,3/0,0625 = 52,8 ⇒ 53.', 'f<sub>c</sub> = 1750 Hz.'], a: 'Hamming, N = 53 theo bảng, f<sub>c</sub> = 1750 Hz.', m: 'Hanning chỉ đạt 44 dB nên không đủ. Đo đúng tại mép 2000 Hz thì N = 53 cho khoảng 48 dB, phải tăng lên N = 55 mới đạt 50 dB: công thức trong bảng 8.2 là gần đúng, luôn cần bước 5 (thử lại).', load: {tab: 'ct', v: '1500|2000|8000|50|0,1'}},
+ {g: 'B', id: 'B3', t: 'Suy hao 60 dB', q: 'Như B2 nhưng cần suy hao 60 dB.', s: ['60 dB ⇒ Blackman (74 dB).', 'N = 5,5/0,0625 = 88 ⇒ 89.'], a: 'Blackman, N = 89.', m: 'Suy hao cao hơn phải trả bằng gần gấp đôi số hệ số.', load: {tab: 'ct', v: '1500|2000|8000|60|0,01'}},
+ {g: 'C', id: 'C1', t: 'Bảng 8.1', q: 'Với N = 21, đỉnh trung tâm của cửa sổ chữ nhật và Hamming rộng bao nhiêu?', s: ['Chữ nhật: 4π/N = 4π/21 ≈ 0,19π.', 'Hamming: 8π/N = 8π/21 ≈ 0,38π.'], a: '0,19π và 0,38π.', m: 'Hamming ít gợn hơn nhưng dải chuyển tiếp rộng gấp đôi.', load: {tab: 'cs', N: '21'}},
+ {g: 'C', id: 'C2', t: 'Hiện tượng Gibbs', q: 'Thiết kế thông thấp ω<sub>c</sub> = π/2 bằng cửa sổ chữ nhật với N = 21 và N = 101. Đỉnh gợn thay đổi thế nào?', s: ['Đo trên đồ thị: N = 21 vượt khoảng 9%; N = 101 vẫn khoảng 9%.', 'Chỉ có vị trí đỉnh dịch sát ω<sub>c</sub> hơn.'], a: 'Vượt quá ≈ 9% với mọi N.', m: 'Muốn giảm gợn phải đổi cửa sổ, không phải tăng N.', load: {tab: 'gb', N: '101'}},
+ {g: 'D', id: 'D1', t: 'Ví dụ 6 bài giảng', q: 'H(z) = 0,2 + 0,5z⁻¹ − 0,3z⁻² + 0,5z⁻³ + 0,2z⁻⁴. Vẽ dạng thông thường và tuyến tính; đếm phép nhân.', s: ['Thông thường: y(n) = 0,2x(n) + 0,5x(n−1) − 0,3x(n−2) + 0,5x(n−3) + 0,2x(n−4): 5 phép nhân.', 'Đối xứng b₀ = b₄, b₁ = b₃: y(n) = 0,2[x(n) + x(n−4)] + 0,5[x(n−1) + x(n−3)] − 0,3x(n−2): 3 phép nhân.'], a: '5 và 3 phép nhân, cùng 4 phần tử trễ.', m: 'Với N lớn, dạng tuyến tính tiết kiệm gần một nửa số phép nhân.', load: {tab: 'cu', h: '0,2 0,5 -0,3 0,5 0,2'}},
+ {g: 'D', id: 'D2', t: 'Nâng cao 1: lấy mẫu tần số', q: 'Thiết kế FIR thông thấp 25 hệ số, f<sub>c</sub> = 2000 Hz, f<sub>s</sub> = 8000 Hz bằng lấy mẫu tần số. Tính h(12).', s: ['f<sub>k</sub> = k·8000/25 = 320k Hz; f<sub>k</sub> ≤ 2000 ⇒ k = 0 … 6.', 'h(n) = (1/25)[1 + 2Σ<sub>k=1</sub><sup>6</sup> cos(2πk(n − 12)/25)].', 'h(12) = (1 + 2·6)/25.'], a: 'h(12) = 13/25 = 0,52.', m: 'Hệ số lớn nhất nằm ở tâm, các hệ số khác đối xứng hai bên.', load: {tab: 'ls', v: 'lp|25|8000|2000|'}}
+];
+function setTk(v){ const [t, fs, f1, f2, N, w, sc] = v.split('|'); TK.t = t; $('tk-fs').value = fs; $('tk-f1').value = f1; if (f2) $('tk-f2').value = f2; $('tk-N').value = N; $('tk-win').value = w; $('tk-scale').checked = sc === '1'; }
+function setCt(v){ const [a, b, c, d, e] = v.split('|'); $('ct-fp').value = a; $('ct-fst').value = b; $('ct-fs').value = c; $('ct-As').value = d; $('ct-Ap').value = e; }
+function setLs(v){ const [t, N, fs, f1, f2] = v.split('|'); LS.t = t; $('ls-N').value = N; $('ls-fs').value = fs; $('ls-f1').value = f1; if (f2) $('ls-f2').value = f2; }
+function loadEx(L){
+  if (L.tab === 'tk') setTk(L.v); if (L.tab === 'ct') setCt(L.v); if (L.tab === 'ls') setLs(L.v);
+  if (L.tab === 'cs') $('cs-N').value = L.N; if (L.tab === 'gb') $('gb-N').value = L.N; if (L.tab === 'cu') $('cu-h').value = L.h;
+  Lab.show(L.tab);
+}
+const renderEx = Lab.exercises(EX, {A: 'Nhóm A. Thiết kế bằng cửa sổ', B: 'Nhóm B. Chọn cửa sổ và N từ chỉ tiêu', C: 'Nhóm C. Đặc tính cửa sổ, Gibbs', D: 'Nhóm D. Cấu trúc và lấy mẫu tần số'}, loadEx);
+
+/* =================== SỰ KIỆN =================== */
+$('tk-type').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b){ TK.t = b.dataset.t; renderTk(); } });
+$('tk-sc').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b){ TK.sc = b.dataset.s; renderTk(); } });
+['tk-fs', 'tk-f1', 'tk-f2', 'tk-N', 'tk-win', 'tk-scale'].forEach(id => $(id).addEventListener('input', renderTk));
+document.querySelectorAll('[data-tk]').forEach(b => b.addEventListener('click', () => { setTk(b.dataset.tk); renderTk(); }));
+$('cs-N').addEventListener('input', renderCs);
+$('cs-sel').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b) return; const k = b.dataset.w; if (CSW.has(k)) { if (CSW.size > 1) CSW.delete(k); } else CSW.add(k); renderCs(); });
+['ct-fp', 'ct-fst', 'ct-fs', 'ct-As', 'ct-Ap'].forEach(id => $(id).addEventListener('input', renderCt));
+document.querySelectorAll('[data-ct]').forEach(b => b.addEventListener('click', () => { setCt(b.dataset.ct); renderCt(); }));
+$('ct-go').addEventListener('click', () => { if (!CTD) return; TK.t = CTD.type; $('tk-fs').value = CTD.fs; $('tk-f1').value = fmt(CTD.fc); $('tk-N').value = CTD.N; $('tk-win').value = CTD.win; $('tk-scale').checked = true; Lab.show('tk'); window.scrollTo({top: 0}); });
+['gb-N', 'gb-wc', 'gb-ham'].forEach(id => $(id).addEventListener('input', renderGb));
+$('ls-type').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (b){ LS.t = b.dataset.t; renderLs(); } });
+['ls-N', 'ls-fs', 'ls-f1', 'ls-f2'].forEach(id => $(id).addEventListener('input', renderLs));
+document.querySelectorAll('[data-ls]').forEach(b => b.addEventListener('click', () => { setLs(b.dataset.ls); renderLs(); }));
+$('cu-h').addEventListener('input', renderCu);
+$('cu-f').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b){ CU = b.dataset.f; renderCu(); } });
+document.querySelectorAll('[data-cu]').forEach(b => b.addEventListener('click', () => { $('cu-h').value = b.dataset.cu; renderCu(); }));
+Lab.copy('ml-copy', 'ml-code');
+Lab.init({tk: renderTk, cs: renderCs, ct: renderCt, gb: renderGb, ls: renderLs, cu: renderCu, ml: renderMl, ex: renderEx}, 'fir-tab', 'tk');
+
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>
