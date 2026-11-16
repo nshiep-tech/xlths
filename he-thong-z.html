@@ -549,7 +549,7 @@ input:disabled{opacity:.45}
         <div class="tools3">
           <div><span class="tn">1</span><b>Đổi phương trình → H(z)</b><p>Lùi k nhịp thì nhân z<sup>−k</sup>. Dồn y sang trái, x sang phải. H(z) = (phần đi với X)/(phần đi với Y).</p><p class="eg">y(n) − 0,5y(n−1) = x(n) → H = 1/(1 − 0,5z<sup>−1</sup>)</p></div>
           <div><span class="tn">2</span><b>Bảng tra về miền n</b><p>Hằng số c → c·δ(n) (chỉ có ở n = 0).<br>z/(z − a) → aⁿ·u(n), dãy 1, a, a², …</p><p class="eg">z/(z − 0,5) → 1; 0,5; 0,25; …</p></div>
-          <div><span class="tn">3</span><b>Mẹo “che” để tách phân số</b><p>Muốn tìm số đứng trên (z − a): che (z − a) ở mẫu, thay z = a vào phần còn lại.</p><p class="eg">z/[(z − 0,5)(z − 1)]: số trên (z − 1) là 1/(1 − 0,5) = 2</p></div>
+          <div><span class="tn">3</span><b>Tìm hệ số khi tách phân số</b><p>Muốn tìm số đứng trên (z − a): <b>nhân cả hai vế với (z − a)</b> (thừa số này triệt tiêu ở mẫu), rồi <b>thay z = a</b> (các mảnh khác bằng 0). Làm gộp hai việc này gọi tắt là “mẹo che”.</p><p class="eg">z/[(z − 0,5)(z − 1)] = A/(z − 0,5) + B/(z − 1). Nhân với (z − 1): z/(z − 0,5) = A·(z − 1)/(z − 0,5) + B. Thay z = 1: B = 1/0,5 = 2</p></div>
         </div>
         <p class="key" style="margin:10px 0 0"><b>Quy tắc ổn định:</b> hệ nhân quả ổn định khi mọi điểm cực (nghiệm của mẫu số) có độ lớn nhỏ hơn 1.</p>
       </div>
@@ -658,29 +658,35 @@ function hnSteps(A){
     return m > 1 ? `${t}${supN(m)}` : t; };
   const leadS = lead !== 1 ? fmt(lead) + '·' : '';
   let cover = '';
+  const T = x => `<span class="nw">${x}</span>`, J = arr => arr.map(T).join(' + ');
+  const numP = Nd.filter(x => Math.abs(x) > 1e-12).length > 1 ? `(${polyZ(Nd)})` : polyZ(Nd);
+  const eq6 = `${T(frac(polyZ(Nd), denF) + ' =')} ${J(pieces.map(q => frac(q.name, fac(q.p, q.j))))}`;
   pieces.forEach(q => {
     const o = pp.find(u => u.p === q.p);
     if (o.s === 1 || q.j === o.s){
+      const f = fac(q.p, o.s), fS = `<span class="cov">${f}</span>`;
       const num = polyvalC(Nd, q.p); let den = C(lead);
       pp.forEach(u => { if (u.p === q.p) return; for (let i = 0; i < u.s; i++) den = cmul(den, csub(q.p, u.p)); });
       const others = pp.filter(u => u.p !== q.p);
       const rest = leadS + (others.map(u => fac(u.p, u.s)).join('') || '1');
-      const covered = leadS + pp.map(u => u.p === q.p ? `<span class="cov">${fac(u.p, u.s)}</span>` : fac(u.p, u.s)).join('');
       const restSub = leadS + (others.map(u => facSub(u.p, u.s, q.p)).join('·') || '1');
-      cover += `<div class="cv"><div class="cvh">Tìm <b>${q.name}</b>: số đứng trên <b class="nw">${fac(q.p, o.s)}</b></div>
-        <div class="cvr"><span class="cn">①</span><div>Che <b class="nw">${fac(q.p, o.s)}</b> ở mẫu (phần bị gạch), giữ lại phần còn lại:<div class="cvm">${frac(polyZ(Nd), covered)} <span class="nw"><span class="ar">→</span>${frac(polyZ(Nd), rest)}</span></div></div></div>
-        <div class="cvr"><span class="cn">②</span><div>Thay <b class="nw">z = ${cv(q.p)}</b> (số làm cho ${fac(q.p, 1)} bằng 0) vào phần còn lại:<div class="cvm">${frac(polySub(Nd, q.p), restSub)}</div></div></div>
-        <div class="cvr"><span class="cn">③</span><div>Tính ra số:<div class="cvm"><b>${q.name}</b> = ${frac(cv(num), cv(den))} = <b class="hl">${cv(q.C)}</b>${cabs(q.C) < 1e-10 ? ' <span class="muted">(bằng 0, bỏ mảnh này)</span>' : ''}</div></div></div></div>`;
-    } else cover += `<div class="cv"><div class="cvh">Tìm <b>${q.name}</b>: số đứng trên <b class="nw">${fac(q.p, q.j)}</b></div><p style="margin:4px 0 0">Đây là mảnh có lũy thừa thấp hơn của cực lặp lại (bội ${o.s}). Mẹo che không dùng được cho mảnh này (phải dùng đạo hàm, ngoài phạm vi bài), phần mềm tính sẵn: <b class="nw">${q.name} = <span class="hl">${cv(q.C)}</span></b>.</p></div>`;
+      const oth = pieces.filter(r => r !== q);
+      const rhsMul = J(pieces.map(r => r === q ? `${r.name}·${frac(fS, fS)}` : `${r.name}·${frac(f, fac(r.p, r.j))}`));
+      const rhsSimple = J([q.name, ...oth.map(r => r.p === q.p ? `${r.name}·${fac(q.p, o.s - r.j)}` : `${r.name}·${frac(f, fac(r.p, r.j))}`)]);
+      const rhsSub = J([q.name, ...oth.map(r => r.p === q.p ? `${r.name}·${facSub(q.p, o.s - r.j, q.p)}` : `${r.name}·${frac(facSub(q.p, o.s, q.p), facSub(r.p, r.j, q.p))}`)]);
+      cover += `<div class="cv"><div class="cvh">Tìm <b>${q.name}</b> (số đứng trên <b class="nw">${f}</b>)</div>
+        <div class="cvr"><span class="cn">①</span><div><b>Viết lại đẳng thức ở bước 6:</b><div class="cvm">${eq6}</div></div></div>
+        <div class="cvr"><span class="cn">②</span><div><b>Nhân cả hai vế với ${f}.</b> Vế trái: ${f} ở tử và ${f} ở mẫu triệt tiêu nhau (phần gạch). Vế phải: mảnh ${q.name} cũng triệt tiêu, chỉ còn ${q.name}${oth.length ? '; các mảnh khác vẫn còn nhân ' + f : ''}.
+          <div class="cvm">${T(frac(numP + '·' + fS, leadS + pp.map(u => u.p === q.p ? fS : fac(u.p, u.s)).join('')) + ' =')} ${rhsMul}</div>
+          Viết gọn lại, vế trái không còn ${f} ở mẫu:
+          <div class="cvm">${T(frac(polyZ(Nd), rest) + ' =')} ${rhsSimple}</div></div></div>
+        <div class="cvr"><span class="cn">③</span><div><b>Thay z = ${cv(q.p)} vào cả hai vế.</b> Chọn số này vì nó làm ${fac(q.p, 1)} bằng 0${oth.length ? ', nên mọi mảnh còn nhân ' + f + ' ở vế phải đều bằng 0' : ''}. Vế trái lúc này mẫu khác 0 nên thay được:
+          <div class="cvm">${T(frac(polySub(Nd, q.p), restSub) + ' =')} ${rhsSub}</div>
+          <div class="cvm">${frac(cv(num), cv(den))} = ${q.name}${oth.length ? ' + 0' : ''}</div></div></div>
+        <div class="cvr"><span class="cn">④</span><div><b>Kết quả:</b><div class="cvm"><b>${q.name}</b> = ${frac(cv(num), cv(den))} = <b class="hl">${cv(q.C)}</b>${cabs(q.C) < 1e-10 ? ' <span class="muted">(bằng 0, bỏ mảnh này)</span>' : ''}</div></div></div></div>`;
+    } else cover += `<div class="cv"><div class="cvh">Tìm <b>${q.name}</b> (số đứng trên <b class="nw">${fac(q.p, q.j)}</b>)</div><p style="margin:4px 0 0">Đây là mảnh có lũy thừa thấp hơn của cực lặp lại (bội ${o.s}). Nhân hai vế với ${fac(q.p, o.s)} rồi thay z = ${cv(q.p)} chỉ cho ra hệ số của mảnh lũy thừa cao nhất; mảnh này phải dùng thêm đạo hàm (ngoài phạm vi bài), phần mềm tính sẵn: <b class="nw">${q.name} = <span class="hl">${cv(q.C)}</span></b>.</p></div>`;
   });
-  // vì sao mẹo che đúng: dùng ngay mảnh đơn đầu tiên của hệ đang xét
-  const q0 = pieces.find(q => { const o = pp.find(u => u.p === q.p); return o.s === 1; });
-  let why = '';
-  if (q0 && pieces.length > 1){
-    const f0 = fac(q0.p, 1), oth = pieces.filter(q => q !== q0);
-    why = `<details class="why"><summary>Vì sao che rồi thay số lại ra đúng ${q0.name}?</summary><div>Nhân cả hai vế của bước 6 với <b>${f0}</b>:<div class="cvm">${frac(polyZ(Nd), leadS + (pp.filter(u => u.p !== q0.p).map(u => fac(u.p, u.s)).join('') || '1'))} = ${q0.name} + ${oth.map(q => `${q.name}·${frac(f0, fac(q.p, q.j))}`).join(' + ')}</div>Vế trái chính là “phần còn lại sau khi che”. Bây giờ thay z = ${cv(q0.p)}: thừa số ${f0} bằng 0, nên mọi mảnh có nhân ${f0} ở vế phải đều mất, <b>chỉ còn lại ${q0.name}</b>. Vì vậy ${q0.name} = giá trị phần còn lại tại z = ${cv(q0.p)}.</div></details>`;
-  }
-  st += `<li><div><b>Tìm các hệ số ${pieces.map(q => q.name).join(', ')} bằng “mẹo che”</b>. Mỗi hệ số chỉ cần 3 việc nhỏ: <b>① che</b> thừa số của nó ở mẫu, <b>② thay z</b> bằng số làm thừa số đó bằng 0, <b>③ tính</b>.<div class="cvs">${cover}</div>${why}</div></li>`;
+  st += `<li><div><b>Tìm các hệ số ${pieces.map(q => q.name).join(', ')}.</b> Với mỗi hệ số làm 4 việc: <b>①</b> viết lại đẳng thức bước 6; <b>②</b> nhân cả hai vế với thừa số đứng dưới hệ số đó; <b>③</b> thay z bằng số làm thừa số đó bằng 0; <b>④</b> đọc kết quả.<div class="cvs">${cover}</div><p class="key" style="margin:10px 0 0">Khi đã quen, bước ② và ③ được làm gộp trong đầu và gọi tắt là <b>“mẹo che”</b>: che thừa số ở mẫu rồi thay số vào phần còn lại. Bản chất của nó luôn là nhân hai vế rồi thay số như trên.</p></div></li>`;
   const live = pieces.filter(q => cabs(q.C) >= 1e-10);
   // nhân trả lại z
   const back = q => {
@@ -1026,7 +1032,8 @@ const EX = [
    ['Tìm điểm cực, điểm không', 'Điểm cực: cho <b>mẫu</b> = 0 → z − 2 = 0 → <b>z = 2</b>.<br>Điểm không: cho tử = 0 → z − 3 = 0 → z = 3.'],
    ['Xét ổn định', 'Chỉ nhìn điểm cực: |2| = 2 &gt; 1, cực nằm ngoài vòng tròn đơn vị → <b>không ổn định</b>. Điểm không z = 3 không ảnh hưởng đến ổn định.'],
    ['Tìm h(n): chia H(z) cho z', 'Bảng tra chỉ có dạng z/(z − a), nên chia H(z) cho z rồi tách thành các mảnh nhỏ:' + M(F('H(z)', 'z') + ' = ' + F('z − 3', 'z·(z − 2)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z − 2'))],
-   ['Mẹo che tìm A, B', 'Tìm A: lấy tay <b>che chữ z</b> ở mẫu, thay z = 0 vào phần còn lại: A = (0 − 3)/(0 − 2) = <b>1,5</b>.<br>Tìm B: <b>che (z − 2)</b>, thay z = 2 vào phần còn lại: B = (2 − 3)/2 = <b>−0,5</b>.'],
+   ['Tìm A: nhân hai vế với (z − 2) rồi thay z = 2', 'Nhân cả hai vế của đẳng thức bước 8 với (z − 2). Vế trái: (z − 2) ở tử và mẫu triệt tiêu. Vế phải: mảnh A triệt tiêu, mảnh B còn nhân (z − 2):' + M(F('z − 3', 'z') + ' = A + B·' + F('z − 2', 'z')) + 'Bây giờ vế trái không còn (z − 2) ở mẫu. Thay z = 2 (làm z − 2 = 0, mảnh B mất):' + M(F('2 − 3', '2') + ' = A + B·' + F('0', '2') + '  ⇒  <b>A = −0,5</b>')],
+   ['Tìm B: nhân hai vế với z rồi thay z = 0', 'Làm y hệt: nhân cả hai vế của bước 8 với z, z ở tử và mẫu triệt tiêu:' + M(F('z − 3', 'z − 2') + ' = A·' + F('z', 'z − 2') + ' + B') + 'Thay z = 0 (mảnh A mất):' + M(F('0 − 3', '0 − 2') + ' = A·0 + B  ⇒  <b>B = 1,5</b>') + 'Khi đã quen, việc “nhân hai vế rồi thay số” được làm gộp, gọi tắt là <b>mẹo che</b>: che thừa số ở mẫu, thay số vào phần còn lại.'],
    ['Tra bảng về miền n', 'Nhân trả lại z: H(z) = 1,5 − 0,5·z/(z − 2). Hằng số 1,5 → 1,5δ(n); z/(z − 2) → 2ⁿ.' + M('h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n)')]
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 2y(n−1) + x(n) − 3x(n−1)', 'Theo công thức'], r: [['0', '0 + 1 − 0 = 1', '1,5 − 0,5 = 1 ✓'], ['1', '2·1 + 0 − 3·1 = −1', '−0,5·2 = −1 ✓'], ['2', '2·(−1) = −2', '−0,5·4 = −2 ✓'], ['3', '2·(−2) = −4', '−0,5·8 = −4 ✓']], note: 'Gõ một cái: x = 1, 0, 0, 0… Hai cách cho cùng kết quả → lời giải đúng.'},
