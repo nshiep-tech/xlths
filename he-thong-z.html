@@ -130,6 +130,9 @@ table.t td.m{font-family:var(--f-mono)}
 .ex .sol .chk table.t{background:#fff;border-radius:8px}
 .ex .sol .chk table.t th{text-transform:none;letter-spacing:0;font-size:12.5px}
 .fr{white-space:nowrap}
+.cvs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cvs .cv{background:var(--soft);border-radius:9px;padding:8px 12px;line-height:2.2}
+.nw{white-space:nowrap}
 .ex .f{display:block;font-family:var(--f-mono);font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin-top:6px;overflow-x:auto;white-space:nowrap;line-height:1.9}
 .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 2px;line-height:1.35}
 .fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px 1px}
@@ -614,6 +617,55 @@ function readSys(){
   if (!a || !b || isZero(a[0])) return null;
   return {a, b};
 }
+/* Các bước tìm h(n) = Z⁻¹[H(z)] theo cách của bài giảng: chia H(z) cho z, tách phân thức (mẹo che), tra bảng */
+function hnSteps(A){
+  const R = A.res; if (!R || !R.pp || !R.pp.length) return '';
+  const Nd = trimLead(A.Nd), Dd = trimLead(A.Dd), lead = Dd[0];
+  const pp = R.pp;
+  const fac = (p, m) => (cabs(p) < 1e-12 ? 'z' : zMinus(p)) + (m > 1 ? `<sup>${m}</sup>` : '');
+  const cv = z => Math.abs(z.im) < 1e-10 ? fmt(z.re) : fmtc(z);
+  const denF = (lead !== 1 ? fmt(lead) + '·' : '') + pp.map(o => fac(o.p, o.s)).join('');
+  // tên hệ số A, B, C… (hoặc A₁, A₂… nếu nhiều)
+  let cnt = 0; pp.forEach(o => o.coef.forEach(() => cnt++));
+  const L0 = 'ABCDEFGHK'; let k = 0;
+  const nm = () => cnt <= L0.length ? L0[k++] : 'A' + String(++k).split('').map(c => '₀₁₂₃₄₅₆₇₈₉'[+c]).join('');
+  const pieces = [];
+  pp.forEach(o => o.coef.forEach((c, i) => pieces.push({p: o.p, j: i + 1, s: o.s, C: c, name: nm()})));
+  let st = '';
+  st += `<li><div><b>Tìm h(n): chia H(z) cho z</b>. Bảng tra chỉ có dạng z/(z − a), nên chia cho z trước rồi tách thành các mảnh nhỏ:<div class="math big">${frac('H(z)', 'z')} = ${frac(polyZ(Nd), denF)} = ${pieces.map(q => frac(q.name, fac(q.p, q.j))).join(' + ')}</div><small class="muted">Mỗi thừa số ở mẫu cho một mảnh${pp.some(o => o.s > 1) ? '; thừa số lặp lại m lần cho m mảnh' : ''}.</small></div></li>`;
+  // mẹo che
+  let cover = '';
+  pieces.forEach(q => {
+    const o = pp.find(u => u.p === q.p);
+    if (o.s === 1 || q.j === o.s){
+      const num = polyvalC(Nd, q.p); let den = C(lead);
+      pp.forEach(u => { if (u.p === q.p) return; for (let i = 0; i < u.s; i++) den = cmul(den, csub(q.p, u.p)); });
+      const rest = pp.filter(u => u.p !== q.p).map(u => fac(u.p, u.s)).join('') || '1';
+      cover += `<div class="cv"><b>${q.name}</b>: che <b class="nw">${fac(q.p, o.s)}</b>, thay <span class="nw">z = ${cv(q.p)}</span> vào phần còn lại <span class="nw">${frac(polyZ(Nd), (lead !== 1 ? fmt(lead) + '·' : '') + rest)}</span> → <span class="nw">${q.name} = ${frac(cv(num), cv(den))} = <b>${cv(q.C)}</b></span>${cabs(q.C) < 1e-10 ? ' (bằng 0, bỏ mảnh này)' : ''}</div>`;
+    } else cover += `<div class="cv"><b>${q.name}</b> (cực bội ${o.s} tại z = ${cv(q.p)}, mảnh 1/${fac(q.p, q.j)}): mảnh có lũy thừa thấp hơn của cực bội không dùng được mẹo che (phải dùng đạo hàm), phần mềm tính sẵn → <span class="nw">${q.name} = <b>${cv(q.C)}</b></span></div>`;
+  });
+  st += `<li><div><b>Tìm các hệ số bằng mẹo che</b>: muốn tìm số đứng trên (z − a), lấy tay che (z − a) ở mẫu, rồi thay z = a vào phần còn lại.<div class="cvs">${cover}</div></div></li>`;
+  const live = pieces.filter(q => cabs(q.C) >= 1e-10);
+  // nhân trả lại z
+  const back = q => {
+    const co = Math.abs(q.C.im) < 1e-10 ? fmt(q.C.re) : `(${fmtc(q.C)})`;
+    if (cabs(q.p) < 1e-12) return q.j === 1 ? co : `${co}·z<sup>−${q.j - 1}</sup>`;
+    return `${co}·${frac('z', fac(q.p, q.j))}`;
+  };
+  st += `<li><div><b>Nhân trả lại z</b> cho cả hai vế:<div class="math big">H(z) = ${(live.length ? live : pieces).map(back).join(' + ').replace(/\+ −/g, '− ')}</div></div></li>`;
+  // tra bảng từng mảnh
+  const look = q => {
+    if (cabs(q.p) < 1e-12){ const d = q.j - 1; return [q.j === 1 ? 'hằng số' : `z<sup>−${d}</sup>`, d === 0 ? 'δ(n)' : `δ(n − ${d})`]; }
+    const ps = Math.abs(q.p.im) < 1e-10 ? (q.p.re < 0 || !Number.isInteger(+q.p.re.toFixed(9)) ? `(${fmt(q.p.re)})` : fmt(q.p.re)) : `(${fmtc(q.p)})`;
+    const e = q.j === 1 ? 'n' : `n−${q.j - 1}`, bin = BIN[q.j - 1];
+    return [frac('z', fac(q.p, q.j)), `${bin ? (q.j > 2 ? '[' + bin + ']·' : bin + '·') : ''}${ps}<sup>${e}</sup>·u(n)`];
+  };
+  st += `<li><div><b>Tra bảng từng mảnh</b> về miền n (hằng số → δ(n); z/(z − a) → aⁿ·u(n)):<div class="tbl-wrap"><table class="t"><tr><th>Mảnh trong miền z</th><th>Hệ số</th><th>Dãy trong miền n</th></tr>${live.map(q => { const [z, n] = look(q); return `<tr><td class="m">${z}</td><td class="m">${cv(q.C)}</td><td class="m">${n}</td></tr>`; }).join('')}</table></div>${live.some(q => Math.abs(q.p.im) > 1e-10) ? '<small class="muted">Hai cực phức liên hợp cho hai mảnh liên hợp; cộng lại thành một số hạng dạng rⁿ·cos(θn + φ).</small>' : ''}<div class="res math">h(n) = ${termsHTML(R, A.roc)}</div></div></li>`;
+  // kiểm tra
+  const rows = [0, 1, 2, 3].map(n => `<tr><td class="m">${n}</td><td class="m">${fmt(A.h[n])}</td><td class="m">${fmt(izEval(R, A.roc, n))}</td><td>${Math.abs(A.h[n] - izEval(R, A.roc, n)) < 1e-6 * (1 + Math.abs(A.h[n])) ? '<span class="ok">✓</span>' : '<span class="no-ok">✗</span>'}</td></tr>`).join('');
+  st += `<li><div><b>Kiểm tra</b>: cho x = 1, 0, 0, … chạy phương trình sai phân từng nhịp (tính lặp), so với công thức vừa tìm:<div class="tbl-wrap"><table class="t"><tr><th>n</th><th>Tính lặp từ phương trình</th><th>Theo công thức h(n)</th><th></th></tr>${rows}</table></div><small class="muted">Hai cột trùng nhau → lời giải đúng.</small></div></li>`;
+  return st;
+}
 function renderHt(){
   const s = readSys();
   if (!s){ $('ht-steps').innerHTML = '<li><div class="bad">Hệ số chưa hợp lệ. Hệ số a₀ (của y(n)) phải khác 0.</div></li>'; return; }
@@ -626,6 +678,7 @@ function renderHt(){
   const L = A.Dd.length - 1;
   st += `<li><div><b>Đổi về lũy thừa dương</b> (nhân tử và mẫu với z<sup>${L}</sup>) để tìm cực, không:<div class="math big">H(z) = ${frac(polyZ(A.Nd), polyZ(A.Dd))}</div></div></li>`;
   st += `<li><div><b>Kết luận ổn định</b> (xét mẫu số):${verdict(A)}</div></li>`;
+  st += hnSteps(A);
   $('ht-steps').innerHTML = st;
   $('ht-pz').innerHTML = poleTable(A.pz);
   zPlane($('ht-z'), {poles: A.pz.poles, zeros: A.pz.zeros, roc: {rin: A.rmax, rout: Infinity}, size: 320});
