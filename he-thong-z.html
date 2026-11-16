@@ -143,6 +143,15 @@ details.why{margin-top:10px;background:var(--amber-t);border-radius:10px;padding
 details.why summary{cursor:pointer;font-weight:700}
 details.why .cvm{font-family:var(--f-mono);background:#fff;border-radius:8px;padding:6px 10px;margin:6px 0;overflow-x:auto;white-space:nowrap;line-height:2;color:var(--ink)}
 .nw{white-space:nowrap}
+.sdp{margin:6px 0}
+.sdm{font-family:var(--f-mono);font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin:6px 0;line-height:2}
+.sdm.big{font-size:16px;font-weight:700;background:var(--blue-t)}
+.sdmv{font-family:var(--f-mono);font-size:14px;background:var(--soft);border-radius:8px;padding:5px 10px;margin:4px 0}
+.sdmv .ar,.sdm .ar{color:var(--muted);margin:0 4px}
+.zb{display:inline-block;font:700 12.5px var(--f-mono);color:#9E1830;background:#FDECEF;border:1.5px solid #C41E3A;border-radius:6px;padding:0 6px;line-height:1.6}
+.sdrow{margin:6px 0}
+.sdgo{margin-top:8px}
+
 table.lk td:first-child,table.lk td:nth-child(2){white-space:nowrap}
 .ex .f{display:block;font-family:var(--f-mono);font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin-top:6px;overflow-x:auto;white-space:nowrap;line-height:1.9}
 .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 2px;line-height:1.35}
@@ -318,9 +327,22 @@ input:disabled{opacity:.45}
         <div class="ref">Mục 4.1.3 (phần tử cộng, trễ đơn vị, nhân hằng số) · Kỹ năng: vẽ được sơ đồ trực tiếp 2</div>
       </div>
       <div class="card">
+        <h2>Từ phương trình sai phân đến sơ đồ: từng bước</h2>
+        <p class="sdp" style="margin-top:0">Sơ đồ không phải học thuộc hình. Nó được vẽ ra từ phương trình sai phân theo một quy tắc: <b>mỗi phép tính trong công thức là một linh kiện</b>. Dấu cộng là bộ cộng, nhân với một hằng số là bộ nhân, “lấy giá trị của nhịp trước” là một ô nhớ z⁻¹.</p>
+        <ol class="steps" id="sd-steps"></ol>
+      </div>
+      <div class="card">
         <h2 id="sd-title"></h2>
         <div class="diag" id="sd-svg"></div>
         <div id="sd-eq"></div>
+      </div>
+      <div class="card">
+        <h2>Chạy thử sơ đồ từng nhịp</h2>
+        <p class="sdp" style="margin-top:0">Mỗi lần bấm là một nhịp n: xem các ô nhớ đang giữ số nào, phép tính trong mạch, và kết quả y(n). Đổi dạng sơ đồ ở bảng điều khiển để so sánh trực tiếp 1 và trực tiếp 2.</p>
+        <div class="chips" id="sd-inp" style="margin-bottom:8px"><button class="chip small" data-i="d" aria-pressed="true">Gõ một cái: x = 1, 0, 0, …</button><button class="chip small" data-i="u" aria-pressed="false">Bậc thang: x = 1, 1, 1, …</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button type="button" class="btn" id="sd-next">Nhịp tiếp theo →</button><button type="button" class="btn ghost" id="sd-reset">Làm lại</button></div>
+        <div id="sd-run"></div>
+        <div id="sd-log" style="margin-top:8px"></div>
       </div>
       <div class="card">
         <h2>So sánh hai dạng sơ đồ</h2>
@@ -804,6 +826,97 @@ function counts(an, bn){
   const mul = bn.filter(v => !isZero(v) && !isZero(v - 1)).length + an.slice(1).filter(v => !isZero(v)).length;
   return {N, M, d1: N + M, d2: Math.max(N, M), mul};
 }
+/* ---- Tab 2: từ phương trình sai phân đến sơ đồ, từng bước ---- */
+const sdTerm = (c, v, k, first) => {
+  const A = Math.abs(c), co = Math.abs(A - 1) < 1e-12 ? '' : fmt(A) + '·', t = k === 0 ? `${v}(n)` : `${v}(n−${k})`;
+  return (first ? (c < 0 ? '−' : '') : (c < 0 ? ' − ' : ' + ')) + co + t;
+};
+const sdJoin = list => { let s = ''; list.forEach(([c, v, k]) => { if (!isZero(c)) s += (s ? ' ' : '') + `<span class="nw">${sdTerm(c, v, k, !s).trim()}</span>`; }); return s || '0'; };
+const sdWords = list => {
+  const L = list.filter(t => !isZero(t[0]));
+  return L.map((t, i) => { const [c, v, k] = t, A = Math.abs(c), co = Math.abs(A - 1) < 1e-12 ? '' : fmt(A) + ' lần ';
+    const what = `${co}${v === 'x' ? 'đầu vào' : 'đầu ra'} ${k ? `của ${k} nhịp trước` : 'lần này'}`;
+    return i === 0 ? (c < 0 ? 'âm ' : '') + what : (c < 0 ? ' trừ ' : ' cộng ') + what; }).join('') || '0';
+};
+function sdSteps(an, bn){
+  const N = an.length - 1, M = bn.length - 1;
+  const xs = bn.map((c, k) => [c, 'x', k]), ys = an.slice(1).map((c, i) => [-c, 'y', i + 1]);
+  const rhs = sdJoin([...xs, ...ys]);
+  let st = '';
+  // 1. phương trình ban đầu
+  const a0 = SYS.a[0];
+  st += `<li><div><b>Viết phương trình sai phân của hệ</b> (hệ nhập ở tab 1):<div class="sdm">${eqSide(SYS.a, 'y')} = ${eqSide(SYS.b, 'x')}</div>${isZero(a0 - 1) ? '' : `Hệ số của y(n) đang là ${fmt(a0)}, nên chia cả hai vế cho ${fmt(a0)} để hệ số của y(n) bằng 1:<div class="sdm">${eqSide(an, 'y')} = ${eqSide(bn, 'x')}</div>`}</div></li>`;
+  // 2. biến đổi về y(n) = ...
+  const moves = an.slice(1).map((c, i) => isZero(c) ? '' : `<div class="sdmv"><span class="nw">${sdTerm(c, 'y', i + 1, true)}</span> ở vế trái <span class="ar">→</span> <span class="nw">${sdTerm(-c, 'y', i + 1, true)}</span> ở vế phải</div>`).join('');
+  st += `<li><div><b>Biến đổi về dạng y(n) = …</b><p class="sdp">Mỗi nhịp, máy chỉ phải tìm <b>một</b> số chưa biết là y(n). Các số còn lại đều đã biết: x(n) vừa đưa vào; x(n−1), y(n−1)… là của các nhịp trước. Vì vậy để y(n) đứng <b>một mình</b> ở vế trái, chuyển mọi số hạng y(n−k) sang vế phải và <b>đổi dấu</b>:</p>${moves || '<div class="sdmv">Vế trái chỉ có y(n), không phải chuyển gì (hệ không có hồi tiếp).</div>'}<div class="sdm big">y(n) = ${rhs}</div><p class="sdp">Đọc thành lời: <i>đầu ra lần này = ${sdWords([...xs, ...ys])}</i>. Đây chính là “công thức tính” mà mạch phải làm theo.</p></div></li>`;
+  // 3. đọc từng số hạng
+  const row = (c, v, k) => {
+    if (isZero(c)) return '';
+    const need = k === 0 ? (v === 'x' ? 'đầu vào lần này' : '') : `${v === 'x' ? 'đầu vào' : 'đầu ra'} của ${k} nhịp trước`;
+    const mem = k === 0 ? 'không cần ô nhớ' : `${k} ô nhớ z⁻¹ trên đường ${v === 'x' ? 'đầu vào x' : 'đầu ra y (dây quay ngược về)'}`;
+    const mul = Math.abs(c - 1) < 1e-12 ? 'không cần bộ nhân (nhân 1)' : `bộ nhân × ${fmt(c)}`;
+    return `<tr><td class="m nw">${sdTerm(c, v, k, true)}</td><td>${need}</td><td>${mem}; ${mul}</td></tr>`;
+  };
+  st += `<li><div><b>Đọc từng số hạng ở vế phải, đổi thành linh kiện.</b> Mỗi số hạng là một dây đi vào bộ cộng. Dấu trừ coi như nhân với số âm, nên chỉ cần bộ cộng.<div class="tbl-wrap"><table class="t"><tr><th>Số hạng</th><th>Cần giá trị nào</th><th>Linh kiện</th></tr>${xs.map(t => row(...t)).join('')}${ys.map(t => row(...t)).join('')}<tr><td class="m">các dấu +, −</td><td>cộng tất cả lại</td><td>một bộ cộng; đầu ra bộ cộng chính là y(n)</td></tr></table></div></div></li>`;
+  // 4. chuỗi ô nhớ
+  const chain = (v, K) => { let s = `${v}(n)`; for (let k = 1; k <= K; k++) s += ` <span class="ar">→</span> <span class="zb">z⁻¹</span> <span class="ar">→</span> ${v}(n−${k})`; return s; };
+  st += `<li><div><b>Xếp các ô nhớ thành chuỗi.</b> Một ô nhớ z⁻¹ chỉ giữ số trong <b>1 nhịp</b>: nhịp này cất vào, nhịp sau nhả ra. Muốn có giá trị của 2 nhịp trước thì cho đầu ra của ô thứ nhất đi tiếp qua ô thứ hai, cứ thế nối dài:${M ? `<div class="sdm">Đường x: ${chain('x', M)}</div>` : ''}${N ? `<div class="sdm">Đường y: ${chain('y', N)}</div>` : ''}<p class="sdp">Đầu vào lùi xa nhất ${M} nhịp nên đường x cần <b>${M}</b> ô nhớ; đầu ra lùi xa nhất ${N} nhịp nên đường y cần <b>${N}</b> ô nhớ. Mỗi điểm trên chuỗi rẽ một dây qua bộ nhân của nó vào bộ cộng.</p></div></li>`;
+  // 5. trực tiếp 1
+  st += `<li><div><b>Nối tất cả lại: được sơ đồ trực tiếp 1.</b> Chuỗi ô nhớ của x ở bên trái, chuỗi ô nhớ của y ở bên phải, bộ cộng ở giữa. Tổng cộng M + N = ${M} + ${N} = <b>${M + N}</b> ô nhớ. <button type="button" class="btn ghost sdgo" data-f="1">Xem hình trực tiếp 1</button></div></li>`;
+  // 6. trực tiếp 2
+  if (M > 0 && N > 0){
+    const fb = an.slice(1).map((c, i) => [-c, 'w', i + 1]);
+    st += `<li><div><b>Gộp ô nhớ: từ trực tiếp 1 sang trực tiếp 2.</b>
+      <p class="sdp">① Sơ đồ trực tiếp 1 gồm <b>hai khối nối tiếp</b>: khối bên trái chỉ dùng x (tử số B(z) = ${polyW(bn)}), khối bên phải chỉ dùng y (hồi tiếp, 1/A(z) với A(z) = ${polyW(an)}). Nên H(z) = B(z)·${frac('1', 'A(z)')}.</p>
+      <p class="sdp">② Hai khối nối tiếp là phép <b>nhân</b>, mà phép nhân đổi chỗ được: B(z)·${frac('1', 'A(z)')} = ${frac('1', 'A(z)')}·B(z). Vậy đặt khối hồi tiếp <b>lên trước</b>, khối tử số <b>ra sau</b>. Gọi tín hiệu ở giữa hai khối là w(n):</p>
+      <div class="sdm">Khối hồi tiếp: w(n) = ${sdJoin([[1, 'x', 0], ...fb])}</div>
+      <div class="sdm">Khối tử số: y(n) = ${sdJoin(bn.map((c, k) => [c, 'w', k]))}</div>
+      <p class="sdp">③ Bây giờ <b>cả hai khối cùng cần</b> w(n−1), w(n−2)…, nên chỉ cần <b>một</b> chuỗi ô nhớ đặt ở giữa, dùng chung cho cả hai bên. Số ô nhớ còn max(M, N) = max(${M}, ${N}) = <b>${Math.max(M, N)}</b> thay vì ${M + N}.</p>
+      <button type="button" class="btn ghost sdgo" data-f="2">Xem hình trực tiếp 2</button></div></li>`;
+  } else st += `<li><div><b>Trực tiếp 2.</b> Hệ này chỉ có ${M ? 'nhánh x' : 'nhánh y'}, không có hai chuỗi ô nhớ để gộp, nên trực tiếp 1 và trực tiếp 2 giống nhau.</div></li>`;
+  st += `<li><div><b>Kiểm tra:</b> bấm “Nhịp tiếp theo” ở thẻ <b>Chạy thử sơ đồ từng nhịp</b> bên dưới, xem mạch tính ra đúng các số như khi tính tay theo công thức y(n) = …</div></li>`;
+  return st;
+}
+/* chạy thử sơ đồ từng nhịp */
+let sdRun = {key: '', n: -1, inp: 'd', x: [], y: [], w: []};
+function sdRunReset(){ sdRun.n = -1; sdRun.x = []; sdRun.y = []; sdRun.w = []; }
+function sdRunRender(an, bn){
+  const key = an.join(',') + '|' + bn.join(',');
+  if (key !== sdRun.key){ sdRun.key = key; sdRunReset(); }
+  document.querySelectorAll('#sd-inp .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.i === sdRun.inp));
+  const N = an.length - 1, M = bn.length - 1, n = sdRun.n;
+  const g = (arr, i) => i >= 0 && i < arr.length ? arr[i] : 0;
+  const v = x => fmt(x), vp = x => x < 0 ? `(${fmt(x)})` : fmt(x);
+  let h = '';
+  if (n < 0) h = '<p class="sdp">Chưa chạy. Mọi ô nhớ đang chứa 0. Bấm “Nhịp tiếp theo”.</p>';
+  else if (sdForm === '1'){
+    const mx = Array.from({length: M}, (_, k) => `x(n−${k + 1}) = ${v(g(sdRun.x, n - k - 1))}`), my = Array.from({length: N}, (_, k) => `y(n−${k + 1}) = ${v(g(sdRun.y, n - k - 1))}`);
+    const parts = [...bn.map((c, k) => isZero(c) ? null : `${v(c)}·${vp(g(sdRun.x, n - k))}`), ...an.slice(1).map((c, i) => isZero(c) ? null : `${v(-c)}·${vp(g(sdRun.y, n - i - 1))}`)].filter(Boolean);
+    h = `<div class="sdrow"><b>Nhịp n = ${n}</b>. Đầu vào x(${n}) = ${v(sdRun.x[n])}.</div>
+      <div class="sdrow">Ô nhớ đường x nhả ra: ${mx.join('; ') || 'không có'}. Ô nhớ đường y nhả ra: ${my.join('; ') || 'không có'}.</div>
+      <div class="sdm">y(${n}) = ${parts.join(' + ').replace(/\+ −/g, '− ')} = <b class="hl">${v(sdRun.y[n])}</b></div>
+      <div class="sdrow muted">Cuối nhịp: mỗi chuỗi ô nhớ dịch một bậc, x(${n}) và y(${n}) được cất vào ô đầu chuỗi, để nhịp sau dùng làm x(n−1), y(n−1).</div>`;
+  } else {
+    const K = Math.max(M, N), mw = Array.from({length: K}, (_, k) => `w(n−${k + 1}) = ${v(g(sdRun.w, n - k - 1))}`);
+    const pw = an.slice(1).map((c, i) => isZero(c) ? null : `${v(-c)}·${vp(g(sdRun.w, n - i - 1))}`).filter(Boolean);
+    const py = bn.map((c, k) => isZero(c) ? null : `${v(c)}·${vp(g(sdRun.w, n - k))}`).filter(Boolean);
+    h = `<div class="sdrow"><b>Nhịp n = ${n}</b>. Đầu vào x(${n}) = ${v(sdRun.x[n])}.</div>
+      <div class="sdrow">Chuỗi ô nhớ chung nhả ra: ${mw.join('; ') || 'không có'}.</div>
+      <div class="sdm">Khối hồi tiếp: w(${n}) = ${[v(sdRun.x[n]), ...pw].join(' + ').replace(/\+ −/g, '− ')} = <b>${v(sdRun.w[n])}</b></div>
+      <div class="sdm">Khối tử số: y(${n}) = ${py.join(' + ').replace(/\+ −/g, '− ') || '0'} = <b class="hl">${v(sdRun.y[n])}</b></div>
+      <div class="sdrow muted">Cuối nhịp: chuỗi ô nhớ dịch một bậc, w(${n}) được cất vào ô đầu chuỗi.</div>`;
+  }
+  $('sd-run').innerHTML = h;
+  $('sd-log').innerHTML = n < 0 ? '' : `<div class="tbl-wrap"><table class="t"><tr><th>n</th>${sdRun.x.map((_, i) => `<th>${i}</th>`).join('')}</tr><tr><td>x(n)</td>${sdRun.x.map(x => `<td class="m">${v(x)}</td>`).join('')}</tr><tr><td>y(n)</td>${sdRun.y.map(x => `<td class="m">${v(x)}</td>`).join('')}</tr></table></div><p class="sdp muted">Hai dạng sơ đồ cho cùng dãy y(n). ${sdRun.inp === 'd' ? 'Với x là xung đơn vị, dãy này chính là h(n) ở tab 1.' : ''}</p>`;
+}
+function sdRunStep(){
+  const A = analyze(SYS.b, SYS.a), an = A.an, bn = A.bn, n = ++sdRun.n;
+  const g = (arr, i) => i >= 0 && i < arr.length ? arr[i] : 0;
+  const x = sdRun.inp === 'd' ? (n === 0 ? 1 : 0) : 1; sdRun.x.push(x);
+  let y = 0; bn.forEach((c, k) => y += c * g(sdRun.x, n - k)); an.slice(1).forEach((c, i) => y -= c * g(sdRun.y, n - i - 1)); sdRun.y.push(y);
+  let w = x; an.slice(1).forEach((c, i) => w -= c * g(sdRun.w, n - i - 1)); sdRun.w.push(w);
+  sdRunRender(an, bn);
+}
 function renderSd(){
   const A = analyze(SYS.b, SYS.a); const an = A.an, bn = A.bn;
   document.querySelectorAll('#sd-forms .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.f === sdForm));
@@ -817,6 +930,8 @@ function renderSd(){
   $('sd-eq').innerHTML = sdForm === '2'
     ? `<div class="res math">Nửa trái (hồi tiếp): w(n) = x(n)${fb}<br>Nửa phải (tiến): y(n) = ${ff || '0'}</div><p class="key">Ý tưởng: H(z) = [1/A(z)]·B(z). Tính w(n) bằng phần đệ quy trước, rồi lấy tổ hợp các w trễ. Vì cùng một dãy w nên hai nhánh <b>dùng chung</b> các ô nhớ z⁻¹.</p>`
     : `<div class="res math">y(n) = ${ff1 || '0'}${fb1}</div><p class="key">Đọc thẳng từ phương trình sai phân: một dãy ô nhớ cho x (bên trái), một dãy ô nhớ cho y (bên phải), cộng tất cả ở giữa. Đây là sơ đồ đã học ở Buổi 2.</p>`;
+  $('sd-steps').innerHTML = sdSteps(an, bn);
+  sdRunRender(an, bn);
   const c = counts(an, bn);
   $('sd-cmp').innerHTML = `<table class="t"><tr><th>Dạng</th><th>Số ô nhớ z⁻¹</th><th>Số bộ nhân</th><th>Ghi chú</th></tr>
     <tr><td>Trực tiếp 1</td><td class="m">M + N = ${c.M} + ${c.N} = <b>${c.d1}</b></td><td class="m">${c.mul}</td><td>dễ đọc từ phương trình</td></tr>
@@ -1299,6 +1414,10 @@ $('toggleCtl').addEventListener('click', () => { const h = document.body.classLi
 ['ht-a', 'ht-b'].forEach(id => $(id).addEventListener('input', renderHt));
 document.querySelectorAll('[data-sys]').forEach(b => b.addEventListener('click', () => { const [a, bb] = b.dataset.sys.split('|'); $('ht-a').value = a; $('ht-b').value = bb; renderHt(); }));
 $('sd-forms').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sdForm = b.dataset.f; renderSd(); });
+$('sd-steps').addEventListener('click', e => { const b = e.target.closest('.sdgo'); if (!b) return; sdForm = b.dataset.f; renderSd(); const t = $('sd-title'); if (t.scrollIntoView) t.scrollIntoView({block: 'start', behavior: 'smooth'}); });
+$('sd-next').addEventListener('click', sdRunStep);
+$('sd-reset').addEventListener('click', () => { sdRunReset(); renderSd(); });
+$('sd-inp').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return; sdRun.inp = b.dataset.i; sdRunReset(); renderSd(); });
 $('gh-modes').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; ghMode = b.dataset.m; renderGh(); });
 ['gh-k1', 'gh-p1', 'gh-k2', 'gh-p2'].forEach(id => $(id).addEventListener('input', renderGh));
 document.querySelectorAll('[data-gh]').forEach(b => b.addEventListener('click', () => { const [m, k1, p1, k2, p2] = b.dataset.gh.split('|'); ghMode = m; $('gh-k1').value = k1; $('gh-p1').value = p1; $('gh-k2').value = k2; $('gh-p2').value = p2; renderGh(); }));
