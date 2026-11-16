@@ -130,8 +130,18 @@ table.t td.m{font-family:var(--f-mono)}
 .ex .sol .chk table.t{background:#fff;border-radius:8px}
 .ex .sol .chk table.t th{text-transform:none;letter-spacing:0;font-size:12.5px}
 .fr{white-space:nowrap}
-.cvs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.cvs .cv{background:var(--soft);border-radius:9px;padding:8px 12px;line-height:2.2}
+.cvs{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.cvs .cv{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.cv .cvh{font-size:15px;margin-bottom:6px}
+.cv .cvr{display:grid;grid-template-columns:26px minmax(0,1fr);gap:6px;align-items:start;margin-top:6px}
+.cv .cn{font:700 15px var(--f-body);color:var(--red);line-height:1.6}
+.cv .cvm{font-family:var(--f-mono);background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:4px;overflow-x:auto;white-space:nowrap;line-height:2}
+.cv .ar{color:var(--muted);margin:0 6px}
+.cov{background:#E4E7EC;color:var(--muted);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--red);border-radius:4px;padding:0 2px}
+.hl{color:var(--green);background:var(--green-t);border-radius:5px;padding:1px 6px}
+details.why{margin-top:10px;background:var(--amber-t);border-radius:10px;padding:8px 12px;color:#4a3000}
+details.why summary{cursor:pointer;font-weight:700}
+details.why .cvm{font-family:var(--f-mono);background:#fff;border-radius:8px;padding:6px 10px;margin:6px 0;overflow-x:auto;white-space:nowrap;line-height:2;color:var(--ink)}
 .nw{white-space:nowrap}
 .ex .f{display:block;font-family:var(--f-mono);font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin-top:6px;overflow-x:auto;white-space:nowrap;line-height:1.9}
 .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 2px;line-height:1.35}
@@ -144,7 +154,7 @@ table.t td.m{font-family:var(--f-mono)}
 .tools3 p{margin:6px 0 0;font-size:14px}
 .tools3 .eg{font:500 13px var(--f-mono);color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
 @media (max-width: 900px){.tools3{grid-template-columns:1fr}}
-@media (max-width: 520px){.ex{padding:12px}.ex .acts .btn{flex:1 1 auto}.ex .f{font-size:13.5px;white-space:normal;line-height:2.1}}
+@media (max-width: 520px){.cv .cvm,details.why .cvm{white-space:normal;line-height:2.4}.cv .cvr{grid-template-columns:22px minmax(0,1fr)}.ex{padding:12px}.ex .acts .btn{flex:1 1 auto}.ex .f{font-size:13.5px;white-space:normal;line-height:2.1}}
 .switch{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;cursor:pointer;min-height:44px}
 .switch input{width:20px;height:20px;accent-color:var(--green)}
 .muted{color:var(--muted)}
@@ -633,18 +643,44 @@ function hnSteps(A){
   pp.forEach(o => o.coef.forEach((c, i) => pieces.push({p: o.p, j: i + 1, s: o.s, C: c, name: nm()})));
   let st = '';
   st += `<li><div><b>Tìm h(n): chia H(z) cho z</b>. Bảng tra chỉ có dạng z/(z − a), nên chia cho z trước rồi tách thành các mảnh nhỏ:<div class="math big">${frac('H(z)', 'z')} = ${frac(polyZ(Nd), denF)} = ${pieces.map(q => frac(q.name, fac(q.p, q.j))).join(' + ')}</div><small class="muted">Mỗi thừa số ở mẫu cho một mảnh${pp.some(o => o.s > 1) ? '; thừa số lặp lại m lần cho m mảnh' : ''}.</small></div></li>`;
-  // mẹo che
+  // mẹo che: mỗi hệ số làm 3 việc nhỏ: che, thay số, tính
+  const vStr = v => Math.abs(v.im) < 1e-10 ? (v.re < 0 ? `(${fmt(v.re)})` : fmt(v.re)) : `(${fmtc(v)})`;
+  const supN = m => m > 1 ? `<sup>${m}</sup>` : '';
+  const polySub = (c, v) => { const d = c.length - 1, vs = vStr(v); let out = '';
+    c.forEach((x, i) => { if (Math.abs(x) < 1e-12) return; const pw = d - i, X = Math.abs(x);
+      const body = pw === 0 ? fmt(X) : (Math.abs(X - 1) < 1e-12 ? '' : fmt(X) + '·') + vs + supN(pw);
+      out += (out ? (x < 0 ? ' − ' : ' + ') : (x < 0 ? '−' : '')) + body; });
+    return out || '0'; };
+  const facSub = (q, m, v) => { const vs = vStr(v); let t;
+    if (cabs(q) < 1e-12) t = vs;
+    else if (Math.abs(q.im) < 1e-10) t = `(${vs} ${q.re > 0 ? '−' : '+'} ${fmt(Math.abs(q.re))})`;
+    else t = `(${vs} − (${fmtc(q)}))`;
+    return m > 1 ? `${t}${supN(m)}` : t; };
+  const leadS = lead !== 1 ? fmt(lead) + '·' : '';
   let cover = '';
   pieces.forEach(q => {
     const o = pp.find(u => u.p === q.p);
     if (o.s === 1 || q.j === o.s){
       const num = polyvalC(Nd, q.p); let den = C(lead);
       pp.forEach(u => { if (u.p === q.p) return; for (let i = 0; i < u.s; i++) den = cmul(den, csub(q.p, u.p)); });
-      const rest = pp.filter(u => u.p !== q.p).map(u => fac(u.p, u.s)).join('') || '1';
-      cover += `<div class="cv"><b>${q.name}</b>: che <b class="nw">${fac(q.p, o.s)}</b>, thay <span class="nw">z = ${cv(q.p)}</span> vào phần còn lại <span class="nw">${frac(polyZ(Nd), (lead !== 1 ? fmt(lead) + '·' : '') + rest)}</span> → <span class="nw">${q.name} = ${frac(cv(num), cv(den))} = <b>${cv(q.C)}</b></span>${cabs(q.C) < 1e-10 ? ' (bằng 0, bỏ mảnh này)' : ''}</div>`;
-    } else cover += `<div class="cv"><b>${q.name}</b> (cực bội ${o.s} tại z = ${cv(q.p)}, mảnh 1/${fac(q.p, q.j)}): mảnh có lũy thừa thấp hơn của cực bội không dùng được mẹo che (phải dùng đạo hàm), phần mềm tính sẵn → <span class="nw">${q.name} = <b>${cv(q.C)}</b></span></div>`;
+      const others = pp.filter(u => u.p !== q.p);
+      const rest = leadS + (others.map(u => fac(u.p, u.s)).join('') || '1');
+      const covered = leadS + pp.map(u => u.p === q.p ? `<span class="cov">${fac(u.p, u.s)}</span>` : fac(u.p, u.s)).join('');
+      const restSub = leadS + (others.map(u => facSub(u.p, u.s, q.p)).join('·') || '1');
+      cover += `<div class="cv"><div class="cvh">Tìm <b>${q.name}</b>: số đứng trên <b class="nw">${fac(q.p, o.s)}</b></div>
+        <div class="cvr"><span class="cn">①</span><div>Che <b class="nw">${fac(q.p, o.s)}</b> ở mẫu (phần bị gạch), giữ lại phần còn lại:<div class="cvm">${frac(polyZ(Nd), covered)} <span class="nw"><span class="ar">→</span>${frac(polyZ(Nd), rest)}</span></div></div></div>
+        <div class="cvr"><span class="cn">②</span><div>Thay <b class="nw">z = ${cv(q.p)}</b> (số làm cho ${fac(q.p, 1)} bằng 0) vào phần còn lại:<div class="cvm">${frac(polySub(Nd, q.p), restSub)}</div></div></div>
+        <div class="cvr"><span class="cn">③</span><div>Tính ra số:<div class="cvm"><b>${q.name}</b> = ${frac(cv(num), cv(den))} = <b class="hl">${cv(q.C)}</b>${cabs(q.C) < 1e-10 ? ' <span class="muted">(bằng 0, bỏ mảnh này)</span>' : ''}</div></div></div></div>`;
+    } else cover += `<div class="cv"><div class="cvh">Tìm <b>${q.name}</b>: số đứng trên <b class="nw">${fac(q.p, q.j)}</b></div><p style="margin:4px 0 0">Đây là mảnh có lũy thừa thấp hơn của cực lặp lại (bội ${o.s}). Mẹo che không dùng được cho mảnh này (phải dùng đạo hàm, ngoài phạm vi bài), phần mềm tính sẵn: <b class="nw">${q.name} = <span class="hl">${cv(q.C)}</span></b>.</p></div>`;
   });
-  st += `<li><div><b>Tìm các hệ số bằng mẹo che</b>: muốn tìm số đứng trên (z − a), lấy tay che (z − a) ở mẫu, rồi thay z = a vào phần còn lại.<div class="cvs">${cover}</div></div></li>`;
+  // vì sao mẹo che đúng: dùng ngay mảnh đơn đầu tiên của hệ đang xét
+  const q0 = pieces.find(q => { const o = pp.find(u => u.p === q.p); return o.s === 1; });
+  let why = '';
+  if (q0 && pieces.length > 1){
+    const f0 = fac(q0.p, 1), oth = pieces.filter(q => q !== q0);
+    why = `<details class="why"><summary>Vì sao che rồi thay số lại ra đúng ${q0.name}?</summary><div>Nhân cả hai vế của bước 6 với <b>${f0}</b>:<div class="cvm">${frac(polyZ(Nd), leadS + (pp.filter(u => u.p !== q0.p).map(u => fac(u.p, u.s)).join('') || '1'))} = ${q0.name} + ${oth.map(q => `${q.name}·${frac(f0, fac(q.p, q.j))}`).join(' + ')}</div>Vế trái chính là “phần còn lại sau khi che”. Bây giờ thay z = ${cv(q0.p)}: thừa số ${f0} bằng 0, nên mọi mảnh có nhân ${f0} ở vế phải đều mất, <b>chỉ còn lại ${q0.name}</b>. Vì vậy ${q0.name} = giá trị phần còn lại tại z = ${cv(q0.p)}.</div></details>`;
+  }
+  st += `<li><div><b>Tìm các hệ số ${pieces.map(q => q.name).join(', ')} bằng “mẹo che”</b>. Mỗi hệ số chỉ cần 3 việc nhỏ: <b>① che</b> thừa số của nó ở mẫu, <b>② thay z</b> bằng số làm thừa số đó bằng 0, <b>③ tính</b>.<div class="cvs">${cover}</div>${why}</div></li>`;
   const live = pieces.filter(q => cabs(q.C) >= 1e-10);
   // nhân trả lại z
   const back = q => {
