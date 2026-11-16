@@ -250,15 +250,20 @@ function niceTicks(lo, hi, n = 5){
 }
 function stemPlot(el, cfg){
   const W = Math.max(280, el.clientWidth || 600), H = cfg.height || (W < 520 ? 210 : 240);
-  const padL = 46, padR = 12, padT = 16, padB = 34; const {nmin, nmax} = cfg;
+  const padR = 12, padT = 16, padB = 34; const {nmin, nmax} = cfg;
   let vs = []; cfg.series.forEach(s => s.n.forEach((n, i) => { if (n >= nmin && n <= nmax && isFinite(s.v[i])) vs.push(s.v[i]); }));
   let ymin = Math.min(0, ...vs), ymax = Math.max(0, ...vs);
   if (ymax - ymin < 1e-12){ ymax = 1; ymin = Math.min(ymin, 0); }
   const pad = (ymax - ymin) * 0.12; ymax += pad; if (ymin < 0) ymin -= pad;
+  const SUP = {'-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'};
+  const big = Math.max(Math.abs(ymin), Math.abs(ymax)) >= 1e5;
+  const tickFmt = t => { if (!big || Math.abs(t) < 1e-12) return fmt(t, 3); const e = Math.floor(Math.log10(Math.abs(t))); const m = +(t / Math.pow(10, e)).toFixed(2); return fmt(m, 2) + '·10' + String(e).split('').map(c => SUP[c]).join(''); };
+  const ticks = niceTicks(ymin, ymax, 4);
+  const padL = Math.max(46, 12 + 7.2 * Math.max(...ticks.map(t => tickFmt(t).length)));
   const X = n => padL + (n - nmin + 0.5) / (nmax - nmin + 1) * (W - padL - padR);
   const Y = v => padT + (ymax - v) / (ymax - ymin) * (H - padT - padB);
   let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${cfg.label || 'Đồ thị dãy'}"><rect width="${W}" height="${H}" fill="${CL.paper}"/>`;
-  niceTicks(ymin, ymax, 4).forEach(t => { s += `<line x1="${padL}" x2="${W - padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="${CL.grid}"/><text x="${padL - 6}" y="${Y(t) + 4}" text-anchor="end" font-size="11.5" fill="${CL.muted}" font-family="JetBrains Mono, monospace">${fmt(t, 3)}</text>`; });
+  ticks.forEach(t => { s += `<line x1="${padL}" x2="${W - padR}" y1="${Y(t)}" y2="${Y(t)}" stroke="${CL.grid}"/><text x="${padL - 6}" y="${Y(t) + 4}" text-anchor="end" font-size="11.5" fill="${CL.muted}" font-family="JetBrains Mono, monospace">${tickFmt(t)}</text>`; });
   const cnt = nmax - nmin + 1; const pxPer = (W - padL - padR) / cnt; const every = pxPer >= 24 ? 1 : pxPer >= 12 ? 2 : pxPer >= 6 ? 5 : 10;
   for (let n = nmin; n <= nmax; n++) if (((n % every) + every) % every === 0) s += `<text x="${X(n)}" y="${H - padB + 16}" text-anchor="middle" font-size="11.5" fill="${CL.muted}" font-family="JetBrains Mono, monospace">${n < 0 ? '−' + (-n) : n}</text>`;
   s += `<text x="${W - padR}" y="${H - 4}" text-anchor="end" font-size="11.5" fill="${CL.muted}">n</text>`;

@@ -122,6 +122,26 @@ table.t td.m{font-family:var(--f-mono)}
 .ex .sol{margin-top:10px;display:flex;flex-direction:column;gap:8px}
 .ex .sol>div{background:var(--soft);border-radius:9px;padding:8px 12px;overflow-x:auto}
 .ex .mean{background:var(--green-t)!important}
+.ex .tag{font:600 12px var(--f-body);color:var(--blue);background:var(--blue-t);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.ex .idea{background:var(--amber-t);color:#4a3000;border-radius:9px;padding:8px 12px}
+.ex .sol .st .sn{display:inline-block;font:700 12px var(--f-mono);color:var(--red);background:var(--red-t);border-radius:6px;padding:1px 7px;margin-right:8px}
+.ex .sol .st .sd{margin-top:4px}
+.ex .sol .ans{background:var(--blue-t)!important}
+.ex .sol .chk table.t{background:#fff;border-radius:8px}
+.ex .sol .chk table.t th{text-transform:none;letter-spacing:0;font-size:12.5px}
+.fr{white-space:nowrap}
+.ex .f{display:block;font-family:var(--f-mono);font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin-top:6px;overflow-x:auto;white-space:nowrap;line-height:1.9}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 2px;line-height:1.35}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px 1px}
+.fr>span:last-child{padding:1px 4px 0}
+.ex .prog{font-size:13px;color:var(--muted);align-self:center;margin-right:4px}
+.tools3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tools3>div{background:var(--soft);border-radius:12px;padding:10px 12px}
+.tools3 .tn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--green-t);color:var(--green);font:700 12px var(--f-mono);margin-right:6px}
+.tools3 p{margin:6px 0 0;font-size:14px}
+.tools3 .eg{font:500 13px var(--f-mono);color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+@media (max-width: 900px){.tools3{grid-template-columns:1fr}}
+@media (max-width: 520px){.ex{padding:12px}.ex .acts .btn{flex:1 1 auto}.ex .f{font-size:13.5px;white-space:normal;line-height:2.1}}
 .switch{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;cursor:pointer;min-height:44px}
 .switch input{width:20px;height:20px;accent-color:var(--green)}
 .muted{color:var(--muted)}
@@ -203,7 +223,7 @@ input:disabled{opacity:.45}
   </div>
 </nav>
 
-<!--LT--><section class="lt" id="lt-intro" role="tabpanel" aria-labelledby="tb-nen" hidden><div class="lt-in"><div class="lt-hero"><span class="lt-kick">Lý thuyết nền · Buổi 4</span><h2>Hàm truyền H(z): mô tả trọn một hệ thống bằng một phân thức</h2><p class="lt-lead">Buổi 3 cho công cụ; buổi này dùng nó cho hệ thống. Lấy biến đổi Z hai vế phương trình sai phân sẽ được <b>H(z) = Y(z)/X(z)</b>. Chỉ từ H(z) ta đọc ra được: sơ đồ mạch hay chương trình thực hiện, cách ghép nhiều hệ, đầu ra khi có điều kiện đầu, và hệ có ổn định không, chỉ bằng vị trí các cực.</p><div class="lt-meta"><div class="lt-box lt-goal"><b class="t">Học xong buổi này, bạn sẽ</b><ul><li>Tìm H(z) từ phương trình sai phân, từ h(n) và từ sơ đồ.</li><li>Vẽ sơ đồ thực hiện dạng trực tiếp từ H(z).</li><li>Tìm hàm truyền của hệ ghép nối tiếp, song song, hồi tiếp.</li><li>Giải phương trình sai phân có điều kiện đầu bằng biến đổi Z một phía; xét ổn định qua cực.</li></ul></div><div class="lt-box lt-pre"><b class="t">Cần nhớ trước</b><ul><li>Buổi 2: phương trình sai phân, h(n), nhân quả, ổn định. <a href="tich-chap.html#ptsp">Ôn lại</a></li><li>Buổi 3: tính chất trễ x(n − k) ↔ z<sup>−k</sup>X(z), cực – không, Z ngược. <a href="bien-doi-z.html#izt">Ôn lại</a></li></ul></div></div></div><div class="lt-sec"><h3><span class="n">1</span>Bức tranh chung</h3><p class="sub">Ba cách mô tả cùng một hệ, chuyển qua lại được với nhau. H(z) ở giữa là cách gọn nhất.</p><div class="lt-flow"><span class="nd ">Phương trình sai phân</span><span class="ar" aria-hidden="true">→</span><span class="nd hl">H(z) = Y(z)/X(z)</span><span class="ar" aria-hidden="true">→</span><span class="nd ">h(n) = Z<sup>−1</sup>[H(z)]</span><span class="ar" aria-hidden="true">→</span><span class="nd bl">Sơ đồ thực hiện</span><span class="ar" aria-hidden="true">→</span><span class="nd bl">Cực của H(z) → ổn định?</span></div><p class="lt-note">Từ phương trình sai phân sang H(z): thay mỗi y(n − k) bằng z<sup>−k</sup>Y(z), mỗi x(n − r) bằng z<sup>−r</sup>X(z). Tử số ứng với phần đầu vào x, mẫu số ứng với phần hồi tiếp y.</p></div><div class="lt-sec"><h3><span class="n">2</span>Khái niệm cốt lõi</h3><p class="sub">Mỗi thẻ gồm công thức, ý nghĩa và một ví dụ có số cụ thể.</p><div class="lt-grid"><article class="lt-card"><h4><span class="k">4.1</span>Hàm truyền</h4><div class="lt-f wrap">H(z) = Y(z)/X(z) = (b<sub>0</sub> + b<sub>1</sub>z<sup>−1</sup> + … + b<sub>M</sub>z<sup>−M</sup>) / (1 + a<sub>1</sub>z<sup>−1</sup> + … + a<sub>N</sub>z<sup>−N</sup>)</div><p class="lt-mean"><b>Ý nghĩa.</b> H(z) cũng là biến đổi Z của đáp ứng xung h(n). Tử chỉ có số hạng z<sup>−k</sup> (mẫu = 1) là hệ FIR; có mẫu số là hệ IIR.</p><div class="lt-ex"><b>Ví dụ.</b> y(n) = x(n) + 0,5y(n − 1) → Y = X + 0,5z<sup>−1</sup>Y → H(z) = 1/(1 − 0,5z<sup>−1</sup>) → h(n) = (0,5)ⁿu(n).</div></article><article class="lt-card"><h4><span class="k">4.2</span>Sơ đồ thực hiện</h4><div class="lt-f">3 phần tử: bộ cộng (+), bộ nhân hằng số (a), bộ trễ (z<sup>−1</sup>)</div><p class="lt-mean"><b>Ý nghĩa.</b> Mỗi z<sup>−1</sup> là một ô nhớ giữ mẫu cũ. Dạng trực tiếp 1 dùng M + N ô nhớ; dạng trực tiếp 2 (chính tắc) dùng chung ô nhớ, chỉ cần max(M, N).</p><div class="lt-ex"><b>Ví dụ.</b> y(n) = 2x(n) + 3x(n − 1): 1 bộ trễ, 2 bộ nhân (2 và 3), 1 bộ cộng.</div></article><article class="lt-card"><h4><span class="k">4.3</span>Ghép hệ</h4><div class="lt-f wrap">Nối tiếp: H = H<sub>1</sub>·H<sub>2</sub>;  song song: H = H<sub>1</sub> + H<sub>2</sub>;  hồi tiếp: H = H<sub>1</sub>/(1 − H<sub>1</sub>H<sub>2</sub>)</div><p class="lt-mean"><b>Ý nghĩa.</b> Hệ thật gồm nhiều khối (cảm biến → lọc → khuếch đại). Nối tiếp hay song song: cực của hệ tổng là cực của từng khối. Hồi tiếp làm dịch cực, có thể biến hai khối ổn định thành hệ không ổn định (micro đặt gần loa gây hú).</p><div class="lt-ex"><b>Ví dụ.</b> H<sub>1</sub> = 1/(1 − 0,5z<sup>−1</sup>), H<sub>2</sub> = 1 + z<sup>−1</sup>, nối tiếp: H = (1 + z<sup>−1</sup>)/(1 − 0,5z<sup>−1</sup>).</div></article><article class="lt-card"><h4><span class="k">4.4</span>Biến đổi Z một phía</h4><div class="lt-f">Z<sup>+</sup>[y(n − 1)] = z<sup>−1</sup>Y<sup>+</sup>(z) + y(−1)</div><p class="lt-mean"><b>Ý nghĩa.</b> Mang theo điều kiện đầu (bộ nhớ ban đầu của hệ). Đầu ra = phần do điều kiện đầu + phần do tín hiệu vào.</p><div class="lt-ex"><b>Ví dụ.</b> y(n) − 0,5y(n − 1) = 0, y(−1) = 2: Y − 0,5(z<sup>−1</sup>Y + 2) = 0 → Y = 1/(1 − 0,5z<sup>−1</sup>) → y(n) = (0,5)ⁿu(n). Kiểm tra y(0) = 0,5·2 = 1.</div></article><article class="lt-card"><h4><span class="k">4.5</span>Ổn định qua cực</h4><div class="lt-f">Hệ nhân quả ổn định ⇔ mọi cực p<sub>i</sub> của H(z) có |p<sub>i</sub>| &lt; 1</div><p class="lt-mean"><b>Ý nghĩa.</b> Cực trong vòng tròn đơn vị cho thành phần p<sub>i</sub>ⁿ tắt dần; cực ngoài vòng tròn cho thành phần tăng vô hạn; cực trên vòng tròn cho dao động không tắt.</p><div class="lt-ex"><b>Ví dụ.</b> H(z) = 1/(1 − 1,5z<sup>−1</sup> + 0,5z<sup>−2</sup>): z² − 1,5z + 0,5 = (z − 1)(z − 0,5), cực z = 1 nằm trên vòng tròn → không ổn định.</div></article><article class="lt-card"><h4><span class="k">4.6</span>Kiểm tra bằng MATLAB</h4><div class="lt-f">b = [1]; a = [1 -0.5];  impz(b, a, 5);  zplane(b, a);  filter(b, a, x)</div><p class="lt-mean"><b>Ý nghĩa.</b> Dùng để đối chiếu kết quả tính tay: impz cho h(n), zplane vẽ cực – không, filter tính đầu ra.</p><div class="lt-ex"><b>Ví dụ.</b> impz([1], [1 -0.5], 5) cho 1; 0,5; 0,25; 0,125; 0,0625, đúng bằng (0,5)ⁿ.</div></article></div></div><div class="lt-sec"><h3><span class="n">3</span>Mạch bài học và chỉ dẫn dùng phần mềm</h3><p class="sub">Học theo thứ tự: tìm H(z), biến H(z) thành sơ đồ, ghép hệ, giải phương trình, xét ổn định, kiểm tra bằng MATLAB.</p><ol class="lt-path"><li><div><h4>Hàm truyền H(z)</h4><p>Nhập phương trình sai phân, xem từng bước lấy Z hai vế để ra H(z), rồi ra h(n).</p></div><button type="button" class="lt-go" data-open="ht">Mở tab 1 →</button></li><li><div><h4>Sơ đồ thực hiện</h4><p>Từ cùng H(z), so sánh dạng trực tiếp 1 và 2: đếm số bộ trễ.</p></div><button type="button" class="lt-go" data-open="sd">Mở tab 2 →</button></li><li><div><h4>Ghép hệ</h4><p>Thử nối tiếp, song song, hồi tiếp; quan sát cực của hệ tổng thay đổi thế nào.</p></div><button type="button" class="lt-go" data-open="gh">Mở tab 3 →</button></li><li><div><h4>Giải phương trình sai phân</h4><p>Nhập điều kiện đầu, xem lời giải bằng Z một phía và so với tính lặp.</p></div><button type="button" class="lt-go" data-open="gp">Mở tab 4 →</button></li><li><div><h4>Ổn định</h4><p>Kéo cực vào và ra khỏi vòng tròn đơn vị, xem h(n) tắt dần hay tăng vô hạn.</p></div><button type="button" class="lt-go" data-open="od">Mở tab 5 →</button></li><li><div><h4>MATLAB và bài tập</h4><p>Chép đoạn lệnh để kiểm tra, rồi làm bài tập.</p></div><button type="button" class="lt-go" data-open="ml">Mở tab 6 →</button></li></ol></div><div class="lt-sec"><h3><span class="n">4</span>Lỗi hay gặp</h3><div class="lt-warn"><ul><li>Đưa phương trình về dạng hệ số của y(n) bằng 1 trước khi đọc hệ số.</li><li>Chuyển vế đổi dấu: y(n) − 0,5y(n − 1) = x(n) có mẫu số 1 − 0,5z<sup>−1</sup>, MATLAB a = [1 −0.5].</li><li>Ổn định xét theo <b>cực</b> (nghiệm mẫu số), không phải theo không.</li><li>Có điều kiện đầu khác 0 thì phải dùng Z một phía; Z hai phía bỏ qua điều kiện đầu.</li><li>Rút gọn cực trùng không có thể che mất một cực không ổn định bên trong hệ.</li></ul></div></div><div class="lt-sec"><h3><span class="n">5</span>Tự kiểm tra nhanh</h3><p class="sub">Tự trả lời trước, rồi bấm vào câu hỏi để xem đáp án.</p><div class="lt-q"><details><summary>H(z) của y(n) = x(n) − x(n − 2)?</summary><div class="a">H(z) = 1 − z<sup>−2</sup>. Hệ FIR, luôn ổn định.</div></details><details><summary>H(z) = (1 + z<sup>−1</sup>)/(1 − 0,9z<sup>−1</sup>) có ổn định không?</summary><div class="a">Có. Cực duy nhất z = 0,9 nằm trong vòng tròn đơn vị.</div></details><details><summary>Nối tiếp H<sub>1</sub> = 1 + z<sup>−1</sup> với H<sub>2</sub> = 1 − z<sup>−1</sup>. Tìm h(n).</summary><div class="a">H = 1 − z<sup>−2</sup> → h(n) = {<u>1</u>, 0, −1}.</div></details><details><summary>y(n) = 0,8y(n − 1) + x(n) vẽ dạng trực tiếp 2 cần bao nhiêu bộ trễ?</summary><div class="a">Một bộ trễ (max(M, N) = max(0, 1) = 1).</div></details></div></div><div class="lt-next"><p>Tiếp theo, Buổi 5: nhìn tín hiệu theo tần số bằng biến đổi Fourier.</p><a class="lt-go" href="fourier.html">Sang Buổi 5 →</a></div></div></section><!--/LT-->
+<!--LT--><section class="lt" id="lt-intro" role="tabpanel" aria-labelledby="tb-nen" hidden><div class="lt-in"><div class="lt-hero"><span class="lt-kick">Lý thuyết nền · Buổi 4</span><h2>Hàm truyền H(z): mô tả trọn một hệ thống bằng một phân thức</h2><p class="lt-lead">Buổi 3 cho công cụ; buổi này dùng nó cho hệ thống. Lấy biến đổi Z hai vế phương trình sai phân sẽ được <b>H(z) = Y(z)/X(z)</b>. Chỉ từ H(z) ta đọc ra được: sơ đồ mạch hay chương trình thực hiện, cách ghép nhiều hệ, đầu ra khi có điều kiện đầu, và hệ có ổn định không, chỉ bằng vị trí các cực.</p><div class="lt-meta"><div class="lt-box lt-goal"><b class="t">Học xong buổi này, bạn sẽ</b><ul><li>Tìm H(z) từ phương trình sai phân, từ h(n) và từ sơ đồ.</li><li>Vẽ sơ đồ thực hiện dạng trực tiếp từ H(z).</li><li>Tìm hàm truyền của hệ ghép nối tiếp, song song, hồi tiếp.</li><li>Giải phương trình sai phân có điều kiện đầu bằng biến đổi Z một phía; xét ổn định qua cực.</li></ul></div><div class="lt-box lt-pre"><b class="t">Cần nhớ trước</b><ul><li>Buổi 2: phương trình sai phân, h(n), nhân quả, ổn định. <a href="tich-chap.html#ptsp">Ôn lại</a></li><li>Buổi 3: tính chất trễ x(n − k) ↔ z<sup>−k</sup>X(z), cực – không, Z ngược. <a href="bien-doi-z.html#izt">Ôn lại</a></li></ul></div></div></div><div class="lt-sec"><h3><span class="n">1</span>Bức tranh chung</h3><p class="sub">Ba cách mô tả cùng một hệ, chuyển qua lại được với nhau. H(z) ở giữa là cách gọn nhất.</p><div class="lt-flow"><span class="nd ">Phương trình sai phân</span><span class="ar" aria-hidden="true">→</span><span class="nd hl">H(z) = Y(z)/X(z)</span><span class="ar" aria-hidden="true">→</span><span class="nd ">h(n) = Z<sup>−1</sup>[H(z)]</span><span class="ar" aria-hidden="true">→</span><span class="nd bl">Sơ đồ thực hiện</span><span class="ar" aria-hidden="true">→</span><span class="nd bl">Cực của H(z) → ổn định?</span></div><p class="lt-note">Từ phương trình sai phân sang H(z): thay mỗi y(n − k) bằng z<sup>−k</sup>Y(z), mỗi x(n − r) bằng z<sup>−r</sup>X(z). Tử số ứng với phần đầu vào x, mẫu số ứng với phần hồi tiếp y.</p></div><div class="lt-sec"><h3><span class="n">2</span>Khái niệm cốt lõi</h3><p class="sub">Mỗi thẻ gồm công thức, ý nghĩa và một ví dụ có số cụ thể.</p><div class="lt-grid"><article class="lt-card"><h4><span class="k">4.1</span>Hàm truyền</h4><div class="lt-f wrap">H(z) = Y(z)/X(z) = (b<sub>0</sub> + b<sub>1</sub>z<sup>−1</sup> + … + b<sub>M</sub>z<sup>−M</sup>) / (1 + a<sub>1</sub>z<sup>−1</sup> + … + a<sub>N</sub>z<sup>−N</sup>)</div><p class="lt-mean"><b>Ý nghĩa.</b> H(z) cũng là biến đổi Z của đáp ứng xung h(n). Tử chỉ có số hạng z<sup>−k</sup> (mẫu = 1) là hệ FIR; có mẫu số là hệ IIR.</p><div class="lt-ex"><b>Ví dụ.</b> y(n) = x(n) + 0,5y(n − 1) → Y = X + 0,5z<sup>−1</sup>Y → H(z) = 1/(1 − 0,5z<sup>−1</sup>) → h(n) = (0,5)ⁿu(n).</div></article><article class="lt-card"><h4><span class="k">4.2</span>Sơ đồ thực hiện</h4><div class="lt-f">3 phần tử: bộ cộng (+), bộ nhân hằng số (a), bộ trễ (z<sup>−1</sup>)</div><p class="lt-mean"><b>Ý nghĩa.</b> Mỗi z<sup>−1</sup> là một ô nhớ giữ mẫu cũ. Dạng trực tiếp 1 dùng M + N ô nhớ; dạng trực tiếp 2 (chính tắc) dùng chung ô nhớ, chỉ cần max(M, N).</p><div class="lt-ex"><b>Ví dụ.</b> y(n) = 2x(n) + 3x(n − 1): 1 bộ trễ, 2 bộ nhân (2 và 3), 1 bộ cộng.</div></article><article class="lt-card"><h4><span class="k">4.3</span>Ghép hệ</h4><div class="lt-f wrap">Nối tiếp: H = H<sub>1</sub>·H<sub>2</sub>;  song song: H = H<sub>1</sub> + H<sub>2</sub>;  hồi tiếp: H = H<sub>1</sub>/(1 − H<sub>1</sub>H<sub>2</sub>)</div><p class="lt-mean"><b>Ý nghĩa.</b> Hệ thật gồm nhiều khối (cảm biến → lọc → khuếch đại). Nối tiếp hay song song: cực của hệ tổng là cực của từng khối. Hồi tiếp làm dịch cực, có thể biến hai khối ổn định thành hệ không ổn định (micro đặt gần loa gây hú).</p><div class="lt-ex"><b>Ví dụ.</b> H<sub>1</sub> = 1/(1 − 0,5z<sup>−1</sup>), H<sub>2</sub> = 1 + z<sup>−1</sup>, nối tiếp: H = (1 + z<sup>−1</sup>)/(1 − 0,5z<sup>−1</sup>).</div></article><article class="lt-card"><h4><span class="k">4.4</span>Biến đổi Z một phía</h4><div class="lt-f">Z<sup>+</sup>[y(n − 1)] = z<sup>−1</sup>Y<sup>+</sup>(z) + y(−1)</div><p class="lt-mean"><b>Ý nghĩa.</b> Mang theo điều kiện đầu (bộ nhớ ban đầu của hệ). Đầu ra = phần do điều kiện đầu + phần do tín hiệu vào.</p><div class="lt-ex"><b>Ví dụ.</b> y(n) − 0,5y(n − 1) = 0, y(−1) = 2: Y − 0,5(z<sup>−1</sup>Y + 2) = 0 → Y = 1/(1 − 0,5z<sup>−1</sup>) → y(n) = (0,5)ⁿu(n). Kiểm tra y(0) = 0,5·2 = 1.</div></article><article class="lt-card"><h4><span class="k">4.5</span>Ổn định qua cực</h4><div class="lt-f">Hệ nhân quả ổn định ⇔ mọi cực p<sub>i</sub> của H(z) có |p<sub>i</sub>| &lt; 1</div><p class="lt-mean"><b>Ý nghĩa.</b> Cực trong vòng tròn đơn vị cho thành phần p<sub>i</sub>ⁿ tắt dần; cực ngoài vòng tròn cho thành phần tăng vô hạn; cực trên vòng tròn cho dao động không tắt.</p><div class="lt-ex"><b>Ví dụ.</b> H(z) = 1/(1 − 1,5z<sup>−1</sup> + 0,5z<sup>−2</sup>): z² − 1,5z + 0,5 = (z − 1)(z − 0,5), cực z = 1 nằm trên vòng tròn → không ổn định.</div></article><article class="lt-card"><h4><span class="k">4.6</span>Kiểm tra bằng MATLAB</h4><div class="lt-f">b = [1]; a = [1 -0.5];  impz(b, a, 5);  zplane(b, a);  filter(b, a, x)</div><p class="lt-mean"><b>Ý nghĩa.</b> Dùng để đối chiếu kết quả tính tay: impz cho h(n), zplane vẽ cực – không, filter tính đầu ra.</p><div class="lt-ex"><b>Ví dụ.</b> impz([1], [1 -0.5], 5) cho 1; 0,5; 0,25; 0,125; 0,0625, đúng bằng (0,5)ⁿ.</div></article></div></div><div class="lt-sec"><h3><span class="n">3</span>Mạch bài học và chỉ dẫn dùng phần mềm</h3><p class="sub">Học theo thứ tự: tìm H(z), biến H(z) thành sơ đồ, ghép hệ, giải phương trình, xét ổn định, kiểm tra bằng MATLAB.</p><ol class="lt-path"><li><div><h4>Hàm truyền H(z)</h4><p>Nhập phương trình sai phân, xem từng bước lấy Z hai vế để ra H(z), rồi ra h(n).</p></div><button type="button" class="lt-go" data-open="ht">Mở tab 1 →</button></li><li><div><h4>Sơ đồ thực hiện</h4><p>Từ cùng H(z), so sánh dạng trực tiếp 1 và 2: đếm số bộ trễ.</p></div><button type="button" class="lt-go" data-open="sd">Mở tab 2 →</button></li><li><div><h4>Ghép hệ</h4><p>Thử nối tiếp, song song, hồi tiếp; quan sát cực của hệ tổng thay đổi thế nào.</p></div><button type="button" class="lt-go" data-open="gh">Mở tab 3 →</button></li><li><div><h4>Giải phương trình sai phân</h4><p>Nhập điều kiện đầu, xem lời giải bằng Z một phía và so với tính lặp.</p></div><button type="button" class="lt-go" data-open="gp">Mở tab 4 →</button></li><li><div><h4>Ổn định</h4><p>Kéo cực vào và ra khỏi vòng tròn đơn vị, xem h(n) tắt dần hay tăng vô hạn.</p></div><button type="button" class="lt-go" data-open="od">Mở tab 5 →</button></li><li><div><h4>MATLAB</h4><p>Chép đoạn lệnh để kiểm tra kết quả tính tay.</p></div><button type="button" class="lt-go" data-open="ml">Mở tab 6 →</button></li><li><div><h4>Bài tập giải từng bước</h4><p>16 bài (có 5 bài trong bài giảng), mỗi lần bấm hiện thêm một bước, kèm bảng tính tay để tự kiểm tra.</p></div><button type="button" class="lt-go" data-open="ex">Mở tab Bài tập →</button></li></ol></div><div class="lt-sec"><h3><span class="n">4</span>Lỗi hay gặp</h3><div class="lt-warn"><ul><li>Đưa phương trình về dạng hệ số của y(n) bằng 1 trước khi đọc hệ số.</li><li>Chuyển vế đổi dấu: y(n) − 0,5y(n − 1) = x(n) có mẫu số 1 − 0,5z<sup>−1</sup>, MATLAB a = [1 −0.5].</li><li>Ổn định xét theo <b>cực</b> (nghiệm mẫu số), không phải theo không.</li><li>Có điều kiện đầu khác 0 thì phải dùng Z một phía; Z hai phía bỏ qua điều kiện đầu.</li><li>Rút gọn cực trùng không có thể che mất một cực không ổn định bên trong hệ.</li></ul></div></div><div class="lt-sec"><h3><span class="n">5</span>Tự kiểm tra nhanh</h3><p class="sub">Tự trả lời trước, rồi bấm vào câu hỏi để xem đáp án.</p><div class="lt-q"><details><summary>H(z) của y(n) = x(n) − x(n − 2)?</summary><div class="a">H(z) = 1 − z<sup>−2</sup>. Hệ FIR, luôn ổn định.</div></details><details><summary>H(z) = (1 + z<sup>−1</sup>)/(1 − 0,9z<sup>−1</sup>) có ổn định không?</summary><div class="a">Có. Cực duy nhất z = 0,9 nằm trong vòng tròn đơn vị.</div></details><details><summary>Nối tiếp H<sub>1</sub> = 1 + z<sup>−1</sup> với H<sub>2</sub> = 1 − z<sup>−1</sup>. Tìm h(n).</summary><div class="a">H = 1 − z<sup>−2</sup> → h(n) = {<u>1</u>, 0, −1}.</div></details><details><summary>y(n) = 0,8y(n − 1) + x(n) vẽ dạng trực tiếp 2 cần bao nhiêu bộ trễ?</summary><div class="a">Một bộ trễ (max(M, N) = max(0, 1) = 1).</div></details></div></div><div class="lt-next"><p>Tiếp theo, Buổi 5: nhìn tín hiệu theo tần số bằng biến đổi Fourier.</p><a class="lt-go" href="fourier.html">Sang Buổi 5 →</a></div></div></section><!--/LT-->
 <main>
 <div class="wrap">
 
@@ -493,11 +513,12 @@ input:disabled{opacity:.45}
 <section class="tabpanel" id="p-ex" hidden>
   <div class="panel-grid">
     <aside class="controls">
-      <label class="switch"><input type="checkbox" id="ex-class"> Chế độ lên lớp</label>
-      <small class="muted">Bật để ẩn lời giải. Bấm “Hiện bước tiếp” để mở từng bước khi giảng.</small>
-      <div class="field"><span class="lbl">Lọc theo nhóm</span>
+      <label class="switch"><input type="checkbox" id="ex-class" checked> Giải từng bước</label>
+      <small class="muted">Bật: lời giải mở dần, mỗi lần bấm “Bước tiếp theo” hiện thêm một bước. Tắt: hiện sẵn toàn bộ lời giải.</small>
+      <div class="field"><span class="lbl">Chọn bài</span>
         <div class="chips" id="ex-filter">
-          <button class="chip small" data-g="all" aria-pressed="true">Tất cả</button>
+          <button class="chip small" data-g="all" aria-pressed="true">Tất cả (16 bài)</button>
+          <button class="chip small" data-g="bg" aria-pressed="false">★ Bài trong bài giảng</button>
           <button class="chip small" data-g="A" aria-pressed="false">A. Hàm truyền</button>
           <button class="chip small" data-g="B" aria-pressed="false">B. Sơ đồ</button>
           <button class="chip small" data-g="C" aria-pressed="false">C. Ghép hệ</button>
@@ -507,8 +528,17 @@ input:disabled{opacity:.45}
     </aside>
     <div class="out">
       <div class="card">
-        <h2>Bài tập Buổi 4 có lời giải</h2>
-        <p class="key" style="margin:0">Theo đúng thứ tự mục 4.1 → 4.2. Đáp án đã đối chiếu bằng máy. Nút “Mở trong phòng thí nghiệm” nạp sẵn số liệu vào tab tương ứng.</p>
+        <h2>Bài tập Buổi 4: giải từng bước</h2>
+        <p class="key" style="margin:0">Mỗi bài gồm: đề, hướng dẫn cách nghĩ, các bước giải (mỗi bước làm một việc), bảng tính tay để tự kiểm tra, đáp án và ý nghĩa. Các bài có dấu ★ là bài trong bài giảng. Đáp án đã đối chiếu bằng máy; nút “Mở trong phòng thí nghiệm” nạp sẵn số liệu vào tab tương ứng.</p>
+      </div>
+      <div class="card">
+        <h2>Ba công cụ dùng cho mọi bài</h2>
+        <div class="tools3">
+          <div><span class="tn">1</span><b>Đổi phương trình → H(z)</b><p>Lùi k nhịp thì nhân z<sup>−k</sup>. Dồn y sang trái, x sang phải. H(z) = (phần đi với X)/(phần đi với Y).</p><p class="eg">y(n) − 0,5y(n−1) = x(n) → H = 1/(1 − 0,5z<sup>−1</sup>)</p></div>
+          <div><span class="tn">2</span><b>Bảng tra về miền n</b><p>Hằng số c → c·δ(n) (chỉ có ở n = 0).<br>z/(z − a) → aⁿ·u(n), dãy 1, a, a², …</p><p class="eg">z/(z − 0,5) → 1; 0,5; 0,25; …</p></div>
+          <div><span class="tn">3</span><b>Mẹo “che” để tách phân số</b><p>Muốn tìm số đứng trên (z − a): che (z − a) ở mẫu, thay z = a vào phần còn lại.</p><p class="eg">z/[(z − 0,5)(z − 1)]: số trên (z − 1) là 1/(1 − 0,5) = 2</p></div>
+        </div>
+        <p class="key" style="margin:10px 0 0"><b>Quy tắc ổn định:</b> hệ nhân quả ổn định khi mọi điểm cực (nghiệm của mẫu số) có độ lớn nhỏ hơn 1.</p>
       </div>
       <div id="ex-list"></div>
     </div>
@@ -892,35 +922,254 @@ figure; stem(n, y, 'filled'); title('Dau ra y(n) voi x(n) = u(n)');
   $('ml-out').innerHTML = out;
 }
 
-/* =================== BÀI TẬP =================== */
+/* =================== BÀI TẬP: GIẢI TỪNG BƯỚC =================== */
+const F = (n, d) => `<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const M = s => `<span class="f">${s}</span>`;
 const EX = [
- {g: 'A', id: 'A1', t: 'Hàm truyền (bài giảng 4.1.2)', q: 'Tìm H(z) của hệ y(n) − 2y(n−1) = x(n) − 3x(n−1). Hệ có ổn định không?', s: ['Biến đổi Z hai vế: Y(z) − 2z⁻¹Y(z) = X(z) − 3z⁻¹X(z).', 'H(z) = (1 − 3z⁻¹)/(1 − 2z⁻¹) = (z − 3)/(z − 2).', 'Cực z = 2, r = 2 > 1.'], a: 'H(z) = (z − 3)/(z − 2); không ổn định.', m: 'Hệ số của y lên mẫu số, của x lên tử số. Điểm không z = 3 nằm ngoài vòng tròn nhưng không ảnh hưởng ổn định.', load: {tab: 'ht', a: '1 -2', b: '1 -3'}},
- {g: 'A', id: 'A2', t: 'Hàm truyền (bài giảng 4.1.3)', q: 'Tìm H(z) của hệ y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1).', s: ['Chuyển các số hạng y sang trái: y(n) + 0,5y(n−1) = 2x(n) + 3x(n−1).', 'H(z) = (2 + 3z⁻¹)/(1 + 0,5z⁻¹) = (2z + 3)/(z + 0,5).'], a: 'H(z) = (2z + 3)/(z + 0,5); cực −0,5, ổn định.', m: 'Phải chuyển hết y về một vế trước, dấu của 0,5 đổi thành “+”.', load: {tab: 'ht', a: '1 0,5', b: '2 3'}},
- {g: 'A', id: 'A3', t: 'Hệ bậc 2', q: 'Tìm H(z), cực và h(n) của y(n) − 0,9y(n−1) + 0,2y(n−2) = x(n) + x(n−1).', s: ['H(z) = (1 + z⁻¹)/(1 − 0,9z⁻¹ + 0,2z⁻²) = (z² + z)/(z² − 0,9z + 0,2).', 'Δ = 0,81 − 0,8 = 0,01 ⇒ cực 0,5 và 0,4.', 'H(z)/z = (z + 1)/[(z − 0,5)(z − 0,4)]: A(0,5) = 1,5/0,1 = 15; A(0,4) = 1,4/(−0,1) = −14.'], a: 'h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n): 1; 1,9; 1,51…; ổn định.', m: 'Đủ chuỗi kỹ năng: phương trình → H(z) → cực → h(n).', load: {tab: 'ht', a: '1 -0,9 0,2', b: '1 1'}},
- {g: 'A', id: 'A4', t: 'Ngược lại: từ H(z) ra phương trình', q: 'Cho H(z) = (1 + 2z⁻¹)/(1 − 0,25z⁻²). Viết phương trình sai phân.', s: ['Y(z)(1 − 0,25z⁻²) = X(z)(1 + 2z⁻¹).', 'Biến đổi Z ngược từng số hạng: z⁻ᵏ ↔ trễ k nhịp.'], a: 'y(n) − 0,25y(n−2) = x(n) + 2x(n−1).', m: 'Tử số cho phần x, mẫu số cho phần y.', load: {tab: 'ht', a: '1 0 -0,25', b: '1 2'}},
- {g: 'B', id: 'B1', t: 'Sơ đồ trực tiếp 1 và 2', q: 'Vẽ sơ đồ trực tiếp 1 và 2 cho y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1). Mỗi dạng cần bao nhiêu phần tử trễ?', s: ['a = [1; 0,5], b = [2; 3] ⇒ M = 1, N = 1.', 'Trực tiếp 1: M + N = 2 ô nhớ. Trực tiếp 2: max(M, N) = 1 ô nhớ.', 'Trực tiếp 2: w(n) = x(n) − 0,5w(n−1); y(n) = 2w(n) + 3w(n−1).'], a: 'DF1: 2 trễ; DF2: 1 trễ.', m: 'Hình 4.4 của bài giảng là dạng trực tiếp 1.', load: {tab: 'sd', a: '1 0,5', b: '2 3'}},
- {g: 'B', id: 'B2', t: 'Sơ đồ hệ bậc 2', q: 'Hệ ở bài A3 cần bao nhiêu ô nhớ với mỗi dạng sơ đồ?', s: ['M = 1 (b có 2 hệ số), N = 2 (a có 3 hệ số).', 'DF1: 1 + 2 = 3; DF2: max(1, 2) = 2.'], a: 'DF1: 3 ô nhớ; DF2: 2 ô nhớ.', m: 'Bậc càng cao, trực tiếp 2 càng tiết kiệm bộ nhớ.', load: {tab: 'sd', a: '1 -0,9 0,2', b: '1 1'}},
- {g: 'C', id: 'C1', t: 'Nối tiếp', q: 'H₁ = 1/(1 − 0,5z⁻¹), H₂ = 1/(1 − 0,2z⁻¹) mắc nối tiếp. Tìm H(z).', s: ['Nối tiếp: H = H₁·H₂.', 'Mẫu: (1 − 0,5z⁻¹)(1 − 0,2z⁻¹) = 1 − 0,7z⁻¹ + 0,1z⁻².'], a: 'H(z) = 1/(1 − 0,7z⁻¹ + 0,1z⁻²); cực 0,5; 0,2; ổn định.', m: 'Cực của hệ nối tiếp là cực của từng khối.', load: {tab: 'gh', m: 'nt', k1: '1', p1: '0,5', k2: '1', p2: '0,2'}},
- {g: 'C', id: 'C2', t: 'Song song', q: 'Hai khối ở C1 mắc song song. Tìm H(z).', s: ['Song song: H = H₁ + H₂.', 'Quy đồng: [(1 − 0,2z⁻¹) + (1 − 0,5z⁻¹)]/[(1 − 0,5z⁻¹)(1 − 0,2z⁻¹)].'], a: 'H(z) = (2 − 0,7z⁻¹)/(1 − 0,7z⁻¹ + 0,1z⁻²).', m: 'Cùng mẫu số với C1, chỉ khác tử số: cùng cực nên cùng tính ổn định.', load: {tab: 'gh', m: 'ss', k1: '1', p1: '0,5', k2: '1', p2: '0,2'}},
- {g: 'C', id: 'C3', t: 'Hồi tiếp gây hú', q: 'H₁ = 1/(1 − 0,5z⁻¹), H₂ = 0,6/(1 − 0,5z⁻¹), ghép hồi tiếp H = H₁/(1 − H₁H₂). Hệ có ổn định không?', s: ['H = (1 − 0,5z⁻¹)/[(1 − 0,5z⁻¹)² − 0,6] = (1 − 0,5z⁻¹)/(0,4 − z⁻¹ + 0,25z⁻²).', 'Mẫu theo z: 0,4z² − z + 0,25 = 0 ⇒ z = (1 ± √0,6)/0,8.', 'Hai cực ≈ 2,218 và 0,282.'], a: 'Không ổn định (cực 2,218 nằm ngoài vòng tròn).', m: 'Hai khối riêng đều ổn định, ghép hồi tiếp lại mất ổn định: micro đặt gần loa.', load: {tab: 'gh', m: 'ht', k1: '1', p1: '0,5', k2: '0,6', p2: '0,5'}},
- {g: 'D', id: 'D1', t: 'Bài giảng 4.1.5', q: 'Giải y(n) − 3y(n−1) + 2y(n−2) = x(n), x(n) = 3ⁿ⁻²u(n), y(−1) = y(−2) = 0.', s: ['X₁(z) = (1/9)·z/(z − 3).', 'Y₁(z) = z³/[9(z − 1)(z − 2)(z − 3)].', 'B₁ = 1/18, B₂ = −4/9, B₃ = 1/2.'], a: 'y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n).', m: 'Kiểm tra: y(0) = 1/18 − 8/18 + 9/18 = 1/9 = x(0).', load: {tab: 'gp', v: '-3|2|exp|1/9|3|0|0'}},
- {g: 'D', id: 'D2', t: 'Bình rò nước', q: 'Giải y(n) − 0,5y(n−1) = u(n) với y(−1) = 0.', s: ['(1 − 0,5z⁻¹)Y₁ = 1/(1 − z⁻¹).', 'Y₁/z = z/[(z − 0,5)(z − 1)]: A(1) = 2, A(0,5) = −1.'], a: 'y(n) = 2 − (0,5)ⁿ, n ≥ 0.', m: 'Cùng đáp án với Buổi 3 (chập (0,5)ⁿu(n) với u(n)).', load: {tab: 'gp', v: '-0,5|0|exp|1|1|0|0'}},
- {g: 'D', id: 'D3', t: 'Có điều kiện đầu', q: 'Giải y(n) − 0,5y(n−1) = u(n) với y(−1) = 1.', s: ['ZT₁[y(n−1)] = z⁻¹Y₁ + y(−1) = z⁻¹Y₁ + 1.', '(1 − 0,5z⁻¹)Y₁ = 1/(1 − z⁻¹) + 0,5.', 'Y₁/z = (1,5z − 0,5)/[(z − 0,5)(z − 1)]: A(1) = 2, A(0,5) = −0,5.'], a: 'y(n) = 2 − 0,5·(0,5)ⁿ: 1,5; 1,75; 1,875…', m: 'Bình có sẵn nước nên đầy nhanh hơn D2, nhưng vẫn tiến về cùng mức 2.', load: {tab: 'gp', v: '-0,5|0|exp|1|1|1|0'}},
- {g: 'D', id: 'D4', t: 'Đáp ứng xung bậc 2', q: 'Tìm h(n) của y(n) + 0,1y(n−1) − 0,2y(n−2) = x(n).', s: ['H(z) = z²/(z² + 0,1z − 0,2), cực 0,4 và −0,5.', 'H/z = z/[(z − 0,4)(z + 0,5)]: A(0,4) = 4/9, A(−0,5) = 5/9.'], a: 'h(n) = [(4/9)(0,4)ⁿ + (5/9)(−0,5)ⁿ]·u(n): 1; −0,1; 0,21…', m: 'Cực âm làm dãy đổi dấu xen kẽ.', load: {tab: 'gp', v: '0,1|-0,2|delta|1|0|0|0'}},
- {g: 'E', id: 'E1', t: 'Bài giảng 4.2.2', q: 'Hệ y(n) = A·y(n−1) + x(n). Tìm H(z), h(n) và điều kiện ổn định.', s: ['H(z) = 1/(1 − Az⁻¹) = z/(z − A), cực z = A.', 'h(n) = Aⁿu(n).'], a: 'Ổn định ⇔ |A| < 1.', m: 'Bài giảng viết nhầm y(n) = Ay(n) + x(n); đúng phải là A·y(n−1).', load: {tab: 'od', D: '1 -0,8'}},
- {g: 'E', id: 'E2', t: 'Cực trên vòng tròn', q: 'D(z) = z² − 1,6z + 1. Hệ có ổn định không?', s: ['Δ = 2,56 − 4 < 0 ⇒ cực phức, r = √1 = 1.'], a: 'Không ổn định (cực 0,8 ± 0,6j nằm trên vòng tròn).', m: 'Dao động mãi không tắt: cách làm máy phát sóng sin.', load: {tab: 'od', D: '1 -1,6 1'}},
- {g: 'E', id: 'E3', t: 'Bẫy hệ số', q: 'D(z) = z² − 1,3z + 0,4. Hệ có ổn định không?', s: ['Δ = 1,69 − 1,6 = 0,09 ⇒ cực (1,3 ± 0,3)/2.', 'Cực 0,8 và 0,5.'], a: 'Ổn định.', m: 'Hệ số 1,3 > 1 không có nghĩa là mất ổn định. Điểm (a₁, a₂) = (−1,3; 0,4) nằm trong tam giác ổn định.', load: {tab: 'od', D: '1 -1,3 0,4'}}
+ {g: 'A', id: 'A1', src: 'Bài giảng 4.1.2', t: 'Tìm hàm truyền H(z)', q: 'Tìm H(z) của hệ y(n) − 2y(n−1) = x(n) − 3x(n−1). Hệ có ổn định không? Tìm h(n).',
+  idea: 'Ta cần H(z) = Y/X. Cách làm: đổi phương trình sang “ngôn ngữ z”, rồi rút gọn như đại số lớp 8.',
+  s: [
+   ['Đọc đề', 'x(n) là đầu vào lần này, x(n−1) là đầu vào lần trước; y cũng vậy. Phương trình nói: <i>đầu ra lần này − 2 lần đầu ra lần trước = đầu vào lần này − 3 lần đầu vào lần trước</i>.'],
+   ['Đổi sang miền z', 'Quy tắc: lùi 1 nhịp thì nhân z⁻¹. y(n) → Y, y(n−1) → z⁻¹Y, x(n) → X, x(n−1) → z⁻¹X.' + M('Y − 2z⁻¹Y = X − 3z⁻¹X')],
+   ['Đặt nhân tử chung', 'Vế trái có Y ở cả hai số hạng, vế phải có X ở cả hai số hạng.' + M('Y·(1 − 2z⁻¹) = X·(1 − 3z⁻¹)')],
+   ['Chia để ra H(z)', 'H(z) = Y/X, nên chia cả hai vế cho X và cho (1 − 2z⁻¹).' + M('H(z) = ' + F('1 − 3z⁻¹', '1 − 2z⁻¹'))],
+   ['Viết theo lũy thừa dương', 'Nhân cả tử và mẫu với z (giá trị phân số không đổi) để dễ tìm nghiệm. Slide in nhầm kết quả này; đây là kết quả đúng.' + M('H(z) = ' + F('z − 3', 'z − 2'))],
+   ['Tìm điểm cực, điểm không', 'Điểm cực: cho <b>mẫu</b> = 0 → z − 2 = 0 → <b>z = 2</b>.<br>Điểm không: cho tử = 0 → z − 3 = 0 → z = 3.'],
+   ['Xét ổn định', 'Chỉ nhìn điểm cực: |2| = 2 &gt; 1, cực nằm ngoài vòng tròn đơn vị → <b>không ổn định</b>. Điểm không z = 3 không ảnh hưởng đến ổn định.'],
+   ['Tìm h(n): chia H(z) cho z', 'Bảng tra chỉ có dạng z/(z − a), nên chia H(z) cho z rồi tách thành các mảnh nhỏ:' + M(F('H(z)', 'z') + ' = ' + F('z − 3', 'z·(z − 2)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z − 2'))],
+   ['Mẹo che tìm A, B', 'Tìm A: lấy tay <b>che chữ z</b> ở mẫu, thay z = 0 vào phần còn lại: A = (0 − 3)/(0 − 2) = <b>1,5</b>.<br>Tìm B: <b>che (z − 2)</b>, thay z = 2 vào phần còn lại: B = (2 − 3)/2 = <b>−0,5</b>.'],
+   ['Tra bảng về miền n', 'Nhân trả lại z: H(z) = 1,5 − 0,5·z/(z − 2). Hằng số 1,5 → 1,5δ(n); z/(z − 2) → 2ⁿ.' + M('h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n)')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 2y(n−1) + x(n) − 3x(n−1)', 'Theo công thức'], r: [['0', '0 + 1 − 0 = 1', '1,5 − 0,5 = 1 ✓'], ['1', '2·1 + 0 − 3·1 = −1', '−0,5·2 = −1 ✓'], ['2', '2·(−1) = −2', '−0,5·4 = −2 ✓'], ['3', '2·(−2) = −4', '−0,5·8 = −4 ✓']], note: 'Gõ một cái: x = 1, 0, 0, 0… Hai cách cho cùng kết quả → lời giải đúng.'},
+  a: 'H(z) = (z − 3)/(z − 2); cực z = 2 → không ổn định; h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n).',
+  m: 'h(n) gấp đôi sau mỗi nhịp (−1, −2, −4, −8…) vì cực bằng 2: điểm cực chính là “cơ số” của tiếng vọng. Tiếng vọng to dần nên hệ không ổn định.',
+  load: {tab: 'ht', a: '1 -2', b: '1 -3'}},
+
+ {g: 'A', id: 'A2', src: 'Bài giảng 4.1.3', t: 'Hàm truyền khi y nằm bên phải', q: 'Tìm H(z) của hệ y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1). Xét ổn định và tìm h(n).',
+  idea: 'Bẫy của bài: số hạng y(n−1) đang nằm bên phải. Phải dồn mọi y sang trái trước, nhớ đổi dấu.',
+  s: [
+   ['Dồn y sang trái', 'Chuyển −0,5y(n−1) sang trái thì đổi dấu thành +0,5y(n−1).' + M('y(n) + 0,5y(n−1) = 2x(n) + 3x(n−1)')],
+   ['Đổi sang miền z', M('Y + 0,5z⁻¹Y = 2X + 3z⁻¹X')],
+   ['Đặt nhân tử chung', M('Y·(1 + 0,5z⁻¹) = X·(2 + 3z⁻¹)')],
+   ['Ra H(z)', 'Chia, rồi nhân tử và mẫu với z:' + M('H(z) = ' + F('2 + 3z⁻¹', '1 + 0,5z⁻¹') + ' = ' + F('2z + 3', 'z + 0,5'))],
+   ['Cực, không, ổn định', 'Cực: z + 0,5 = 0 → <b>z = −0,5</b>; |−0,5| = 0,5 &lt; 1 → <b>ổn định</b>.<br>Không: 2z + 3 = 0 → z = −1,5.'],
+   ['Tìm h(n): chia z rồi che', M(F('H(z)', 'z') + ' = ' + F('2z + 3', 'z·(z + 0,5)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z + 0,5')) + 'Che z, thay z = 0: A = 3/0,5 = <b>6</b>.<br>Che (z + 0,5), thay z = −0,5: B = (−1 + 3)/(−0,5) = <b>−4</b>.'],
+   ['Tra bảng', 'z/(z + 0,5) chính là z/(z − (−0,5)) → (−0,5)ⁿ.' + M('h(n) = 6δ(n) − 4·(−0,5)ⁿ·u(n)')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1)', 'Theo công thức'], r: [['0', '2·1 + 0 − 0 = 2', '6 − 4 = 2 ✓'], ['1', '0 + 3·1 − 0,5·2 = 2', '−4·(−0,5) = 2 ✓'], ['2', '0 + 0 − 0,5·2 = −1', '−4·0,25 = −1 ✓'], ['3', '−0,5·(−1) = 0,5', '−4·(−0,125) = 0,5 ✓']]},
+  a: 'H(z) = (2z + 3)/(z + 0,5); cực −0,5 → ổn định; h(n) = 6δ(n) − 4·(−0,5)ⁿ·u(n).',
+  m: 'Cực âm nên h(n) lật dấu xen kẽ (2; 2; −1; 0,5…), nhưng giảm một nửa mỗi nhịp → tắt dần.',
+  load: {tab: 'ht', a: '1 0,5', b: '2 3'}},
+
+ {g: 'A', id: 'A3', t: 'Hệ bậc 2', q: 'Tìm H(z), các cực và h(n) của y(n) − 0,9y(n−1) + 0,2y(n−2) = x(n) + x(n−1).',
+  idea: 'Giống bài A1 nhưng mẫu số bậc 2, nên có 2 cực và h(n) là tổng của 2 “tiếng vọng”.',
+  s: [
+   ['Đổi sang miền z', 'Lùi 2 nhịp thì nhân z⁻².' + M('Y − 0,9z⁻¹Y + 0,2z⁻²Y = X + z⁻¹X')],
+   ['Ra H(z)', 'Nhân tử và mẫu với z²:' + M('H(z) = ' + F('1 + z⁻¹', '1 − 0,9z⁻¹ + 0,2z⁻²') + ' = ' + F('z² + z', 'z² − 0,9z + 0,2'))],
+   ['Giải mẫu số tìm cực', 'z² − 0,9z + 0,2 = 0: Δ = 0,81 − 0,8 = 0,01; √Δ = 0,1 → z = (0,9 ± 0,1)/2 → <b>0,5</b> và <b>0,4</b>.<br>Cả hai nhỏ hơn 1 → <b>ổn định</b>.'],
+   ['Chia cho z, chuẩn bị tách', M(F('H(z)', 'z') + ' = ' + F('z + 1', '(z − 0,5)(z − 0,4)') + ' = ' + F('A', 'z − 0,5') + ' + ' + F('B', 'z − 0,4'))],
+   ['Mẹo che', 'Che (z − 0,5), thay z = 0,5: A = 1,5/(0,5 − 0,4) = 1,5/0,1 = <b>15</b>.<br>Che (z − 0,4), thay z = 0,4: B = 1,4/(0,4 − 0,5) = 1,4/(−0,1) = <b>−14</b>.'],
+   ['Tra bảng', M('h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n)')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 0,9y(n−1) − 0,2y(n−2) + x(n) + x(n−1)', 'Theo công thức'], r: [['0', '1', '15 − 14 = 1 ✓'], ['1', '0,9·1 + 1 = 1,9', '7,5 − 5,6 = 1,9 ✓'], ['2', '0,9·1,9 − 0,2·1 = 1,51', '3,75 − 2,24 = 1,51 ✓'], ['3', '0,9·1,51 − 0,2·1,9 = 0,979', '1,875 − 0,896 = 0,979 ✓']]},
+  a: 'H(z) = (z² + z)/(z² − 0,9z + 0,2); cực 0,5 và 0,4 → ổn định; h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n).',
+  m: 'Mỗi cực sinh một tiếng vọng, h(n) là tổng của hai dãy tắt dần. Bài này đi đủ chuỗi kỹ năng: phương trình → H(z) → cực → h(n).',
+  load: {tab: 'ht', a: '1 -0,9 0,2', b: '1 1'}},
+
+ {g: 'A', id: 'A4', t: 'Ngược lại: từ H(z) ra phương trình', q: 'Cho H(z) = (1 + 2z⁻¹)/(1 − 0,25z⁻²). Viết phương trình sai phân.',
+  idea: 'Làm ngược bài A1. Tử số cho phần x, mẫu số cho phần y.',
+  s: [
+   ['Viết H = Y/X rồi nhân chéo', M(F('Y', 'X') + ' = ' + F('1 + 2z⁻¹', '1 − 0,25z⁻²')) + M('Y·(1 − 0,25z⁻²) = X·(1 + 2z⁻¹)')],
+   ['Phá ngoặc', M('Y − 0,25z⁻²Y = X + 2z⁻¹X')],
+   ['Đổi ngược về miền n', 'Quy tắc ngược: z⁻ᵏ đi với Y → y(n−k); đi với X → x(n−k).' + M('y(n) − 0,25y(n−2) = x(n) + 2x(n−1)')],
+   ['Viết dạng để máy tính chạy', 'Chuyển y(n−2) sang phải: đầu ra lần này tính từ các giá trị cũ đã biết.' + M('y(n) = 0,25y(n−2) + x(n) + 2x(n−1)')]
+  ],
+  chk: {h: ['n', 'Tính tay (x = 1, 0, 0…)', 'Ghi chú'], r: [['0', '0 + 1 + 0 = 1', 'chỉ có x(0)'], ['1', '0 + 0 + 2·1 = 2', 'x(0) đi qua nhánh 2x(n−1)'], ['2', '0,25·1 = 0,25', 'y(0) quay về sau 2 nhịp'], ['3', '0,25·2 = 0,5', 'y(1) quay về sau 2 nhịp']]},
+  a: 'y(n) − 0,25y(n−2) = x(n) + 2x(n−1).',
+  m: 'Phải chuyển được cả hai chiều: phương trình ⇄ H(z). Mẫu có z⁻² nhưng thiếu z⁻¹ thì phương trình thiếu y(n−1).',
+  load: {tab: 'ht', a: '1 0 -0,25', b: '1 2'}},
+
+ {g: 'B', id: 'B1', src: 'Bài giảng hình 4.4', t: 'Sơ đồ trực tiếp 1 và trực tiếp 2', q: 'Vẽ sơ đồ trực tiếp 1 và 2 cho y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1). Mỗi dạng cần bao nhiêu phần tử trễ?',
+  idea: 'Mỗi số hạng của phương trình là một nhánh dây đi vào bộ cộng. Mỗi lần “lùi 1 nhịp” là một ô nhớ z⁻¹.',
+  s: [
+   ['Liệt kê các nhánh', 'y(n) = <b>2x(n)</b> + <b>3x(n−1)</b> − <b>0,5y(n−1)</b>: ba nhánh đi vào một bộ cộng.<br>• 2x(n): đầu vào nhân 2.<br>• 3x(n−1): đầu vào qua 1 ô nhớ rồi nhân 3.<br>• −0,5y(n−1): đầu ra qua 1 ô nhớ, nhân −0,5, quay ngược về bộ cộng.'],
+   ['Trực tiếp 1: đếm ô nhớ', 'Nhánh x cần 1 ô nhớ (giữ x cũ), nhánh y cần 1 ô nhớ (giữ y cũ) → <b>2 ô nhớ</b>. Tổng quát: M + N = 1 + 1.'],
+   ['Ý tưởng trực tiếp 2', 'Hai ô nhớ kia cùng “lùi 1 nhịp” nên ghép chung được. Đặt tín hiệu trung gian w(n): làm phần hồi tiếp (mẫu số) trước, phần truyền thẳng (tử số) sau.' + M('w(n) = x(n) − 0,5w(n−1)') + M('y(n) = 2w(n) + 3w(n−1)')],
+   ['Trực tiếp 2: đếm ô nhớ', 'Chỉ cần một ô nhớ giữ w(n−1) → <b>1 ô nhớ</b>. Tổng quát: max(M, N) = max(1, 1) = 1.'],
+   ['Kiểm tra hai dạng là một hệ', 'Gõ x = 1, 0, 0… vào dạng trực tiếp 2 (bảng dưới), rồi so với h(n) của bài A2.']
+  ],
+  chk: {h: ['n', 'w(n) = x(n) − 0,5w(n−1)', 'y(n) = 2w(n) + 3w(n−1)'], r: [['0', '1', '2·1 + 0 = 2'], ['1', '0 − 0,5·1 = −0,5', '2·(−0,5) + 3·1 = 2'], ['2', '−0,5·(−0,5) = 0,25', '2·0,25 + 3·(−0,5) = −1'], ['3', '−0,5·0,25 = −0,125', '2·(−0,125) + 3·0,25 = 0,5']], note: 'Ra 2; 2; −1; 0,5, đúng bằng h(n) của bài A2 → hai sơ đồ thực hiện cùng một hệ.'},
+  a: 'Trực tiếp 1: 2 ô nhớ; trực tiếp 2: 1 ô nhớ. Bấm “Mở trong phòng thí nghiệm” để xem hình vẽ cả hai dạng.',
+  m: 'Ô nhớ là bộ nhớ RAM trên vi điều khiển, DSP. Trực tiếp 2 tiết kiệm một nửa bộ nhớ nên hay được dùng khi lập trình bộ lọc.',
+  load: {tab: 'sd', a: '1 0,5', b: '2 3'}},
+
+ {g: 'B', id: 'B2', t: 'Sơ đồ hệ bậc 2', q: 'Hệ ở bài A3 cần bao nhiêu ô nhớ với mỗi dạng sơ đồ?',
+  idea: 'Đếm xem phía x lùi xa nhất mấy nhịp (M), phía y lùi xa nhất mấy nhịp (N).',
+  s: [
+   ['Đọc phương trình A3', 'Phía x: x(n) + x(n−1) → lùi xa nhất 1 nhịp → M = 1.<br>Phía y: y(n−1), y(n−2) → lùi xa nhất 2 nhịp → N = 2.'],
+   ['Trực tiếp 1', 'Giữ riêng x cũ (1 ô) và y cũ (2 ô) → M + N = <b>3 ô nhớ</b>.'],
+   ['Trực tiếp 2', 'Dùng chung một dãy w, cần giữ w(n−1) và w(n−2) → max(1, 2) = <b>2 ô nhớ</b>.' + M('w(n) = x(n) + 0,9w(n−1) − 0,2w(n−2)') + M('y(n) = w(n) + w(n−1)')]
+  ],
+  a: 'Trực tiếp 1: 3 ô nhớ; trực tiếp 2: 2 ô nhớ.',
+  m: 'Bậc càng cao, trực tiếp 2 càng tiết kiệm bộ nhớ.',
+  load: {tab: 'sd', a: '1 -0,9 0,2', b: '1 1'}},
+
+ {g: 'C', id: 'C1', t: 'Ghép nối tiếp', q: 'H₁ = 1/(1 − 0,5z⁻¹), H₂ = 1/(1 − 0,2z⁻¹) mắc nối tiếp. Tìm H(z), xét ổn định, tìm h(n).',
+  idea: 'Nối tiếp: tín hiệu đi qua khối 1 rồi qua khối 2. Giống hai tầng khuếch đại ×2 rồi ×3 thành ×6, nên <b>nhân</b> các H.',
+  s: [
+   ['Nhân hai hàm truyền', M('H = H₁·H₂ = ' + F('1', '(1 − 0,5z⁻¹)(1 − 0,2z⁻¹)'))],
+   ['Phá ngoặc mẫu số', '(1 − 0,5z⁻¹)(1 − 0,2z⁻¹) = 1 − 0,2z⁻¹ − 0,5z⁻¹ + 0,1z⁻² = 1 − 0,7z⁻¹ + 0,1z⁻².' + M('H(z) = ' + F('1', '1 − 0,7z⁻¹ + 0,1z⁻²'))],
+   ['Cực và ổn định', 'Mẫu ở dạng tích nên đọc được cực ngay: <b>0,5</b> và <b>0,2</b>, đúng bằng cực của từng khối. Cả hai &lt; 1 → <b>ổn định</b>.'],
+   ['Tìm h(n)', M(F('H(z)', 'z') + ' = ' + F('z', '(z − 0,5)(z − 0,2)')) + 'Che (z − 0,5), thay z = 0,5: A = 0,5/0,3 = <b>5/3</b>.<br>Che (z − 0,2), thay z = 0,2: B = 0,2/(−0,3) = <b>−2/3</b>.' + M('h(n) = [(5/3)·(0,5)ⁿ − (2/3)·(0,2)ⁿ]·u(n)')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 0,7y(n−1) − 0,1y(n−2) + x(n)', 'Theo công thức'], r: [['0', '1', '5/3 − 2/3 = 1 ✓'], ['1', '0,7·1 = 0,7', '5/6 − 2/15 = 0,7 ✓'], ['2', '0,7·0,7 − 0,1·1 = 0,39', '5/12 − 2/75 = 0,39 ✓']]},
+  a: 'H(z) = 1/(1 − 0,7z⁻¹ + 0,1z⁻²); cực 0,5 và 0,2 → ổn định.',
+  m: 'Nối tiếp không sinh cực mới: hệ tổng ổn định khi từng khối ổn định.',
+  load: {tab: 'gh', m: 'nt', k1: '1', p1: '0,5', k2: '1', p2: '0,2'}},
+
+ {g: 'C', id: 'C2', t: 'Ghép song song', q: 'Hai khối ở bài C1 mắc song song. Tìm H(z) và h(n).',
+  idea: 'Song song: tín hiệu chia ra hai đường rồi gộp lại, như hai vòi nước cùng chảy vào một bể, nên <b>cộng</b> các H.',
+  s: [
+   ['Cộng hai hàm truyền', M('H = ' + F('1', '1 − 0,5z⁻¹') + ' + ' + F('1', '1 − 0,2z⁻¹'))],
+   ['Quy đồng', 'Mẫu chung là tích hai mẫu (giống C1). Tử: (1 − 0,2z⁻¹) + (1 − 0,5z⁻¹) = 2 − 0,7z⁻¹.' + M('H(z) = ' + F('2 − 0,7z⁻¹', '1 − 0,7z⁻¹ + 0,1z⁻²'))],
+   ['Tìm h(n): không cần tách', 'H vốn đã là tổng hai mảnh có sẵn trong bảng tra, nên tra thẳng từng mảnh:' + M('h(n) = [(0,5)ⁿ + (0,2)ⁿ]·u(n)')],
+   ['Ổn định', 'Cùng mẫu số với C1 → cùng cực 0,5 và 0,2 → <b>ổn định</b>.']
+  ],
+  chk: {h: ['n', '(0,5)ⁿ', '(0,2)ⁿ', 'h(n) = tổng'], r: [['0', '1', '1', '2'], ['1', '0,5', '0,2', '0,7'], ['2', '0,25', '0,04', '0,29']]},
+  a: 'H(z) = (2 − 0,7z⁻¹)/(1 − 0,7z⁻¹ + 0,1z⁻²); h(n) = (0,5)ⁿ + (0,2)ⁿ; ổn định.',
+  m: 'Tách H thành tổng các mảnh (như các bài tìm h(n)) chính là chia hệ thành các khối mắc song song.',
+  load: {tab: 'gh', m: 'ss', k1: '1', p1: '0,5', k2: '1', p2: '0,2'}},
+
+ {g: 'C', id: 'C3', t: 'Ghép hồi tiếp gây hú', q: 'H₁ = 1/(1 − 0,5z⁻¹), H₂ = 0,6/(1 − 0,5z⁻¹), ghép hồi tiếp H = H₁/(1 − H₁H₂). Hệ có ổn định không?',
+  idea: 'Hồi tiếp: đầu ra quay lại cộng vào đầu vào, như micro đặt gần loa.',
+  s: [
+   ['Tính H₁H₂', M('H₁H₂ = ' + F('0,6', '(1 − 0,5z⁻¹)²'))],
+   ['Thay vào công thức, bỏ phân số lồng', 'Nhân cả tử và mẫu của H₁/(1 − H₁H₂) với (1 − 0,5z⁻¹)²:' + M('H = ' + F('1 − 0,5z⁻¹', '(1 − 0,5z⁻¹)² − 0,6'))],
+   ['Khai triển mẫu', '(1 − 0,5z⁻¹)² = 1 − z⁻¹ + 0,25z⁻². Trừ 0,6:' + M('H = ' + F('1 − 0,5z⁻¹', '0,4 − z⁻¹ + 0,25z⁻²'))],
+   ['Tìm cực', 'Nhân mẫu với z²: 0,4z² − z + 0,25 = 0. Δ = 1 − 4·0,4·0,25 = 0,6; √0,6 ≈ 0,775.<br>z = (1 ± 0,775)/0,8 → <b>2,218</b> và <b>0,282</b>.'],
+   ['Kết luận', 'Cực 2,218 &gt; 1 nằm ngoài vòng tròn → <b>không ổn định</b>.']
+  ],
+  a: 'Không ổn định (có cực ≈ 2,218 nằm ngoài vòng tròn đơn vị).',
+  m: 'Hai khối riêng đều ổn định (cực 0,5), nhưng ghép hồi tiếp làm cực dịch ra ngoài vòng tròn: đúng hiện tượng micro rú.',
+  load: {tab: 'gh', m: 'ht', k1: '1', p1: '0,5', k2: '0,6', p2: '0,5'}},
+
+ {g: 'D', id: 'D1', src: 'Bài giảng 4.1.5', t: 'Giải phương trình sai phân', q: 'Giải y(n) − 3y(n−1) + 2y(n−2) = x(n), với x(n) = 3ⁿ⁻²·u(n), y(−1) = y(−2) = 0.',
+  idea: 'Giải phương trình = tìm công thức y(n) dùng cho mọi n. Cách làm: đổi sang z → giải như phương trình đại số → tách thành mảnh → tra bảng về miền n.',
+  s: [
+   ['Đổi sang miền z', 'Điều kiện đầu y(−1) = y(−2) = 0 (máy bắt đầu từ trạng thái nghỉ) nên không có số hạng phụ.' + M('Y − 3z⁻¹Y + 2z⁻²Y = X  ⇒  Y·(1 − 3z⁻¹ + 2z⁻²) = X')],
+   ['Đổi đầu vào sang miền z', 'x(n) = 3ⁿ⁻² = 3ⁿ/3² = (1/9)·3ⁿ. Tra bảng: 3ⁿ → z/(z − 3).' + M('X = ' + F('1', '9') + '·' + F('z', 'z − 3'))],
+   ['Gọn mẫu số', 'Nhân tử và mẫu với z²: 1 − 3z⁻¹ + 2z⁻² thành z² − 3z + 2 = (z − 1)(z − 2).' + M('Y = X·' + F('z²', '(z − 1)(z − 2)') + ' = ' + F('z³', '9(z − 1)(z − 2)(z − 3)'))],
+   ['Chia cho z, chuẩn bị tách', M(F('Y', 'z') + ' = ' + F('z²', '9(z − 1)(z − 2)(z − 3)') + ' = ' + F('B₁', 'z − 1') + ' + ' + F('B₂', 'z − 2') + ' + ' + F('B₃', 'z − 3'))],
+   ['Mẹo che', 'Tử luôn là z², chỉ thay số:<br>B₁: che (z − 1), thay z = 1: 1/[9·(−1)·(−2)] = <b>1/18</b>.<br>B₂: che (z − 2), thay z = 2: 4/[9·1·(−1)] = <b>−4/9</b>.<br>B₃: che (z − 3), thay z = 3: 9/[9·2·1] = <b>1/2</b>.'],
+   ['Tra bảng về miền n', 'Nhân trả lại z, mỗi z/(z − a) → aⁿ (với a = 1 thì 1ⁿ = 1).' + M('y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n)')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 3y(n−1) − 2y(n−2) + x(n)', 'Theo công thức'], r: [['0', '0 − 0 + 1/9 = 1/9', '1/18 − 8/18 + 9/18 = 1/9 ✓'], ['1', '3·(1/9) + 1/3 = 2/3', '1/18 − 16/18 + 27/18 = 2/3 ✓'], ['2', '3·(2/3) − 2·(1/9) + 1 = 25/9', '1/18 − 32/18 + 81/18 = 25/9 ✓']], note: 'x = 1/9; 1/3; 1; 3… (vì 3⁻² = 1/9, 3⁻¹ = 1/3, 3⁰ = 1).'},
+  a: 'y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n).',
+  m: 'Mỗi thừa số ở mẫu sinh một số hạng: (z − 1) → 1ⁿ và (z − 2) → 2ⁿ do hệ, (z − 3) → 3ⁿ do đầu vào. Hệ có cực 1 và 2 nên không ổn định, y(n) tăng vô hạn.',
+  load: {tab: 'gp', v: '-3|2|exp|1/9|3|0|0'}},
+
+ {g: 'D', id: 'D2', t: 'Bình nước bị rò', q: 'Giải y(n) − 0,5y(n−1) = u(n) với y(−1) = 0.',
+  idea: 'Hình dung bình nước: mỗi nhịp đổ thêm 1 lít, nhưng rò mất một nửa lượng đang có. y(n) là lượng nước trong bình.',
+  s: [
+   ['Đổi sang miền z', 'u(n) = 1; 1; 1… tra bảng với a = 1: U = z/(z − 1).' + M('Y·(1 − 0,5z⁻¹) = ' + F('z', 'z − 1'))],
+   ['Rút Y', '1 − 0,5z⁻¹ = (z − 0,5)/z, nên:' + M('Y = ' + F('z²', '(z − 0,5)(z − 1)'))],
+   ['Chia z và che', M(F('Y', 'z') + ' = ' + F('z', '(z − 0,5)(z − 1)')) + 'Che (z − 1), thay z = 1: 1/0,5 = <b>2</b>.<br>Che (z − 0,5), thay z = 0,5: 0,5/(−0,5) = <b>−1</b>.'],
+   ['Tra bảng', M('y(n) = 2·1ⁿ − 1·(0,5)ⁿ = 2 − (0,5)ⁿ,  n ≥ 0')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 0,5y(n−1) + 1', 'Theo công thức'], r: [['0', '0 + 1 = 1', '2 − 1 = 1 ✓'], ['1', '0,5 + 1 = 1,5', '2 − 0,5 = 1,5 ✓'], ['2', '0,75 + 1 = 1,75', '2 − 0,25 = 1,75 ✓']]},
+  a: 'y(n) = 2 − (0,5)ⁿ: 1; 1,5; 1,75… tiến dần về 2.',
+  m: 'Số 2 là mức nước cân bằng (đổ vào bằng rò ra). Phần (0,5)ⁿ là “phần chưa đầy”, tắt dần vì cực 0,5 &lt; 1.',
+  load: {tab: 'gp', v: '-0,5|0|exp|1|1|0|0'}},
+
+ {g: 'D', id: 'D3', t: 'Có điều kiện đầu', q: 'Giải y(n) − 0,5y(n−1) = u(n) với y(−1) = 1.',
+  idea: 'Giống bài D2 nhưng bình đã có sẵn 1 lít: y(−1) = 1. Điều kiện đầu khác 0 thì phải dùng Z một phía.',
+  s: [
+   ['Quy tắc Z một phía', 'Lùi 1 nhịp giờ phải mang theo giá trị ban đầu:' + M('y(n−1) → z⁻¹Y + y(−1) = z⁻¹Y + 1')],
+   ['Đổi sang miền z', M('Y − 0,5·(z⁻¹Y + 1) = ' + F('z', 'z − 1')) + M('Y·(1 − 0,5z⁻¹) = ' + F('z', 'z − 1') + ' + 0,5')],
+   ['Rút Y', 'Quy đồng vế phải: [z + 0,5(z − 1)]/(z − 1) = (1,5z − 0,5)/(z − 1). Chia cho (z − 0,5)/z:' + M('Y = ' + F('z·(1,5z − 0,5)', '(z − 0,5)(z − 1)'))],
+   ['Chia z và che', M(F('Y', 'z') + ' = ' + F('1,5z − 0,5', '(z − 0,5)(z − 1)')) + 'Che (z − 1), thay z = 1: 1/0,5 = <b>2</b>.<br>Che (z − 0,5), thay z = 0,5: 0,25/(−0,5) = <b>−0,5</b>.'],
+   ['Tra bảng', M('y(n) = 2 − 0,5·(0,5)ⁿ,  n ≥ 0')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = 0,5y(n−1) + 1', 'Theo công thức'], r: [['0', '0,5·1 + 1 = 1,5', '2 − 0,5 = 1,5 ✓'], ['1', '0,75 + 1 = 1,75', '2 − 0,25 = 1,75 ✓'], ['2', '0,875 + 1 = 1,875', '2 − 0,125 = 1,875 ✓']]},
+  a: 'y(n) = 2 − 0,5·(0,5)ⁿ: 1,5; 1,75; 1,875…',
+  m: 'Có sẵn nước nên đầy nhanh hơn D2, nhưng vẫn về cùng mức 2: điều kiện đầu chỉ ảnh hưởng lúc đầu, rồi bị “quên” vì hệ ổn định.',
+  load: {tab: 'gp', v: '-0,5|0|exp|1|1|1|0'}},
+
+ {g: 'D', id: 'D4', t: 'Đáp ứng xung hệ bậc 2', q: 'Tìm h(n) của y(n) + 0,1y(n−1) − 0,2y(n−2) = x(n).',
+  idea: 'h(n) là tiếng vọng khi gõ một cái (x = δ(n)). Trong miền z, X = 1 nên Y = H.',
+  s: [
+   ['Ra H(z)', M('H(z) = ' + F('1', '1 + 0,1z⁻¹ − 0,2z⁻²') + ' = ' + F('z²', 'z² + 0,1z − 0,2'))],
+   ['Tìm cực', 'z² + 0,1z − 0,2 = 0: Δ = 0,01 + 0,8 = 0,81; √Δ = 0,9 → z = (−0,1 ± 0,9)/2 → <b>0,4</b> và <b>−0,5</b>.'],
+   ['Chia z và che', M(F('H(z)', 'z') + ' = ' + F('z', '(z − 0,4)(z + 0,5)')) + 'Che (z − 0,4), thay z = 0,4: 0,4/0,9 = <b>4/9</b>.<br>Che (z + 0,5), thay z = −0,5: (−0,5)/(−0,9) = <b>5/9</b>.'],
+   ['Tra bảng', M('h(n) = [(4/9)·(0,4)ⁿ + (5/9)·(−0,5)ⁿ]·u(n)')]
+  ],
+  chk: {h: ['n', 'Tính tay: y(n) = −0,1y(n−1) + 0,2y(n−2) + x(n)', 'Theo công thức'], r: [['0', '1', '4/9 + 5/9 = 1 ✓'], ['1', '−0,1·1 = −0,1', '(1,6 − 2,5)/9 = −0,1 ✓'], ['2', '−0,1·(−0,1) + 0,2·1 = 0,21', '(0,64 + 1,25)/9 = 0,21 ✓']]},
+  a: 'h(n) = [(4/9)·(0,4)ⁿ + (5/9)·(−0,5)ⁿ]·u(n): 1; −0,1; 0,21…; ổn định.',
+  m: 'Cực âm −0,5 làm dãy lật dấu; cả hai cực nhỏ hơn 1 nên vẫn tắt dần.',
+  load: {tab: 'gp', v: '0,1|-0,2|delta|1|0|0|0'}},
+
+ {g: 'E', id: 'E1', src: 'Bài giảng 4.2.2', t: 'Điều kiện ổn định theo A', q: 'Hệ y(n) = A·y(n−1) + x(n). Tìm H(z), h(n) và điều kiện ổn định.',
+  idea: 'Hệ hồi tiếp đơn giản nhất: kết quả lần này = A lần kết quả lần trước + đầu vào. Số A quyết định tiếng vọng tắt hay bùng.',
+  s: [
+   ['Sửa đề', 'Slide in nhầm “y(n) = A·y(n) + x(n)”. Đúng phải là <b>y(n) = A·y(n−1) + x(n)</b>.'],
+   ['Đổi sang z, ra H(z)', M('Y = A·z⁻¹Y + X  ⇒  Y·(1 − Az⁻¹) = X') + M('H(z) = ' + F('1', '1 − Az⁻¹') + ' = ' + F('z', 'z − A'))],
+   ['Tìm h(n)', 'Đúng dạng z/(z − a) trong bảng tra với a = A, không cần tách:' + M('h(n) = Aⁿ·u(n)')],
+   ['Tìm cực', 'Mẫu z − A = 0 → cực <b>z = A</b>.'],
+   ['Điều kiện ổn định', '<b>|A| &lt; 1</b> → ổn định; |A| ≥ 1 → không ổn định.<br>Slide ghi “A &lt; 1” là thiếu dấu trị tuyệt đối: A = −2 nhỏ hơn 1 nhưng vẫn không ổn định (bảng dưới).']
+  ],
+  chk: {title: 'Thử với vài giá trị A', h: ['A', 'h(n) = 1, A, A², A³…', 'Kết luận'], r: [['0,8', '1; 0,8; 0,64; 0,512', 'tắt dần → ổn định'], ['−0,5', '1; −0,5; 0,25; −0,125', 'lật dấu, tắt dần → ổn định'], ['1', '1; 1; 1; 1', 'không tắt → không ổn định'], ['1,2', '1; 1,2; 1,44; 1,728', 'tăng mãi → không ổn định'], ['−2', '1; −2; 4; −8', 'tăng mãi → không ổn định']]},
+  a: 'H(z) = z/(z − A); h(n) = Aⁿ·u(n); ổn định ⇔ |A| &lt; 1.',
+  m: 'Đây là “bộ xương” của mọi hệ đệ quy (IIR): mỗi cực p góp một dãy pⁿ, nên quy tắc |p| &lt; 1 dùng được cho mọi hệ.',
+  load: {tab: 'od', D: '1 -0,8'}},
+
+ {g: 'E', id: 'E2', t: 'Cực nằm trên vòng tròn', q: 'Mẫu số D(z) = z² − 1,6z + 1. Hệ có ổn định không?',
+  idea: 'Cực phức: không cần tính phức tạp, chỉ cần khoảng cách từ cực đến gốc tọa độ (độ lớn r).',
+  s: [
+   ['Tính Δ', 'Δ = 1,6² − 4·1 = 2,56 − 4 = −1,44 &lt; 0 → hai cực phức.'],
+   ['Tìm cực', 'z = (1,6 ± j·√1,44)/2 = <b>0,8 ± 0,6j</b>.'],
+   ['Tính độ lớn', 'r = √(phần thực² + phần ảo²) = √(0,64 + 0,36) = √1 = <b>1</b>.<br>Mẹo nhanh: với z² + a₁z + a₂ có cực phức thì r = √a₂ = √1 = 1.'],
+   ['Kết luận', 'r = 1: cực nằm <b>đúng trên</b> vòng tròn → không ổn định, h(n) dao động mãi không tắt.']
+  ],
+  a: 'Không ổn định (cực 0,8 ± 0,6j có r = 1).',
+  m: 'Dao động không tắt chính là cách làm bộ phát sóng sin số. Với bộ lọc thì đây là lỗi phải tránh.',
+  load: {tab: 'od', D: '1 -1,6 1'}},
+
+ {g: 'E', id: 'E3', t: 'Bẫy hệ số lớn hơn 1', q: 'Mẫu số D(z) = z² − 1,3z + 0,4. Hệ có ổn định không?',
+  idea: 'Bẫy: thấy hệ số 1,3 &gt; 1 dễ kết luận vội là không ổn định. Phải tìm cực thật.',
+  s: [
+   ['Tính Δ', 'Δ = 1,3² − 4·0,4 = 1,69 − 1,6 = 0,09; √Δ = 0,3.'],
+   ['Tìm cực', 'z = (1,3 ± 0,3)/2 → <b>0,8</b> và <b>0,5</b>.'],
+   ['Kết luận', 'Cả hai cực nhỏ hơn 1 → <b>ổn định</b>.']
+  ],
+  a: 'Ổn định (cực 0,8 và 0,5).',
+  m: 'Ổn định xét theo cực, không theo hệ số. Điểm (a₁, a₂) = (−1,3; 0,4) nằm trong tam giác ổn định ở tab 5.',
+  load: {tab: 'od', D: '1 -1,3 0,4'}}
 ];
 let exFilter = 'all';
+const exShown = {};
+function exBlocks(e){
+  const b = e.s.map((st, i) => `<div class="st"><span class="sn">Bước ${i + 1}</span><b>${st[0]}</b><div class="sd">${st[1]}</div></div>`);
+  if (e.chk) b.push(`<div class="st chk"><span class="sn">Kiểm tra</span><b>${e.chk.title || 'Tính tay vài giá trị đầu để chắc chắn đúng'}</b><div class="tbl-wrap"><table class="t"><tr>${e.chk.h.map(x => `<th>${x}</th>`).join('')}</tr>${e.chk.r.map(r => `<tr>${r.map((x, j) => `<td${j ? ' class="m"' : ''}>${x}</td>`).join('')}</tr>`).join('')}</table></div>${e.chk.note ? `<p class="key" style="margin:6px 0 0">${e.chk.note}</p>` : ''}</div>`);
+  b.push(`<div class="ans"><b>Đáp án:</b> ${e.a}</div>`);
+  b.push(`<div class="mean"><b>Ý nghĩa:</b> ${e.m}</div>`);
+  return b;
+}
 function renderEx(){
-  const cls = $('ex-class').checked; const names = {A: 'Nhóm A. Hàm truyền đạt', B: 'Nhóm B. Sơ đồ thực hiện', C: 'Nhóm C. Ghép hệ', D: 'Nhóm D. Giải PT sai phân bằng Z một phía', E: 'Nhóm E. Ổn định'};
-  let h = ''; Object.keys(names).forEach(g => {
-    if (exFilter !== 'all' && exFilter !== g) return;
+  const step = $('ex-class').checked;
+  const names = {A: 'Nhóm A. Hàm truyền đạt', B: 'Nhóm B. Sơ đồ thực hiện', C: 'Nhóm C. Ghép hệ', D: 'Nhóm D. Giải phương trình sai phân', E: 'Nhóm E. Ổn định'};
+  let h = '';
+  Object.keys(names).forEach(g => {
+    const list = EX.filter(e => e.g === g && (exFilter === 'all' || exFilter === g || (exFilter === 'bg' && e.src)));
+    if (!list.length) return;
     h += `<div class="card ex-group"><h2>${names[g]}</h2>`;
-    EX.filter(e => e.g === g).forEach(e => {
-      h += `<div class="ex"><div class="hd"><div><span class="id">${e.id}</span><b>${e.t}</b></div></div><div class="q">${e.q}</div>`;
-      h += `<div class="sol">${e.s.map((st, i) => `<div ${cls ? 'hidden' : ''}><b>Bước ${i + 1}.</b> ${st}</div>`).join('')}<div ${cls ? 'hidden' : ''}><b>Đáp án:</b> ${e.a}</div><div class="mean" ${cls ? 'hidden' : ''}><b>Ý nghĩa:</b> ${e.m}</div></div>`;
-      h += `<div class="acts">${cls ? `<button class="btn ghost" data-next="1">Hiện bước tiếp</button><button class="btn ghost" data-all="1">Hiện hết</button>` : ''}<button class="btn" data-load="${e.id}">Mở trong phòng thí nghiệm</button></div></div>`;
+    list.forEach(e => {
+      const B = exBlocks(e), tot = B.length, k = step ? Math.min(exShown[e.id] || 0, tot) : tot;
+      h += `<div class="ex" data-id="${e.id}"><div class="hd"><div><span class="id">${e.id}</span><b>${e.t}</b></div>${e.src ? `<span class="tag">★ ${e.src}</span>` : ''}</div>`;
+      h += `<div class="q"><b>Đề:</b> ${e.q}</div><div class="idea"><b>Hướng dẫn:</b> ${e.idea}</div>`;
+      h += `<div class="sol">${B.map((x, i) => i < k ? x : x.replace(/^<div /, '<div hidden ')).join('')}</div>`;
+      h += '<div class="acts">';
+      if (step) h += `<span class="prog">${k < tot ? `Đã xem ${k}/${tot}` : 'Đã xem hết lời giải'}</span>` + (k < tot ? `<button class="btn" data-next="1">${k ? 'Bước tiếp theo →' : 'Bắt đầu giải →'}</button><button class="btn ghost" data-all="1">Hiện hết</button>` : `<button class="btn ghost" data-reset="1">Giải lại từ đầu</button>`);
+      h += `<button class="btn ghost" data-load="${e.id}">Mở trong phòng thí nghiệm</button></div></div>`;
     });
     h += '</div>';
   });
@@ -970,10 +1219,17 @@ $('ml-copy').addEventListener('click', () => {
 $('ex-class').addEventListener('change', renderEx);
 $('ex-filter').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; exFilter = b.dataset.g; document.querySelectorAll('#ex-filter .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.g === exFilter)); renderEx(); });
 $('ex-list').addEventListener('click', e => {
-  const n = e.target.closest('[data-next]'), a = e.target.closest('[data-all]'), l = e.target.closest('[data-load]');
-  if (n){ const hid = [...n.closest('.ex').querySelectorAll('.sol>[hidden]')]; if (hid.length) hid[0].hidden = false; }
-  if (a) a.closest('.ex').querySelectorAll('.sol>[hidden]').forEach(x => x.hidden = false);
-  if (l) loadEx(l.dataset.load);
+  const btn = e.target.closest('[data-next],[data-all],[data-reset],[data-load]'); if (!btn) return;
+  const id = btn.closest('.ex').dataset.id;
+  if (btn.dataset.load){ loadEx(id); return; }
+  if (btn.dataset.next) exShown[id] = (exShown[id] || 0) + 1;
+  if (btn.dataset.all) exShown[id] = 99;
+  if (btn.dataset.reset) exShown[id] = 0;
+  renderEx();
+  const ex = document.querySelector(`.ex[data-id="${id}"]`); if (!ex) return;
+  const vis = [...ex.querySelectorAll('.sol>:not([hidden])')];
+  const target = btn.dataset.next && vis.length ? vis[vis.length - 1] : ex.querySelector('.acts');
+  if (target && target.scrollIntoView) target.scrollIntoView({block: 'nearest', behavior: 'smooth'});
 });
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => RENDER[current](), 150); });
 let start = 'ht'; try { const s = localStorage.getItem('htz-tab'); if (s && RENDER[s]) start = s; } catch (e) {} { const hs = (location.hash || '').slice(1); if (RENDER[hs]) start = hs; } addEventListener('hashchange', () => { const hs = (location.hash || '').slice(1); if (RENDER[hs]) showTab(hs); });
