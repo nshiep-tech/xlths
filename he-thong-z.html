@@ -164,7 +164,7 @@ table.lk td:first-child,table.lk td:nth-child(2){white-space:nowrap}
 .tools3 p{margin:6px 0 0;font-size:14px}
 .tools3 .eg{font:500 13px var(--f-mono);color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
 @media (max-width: 900px){.tools3{grid-template-columns:1fr}}
-@media (max-width: 520px){.cv .cvm,details.why .cvm{white-space:normal;line-height:2.4}.cv .cvr{grid-template-columns:22px minmax(0,1fr)}.ex{padding:12px}.ex .acts .btn{flex:1 1 auto}.ex .f{font-size:13.5px;white-space:normal;line-height:2.1}}
+@media (max-width: 520px){table.lk td:first-child,table.lk td:nth-child(2){white-space:normal}table.lk td:nth-child(3){min-width:110px}.cv .cvm,details.why .cvm{white-space:normal;line-height:2.4}.cv .cvr{grid-template-columns:22px minmax(0,1fr)}.ex{padding:12px}.ex .acts .btn{flex:1 1 auto}.ex .f{font-size:13.5px;white-space:normal;line-height:2.1}}
 .switch{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;cursor:pointer;min-height:44px}
 .switch input{width:20px;height:20px;accent-color:var(--green)}
 .muted{color:var(--muted)}
@@ -572,7 +572,7 @@ input:disabled{opacity:.45}
         <div class="tools3">
           <div><span class="tn">1</span><b>Đổi phương trình → H(z)</b><p>Lùi k nhịp thì nhân z<sup>−k</sup>. Dồn y sang trái, x sang phải. H(z) = (phần đi với X)/(phần đi với Y).</p><p class="eg">y(n) − 0,5y(n−1) = x(n) → H = 1/(1 − 0,5z<sup>−1</sup>)</p></div>
           <div><span class="tn">2</span><b>Bảng tra về miền n</b><p>Hằng số c → c·δ(n) (chỉ có ở n = 0).<br>z/(z − a) → aⁿ·u(n), dãy 1, a, a², …</p><p class="eg">z/(z − 0,5) → 1; 0,5; 0,25; …</p></div>
-          <div><span class="tn">3</span><b>Tìm hệ số khi tách phân số</b><p>Muốn tìm số đứng trên (z − a): <b>nhân cả hai vế với (z − a)</b> (thừa số này triệt tiêu ở mẫu), rồi <b>thay z = a</b> (các mảnh khác bằng 0). Làm gộp hai việc này gọi tắt là “mẹo che”.</p><p class="eg">z/[(z − 0,5)(z − 1)] = A/(z − 0,5) + B/(z − 1). Nhân với (z − 1): z/(z − 0,5) = A·(z − 1)/(z − 0,5) + B. Thay z = 1: B = 1/0,5 = 2</p></div>
+          <div><span class="tn">3</span><b>Tìm hệ số khi tách phân số</b><p><b>Cách 1</b>: viết tử = A·(mẫu) + B rồi so hệ số hai vế (làm thẳng trên z<sup>−1</sup>). <b>Cách 2</b> (bài giảng): muốn tìm số đứng trên (z − a): <b>nhân cả hai vế với (z − a)</b> (thừa số này triệt tiêu ở mẫu), rồi <b>thay z = a</b> (các mảnh khác bằng 0). Làm gộp hai việc này gọi tắt là “mẹo che”.</p><p class="eg">z/[(z − 0,5)(z − 1)] = A/(z − 0,5) + B/(z − 1). Nhân với (z − 1): z/(z − 0,5) = A·(z − 1)/(z − 0,5) + B. Thay z = 1: B = 1/0,5 = 2</p></div>
         </div>
         <p style="margin:12px 0 4px"><b>Bảng tra Z ngược</b> (bài giảng Buổi 3, mục 3.2.3, dùng cho hệ nhân quả):</p><div class="tbl-wrap" style="margin:6px 0 8px"><table class="t lk"><tr><th>Miền z</th><th>Miền n</th><th>Ghi chú</th></tr><tr><td class="m">c (hằng số)</td><td class="m">c·δ(n)</td><td>chỉ có giá trị ở n = 0</td></tr><tr><td class="m"><b>z/(z − a)</b></td><td class="m"><b>aⁿ·u(n)</b></td><td>dòng dùng nhiều nhất: 1, a, a², …</td></tr><tr><td class="m">1/(z − a)</td><td class="m">aⁿ⁻¹·u(n − 1)</td><td>không có z ở tử → bị trễ 1 nhịp</td></tr><tr><td class="m">z/(z − a)²</td><td class="m">n·aⁿ⁻¹·u(n)</td><td>khi cực lặp lại 2 lần</td></tr></table></div><p class="key" style="margin:10px 0 0"><b>Quy tắc ổn định:</b> hệ nhân quả ổn định khi mọi điểm cực (nghiệm của mẫu số) có độ lớn nhỏ hơn 1.</p>
       </div>
@@ -651,8 +651,8 @@ function readSys(){
   return {a, b};
 }
 /* Các bước tìm h(n) = Z⁻¹[H(z)] theo cách của bài giảng: chia H(z) cho z, tách phân thức (mẹo che), tra bảng */
-function hnSteps(A){
-  const R = A.res; if (!R || !R.pp || !R.pp.length) return '';
+function hnSteps2(A){
+  const R = A.res; if (!R || !R.pp || !R.pp.length) return {st: '', ev: null};
   const Nd = trimLead(A.Nd), Dd = trimLead(A.Dd), lead = Dd[0];
   const pp = R.pp;
   const fac = (p, m) => (cabs(p) < 1e-12 ? 'z' : zMinus(p)) + (m > 1 ? `<sup>${m}</sup>` : '');
@@ -665,7 +665,7 @@ function hnSteps(A){
   const pieces = [];
   pp.forEach(o => o.coef.forEach((c, i) => pieces.push({p: o.p, j: i + 1, s: o.s, C: c, name: nm()})));
   let st = '';
-  st += `<li><div><b>Tìm h(n): chia H(z) cho z</b>. Bảng tra chỉ có dạng z/(z − a), nên chia cho z trước rồi tách thành các mảnh nhỏ:<div class="math big">${frac('H(z)', 'z')} = ${frac(polyZ(Nd), denF)} = ${pieces.map(q => frac(q.name, fac(q.p, q.j))).join(' + ')}</div><small class="muted">Mỗi thừa số ở mẫu cho một mảnh${pp.some(o => o.s > 1) ? '; thừa số lặp lại m lần cho m mảnh' : ''}.</small></div></li>`;
+  st += `<li><div><b>Cách 2 · Chia H(z) cho z</b>. Bảng tra chỉ có dạng z/(z − a), nên chia cho z trước rồi tách thành các mảnh nhỏ:<div class="math big">${frac('H(z)', 'z')} = ${frac(polyZ(Nd), denF)} = ${pieces.map(q => frac(q.name, fac(q.p, q.j))).join(' + ')}</div><small class="muted">Mỗi thừa số ở mẫu cho một mảnh${pp.some(o => o.s > 1) ? '; thừa số lặp lại m lần cho m mảnh' : ''}.</small></div></li>`;
   // mẹo che: mỗi hệ số làm 3 việc nhỏ: che, thay số, tính
   const vStr = v => Math.abs(v.im) < 1e-10 ? (v.re < 0 ? `(${fmt(v.re)})` : fmt(v.re)) : `(${fmtc(v)})`;
   const supN = m => m > 1 ? `<sup>${m}</sup>` : '';
@@ -726,10 +726,186 @@ function hnSteps(A){
     return [frac('z', fac(q.p, q.j)), `${bin ? (q.j > 2 ? '[' + bin + ']·' : bin + '·') : ''}${ps}<sup>${e}</sup>·u(n)`];
   };
   st += `<li><div><b>Tra bảng từng mảnh</b> về miền n. Bảng tra (bài giảng Buổi 3, mục 3.2.3 “Một số biến đổi Z ngược của các phân thức tối giản”, hệ nhân quả):<div class="tbl-wrap" style="margin:6px 0 8px"><table class="t lk"><tr><th>Miền z</th><th>Miền n</th><th>Ghi chú</th></tr><tr><td class="m">c (hằng số)</td><td class="m">c·δ(n)</td><td>chỉ có giá trị ở n = 0</td></tr><tr><td class="m"><b>z/(z − a)</b></td><td class="m"><b>aⁿ·u(n)</b></td><td>dòng dùng nhiều nhất: 1, a, a², …</td></tr><tr><td class="m">1/(z − a)</td><td class="m">aⁿ⁻¹·u(n − 1)</td><td>không có z ở tử → bị trễ 1 nhịp</td></tr><tr><td class="m">z/(z − a)²</td><td class="m">n·aⁿ⁻¹·u(n)</td><td>khi cực lặp lại 2 lần</td></tr></table></div>Áp dụng cho từng mảnh của hệ này:<div class="tbl-wrap"><table class="t"><tr><th>Mảnh trong miền z</th><th>Hệ số</th><th>Dãy trong miền n</th></tr>${live.map(q => { const [z, n] = look(q); return `<tr><td class="m">${z}</td><td class="m">${cv(q.C)}</td><td class="m">${n}</td></tr>`; }).join('')}</table></div>${live.some(q => Math.abs(q.p.im) > 1e-10) ? '<small class="muted">Hai cực phức liên hợp cho hai mảnh liên hợp; cộng lại thành một số hạng dạng rⁿ·cos(θn + φ).</small>' : ''}<div class="res math">h(n) = ${termsHTML(R, A.roc)}</div></div></li>`;
-  // kiểm tra
-  const rows = [0, 1, 2, 3].map(n => `<tr><td class="m">${n}</td><td class="m">${fmt(A.h[n])}</td><td class="m">${fmt(izEval(R, A.roc, n))}</td><td>${Math.abs(A.h[n] - izEval(R, A.roc, n)) < 1e-6 * (1 + Math.abs(A.h[n])) ? '<span class="ok">✓</span>' : '<span class="no-ok">✗</span>'}</td></tr>`).join('');
-  st += `<li><div><b>Kiểm tra</b>: cho x = 1, 0, 0, … chạy phương trình sai phân từng nhịp (tính lặp), so với công thức vừa tìm:<div class="tbl-wrap"><table class="t"><tr><th>n</th><th>Tính lặp từ phương trình</th><th>Theo công thức h(n)</th><th></th></tr>${rows}</table></div><small class="muted">Hai cột trùng nhau → lời giải đúng.</small></div></li>`;
-  return st;
+  return {st, ev: n => izEval(R, A.roc, n)};
+}
+/* ---- Tìm h(n), CÁCH 1: tách phần nguyên + đồng nhất hệ số, làm thẳng trên z⁻¹ ---- */
+function hnSteps1(A){
+  const an = A.an.slice(), bn = A.bn.slice();
+  while (an.length > 1 && isZero(an[an.length - 1])) an.pop();
+  while (bn.length > 1 && isZero(bn[bn.length - 1])) bn.pop();
+  const N = an.length - 1, M = bn.length - 1;
+  const isR = z => Math.abs(z.im) < 1e-9;
+  const cv = z => isR(z) ? fmt(z.re) : fmtc(z);
+  const vp = z => (!isR(z) || z.re < -1e-12) ? `(${cv(z)})` : cv(z);
+  const W = k => k === 0 ? '' : `z<sup>−${k}</sup>`;
+  const T = x => `<span class="nw">${x}</span>`;
+  const facW = (p, e) => {
+    if (!e) return '';
+    if (e === 'bare') return facW(p, 1).replace(/^\(/, '').replace(/\)$/, '');
+    let t;
+    if (isR(p)){ const a = Math.abs(p.re), co = Math.abs(a - 1) < 1e-12 ? '' : fmt(a); t = `(1 ${p.re > 0 ? '−' : '+'} ${co}z<sup>−1</sup>)`; }
+    else t = `(1 − (${fmtc(p)})z<sup>−1</sup>)`;
+    return e > 1 ? `${t}<sup>${e}</sup>` : t;
+  };
+  // tổng các số hạng c·X (c thực hoặc phức), giữ dấu đúng
+  const lin = list => {
+    let s = '';
+    list.forEach(([c, x]) => {
+      if (cabs(c) < 1e-12) return;
+      if (isR(c)){
+        const a = Math.abs(c.re), body = Math.abs(a - 1) < 1e-12 ? x : `${fmt(a)}·${x}`;
+        s += s ? (c.re < 0 ? ' − ' : ' + ') + T(body) : T((c.re < 0 ? '−' : '') + body);
+      } else s += (s ? ' + ' : '') + T(`(${fmtc(c)})·${x}`);
+    });
+    return s || '0';
+  };
+  const polyWr = c => polyW(c.map(v => Math.abs(v) < 1e-12 ? 0 : v));
+  const L0 = 'ABCDEFGHK'; let li = 0; const nm = () => li < L0.length ? L0[li++] : 'X' + (++li);
+  let st = '';
+
+  // Hệ không có hồi tiếp: H(z) đã là đa thức theo z⁻¹
+  if (N === 0){
+    const terms = bn.map((c, k) => isZero(c) ? null : [c, k]).filter(Boolean);
+    st += `<li><div><b>Cách 1 · Mẫu số bằng 1</b> (hệ không có hồi tiếp), nên H(z) đã là đa thức theo z<sup>−1</sup>:<div class="sdm">H(z) = ${polyWr(bn)}</div>Mỗi số hạng c·z<sup>−k</sup> là “trễ k nhịp”, tra bảng ra c·δ(n − k):<div class="res math">h(n) = ${lin(terms.map(([c, k]) => [C(c), k ? `δ(n − ${k})` : 'δ(n)']))}</div><small class="muted">Nghĩa là h(n) chính là dãy hệ số của tử: ${bn.map(v => fmt(v)).join('; ')}.</small></div></li>`;
+    return {st, ev: n => (n >= 0 && n < bn.length ? bn[n] : 0)};
+  }
+
+  // ① Tách phần nguyên (khi bậc tử ≥ bậc mẫu)
+  let q = [], R = bn.slice();
+  if (M >= N){
+    const rem = bn.slice(); q = zeros(M - N + 1);
+    for (let k = M; k >= N; k--){ const c = rem[k] / an[N]; q[k - N] = c; for (let i = 0; i <= N; i++) rem[k - N + i] -= c * an[i]; }
+    R = rem.slice(0, N);
+  } else R = [...bn, ...zeros(N - 1 - M)];
+  R = R.map(v => Math.abs(v) < 1e-12 ? 0 : v);
+  const qName = M === N ? nm() : null;
+  if (M >= N){
+    if (M === N && N === 1){
+      const a1 = an[1], b0 = bn[0], b1 = bn[1], Aq = q[0], Bv = R[0];
+      const Bn = nm();
+      st += `<li><div><b>Cách 1 · Tách phần nguyên.</b> Tử và mẫu cùng bậc (đều có z<sup>−1</sup>) nên tách giống đổi phân số ra hỗn số (7/2 = 3 + 1/2). Tìm hai số ${qName}, ${Bn} sao cho:
+        <div class="sdm">${T('tử = ' + qName + '·(mẫu) + ' + Bn)}: &nbsp; ${T(polyWr(bn) + ' =')} ${T(qName + '·(' + polyWr(an) + ') + ' + Bn)}</div>
+        Phá ngoặc vế phải, gom phần không có z<sup>−1</sup> và phần đi với z<sup>−1</sup>:
+        <div class="sdm">${T(polyWr(bn) + ' =')} ${T('(' + qName + ' + ' + Bn + ')')} + ${T('(' + fmt(a1) + '·' + qName + ')·z<sup>−1</sup>')}</div>
+        Hai vế bằng nhau với mọi z nên phần tương ứng phải bằng nhau (giống lớp 8: 3 + 5x = a + bx thì a = 3, b = 5):
+        <div class="tbl-wrap"><table class="t"><tr><th>Phần</th><th>Vế trái</th><th>Vế phải</th><th>Phương trình</th></tr>
+        <tr><td>đi với z<sup>−1</sup></td><td class="m">${fmt(b1)}</td><td class="m">${fmt(a1)}·${qName}</td><td class="m nw">${fmt(a1)}·${qName} = ${fmt(b1)} ⇒ <b>${qName} = ${fmt(Aq)}</b></td></tr>
+        <tr><td>không có z<sup>−1</sup></td><td class="m">${fmt(b0)}</td><td class="m">${qName} + ${Bn}</td><td class="m nw">${vp(C(Aq))} + ${Bn} = ${fmt(b0)} ⇒ <b>${Bn} = ${fmt(Bv)}</b></td></tr></table></div>
+        Kiểm tra: ${T(fmt(Aq) + '·(' + polyWr(an) + ') + ' + vp(C(Bv)))} = ${T(polyWr(bn))} ✓
+        <div class="sdm big">H(z) = ${T(fmt(Aq))} ${Bv < 0 ? '−' : '+'} ${T(frac(fmt(Math.abs(Bv)), polyWr(an)))}</div></div></li>`;
+      // mảnh còn lại đã có dạng bảng
+      const p = C(-a1);
+      return hn1Tail(A, {q, pieces: [{p, j: 1, X: C(Bv), name: Bn}], lin, T, cv, vp, facW, st, R, an, N, qName});
+    }
+    if (M === N){
+      st += `<li><div><b>Cách 1 · Tách phần nguyên.</b> Tử và mẫu cùng bậc (z<sup>−${N}</sup>) nên viết tử = ${qName}·(mẫu) + R, với R là phần dư có bậc thấp hơn mẫu.
+        <div class="sdm">${T(polyWr(bn) + ' =')} ${T(qName + '·(' + polyWr(an) + ')')} + R</div>
+        So hệ số của lũy thừa cao nhất z<sup>−${N}</sup> (phần dư R không có lũy thừa này): <span class="nw">${fmt(an[N])}·${qName} = ${fmt(bn[N])}</span> ⇒ <b class="nw">${qName} = ${fmt(q[0])}</b>.
+        <div class="sdm">R = tử − ${qName}·(mẫu) = ${T('(' + polyWr(bn) + ')')} − ${T(vp(C(q[0])) + '·(' + polyWr(an) + ')')} = ${T(polyWr(R))}</div>
+        <div class="sdm big">H(z) = ${T(fmt(q[0]))} + ${T(frac(polyWr(R), polyWr(an)))}</div></div></li>`;
+    } else {
+      st += `<li><div><b>Cách 1 · Tách phần nguyên.</b> Tử (z<sup>−${M}</sup>) có bậc cao hơn mẫu (z<sup>−${N}</sup>), nên chia đa thức theo z<sup>−1</sup>, bắt đầu từ lũy thừa cao nhất, được thương Q và phần dư R:
+        <div class="sdm">Q = ${T(polyWr(q))}, &nbsp; R = ${T(polyWr(R))}</div>
+        <div class="sdm big">H(z) = ${T(polyWr(q))} + ${T(frac(polyWr(R), polyWr(an)))}</div></div></li>`;
+    }
+  } else {
+    st += `<li><div><b>Cách 1 · Kiểm tra bậc.</b> Tử (z<sup>−${M}</sup>) có bậc thấp hơn mẫu (z<sup>−${N}</sup>), nên không có phần nguyên, tách thẳng phân thức ở bước sau.</div></li>`;
+  }
+  // ② Tách R/(mẫu) thành các mảnh
+  const poles = A.pz.poles.filter(o => cabs(o.z) > 1e-12);
+  const pmul = (a, b) => { const r = Array.from({length: a.length + b.length - 1}, () => C(0)); a.forEach((x, i) => b.forEach((y, j) => r[i + j] = cadd(r[i + j], cmul(x, y)))); return r; };
+  const facP = (p, e) => { let r = [C(1)]; for (let i = 0; i < e; i++) r = pmul(r, [C(1), C(-p.re, -p.im)]); return r; };
+  let prod = [C(1)]; poles.forEach(o => prod = pmul(prod, facP(o.z, o.m)));
+  const okF = prod.length === an.length && prod.every((c, i) => cabs(csub(c, C(an[i]))) < 1e-5 * (1 + Math.abs(an[i])));
+  if (!okF){
+    st += `<li><div class="warn">Hệ này có điểm cực và điểm không triệt tiêu nhau, nên mẫu không viết gọn được thành tích các thừa số như cách 1 cần. Anh/chị chọn <b>cách 2</b> ở trên.</div></li>`;
+    return {st, ev: null};
+  }
+  const pieces = [];
+  poles.forEach(o => { for (let j = 1; j <= o.m; j++) pieces.push({p: o.z, j, s: o.m, name: nm()}); });
+  if (N === 1){
+    const P = pieces[0]; P.X = C(R[0]);
+    st += `<li><div><b>Mảnh còn lại đã đúng dạng bảng tra</b> ${T(frac(cv(P.X), facW(P.p, 'bare')))}, không cần tách thêm.</div></li>`;
+    return hn1Tail(A, {q, pieces, lin, T, cv, vp, facW, st, R, an, N, qName});
+  }
+  // cột hệ số: P_ij(z⁻¹) = mẫu / (1 − p_i z⁻¹)^j
+  pieces.forEach(P => {
+    let r = [C(1)]; const parts = [];
+    poles.forEach(o => { const e = o.z === P.p ? o.m - P.j : o.m; if (e > 0){ r = pmul(r, facP(o.z, e)); parts.push(facW(o.z, e)); } });
+    while (r.length < N) r.push(C(0));
+    P.col = r; P.parts = parts.join('') || '1';
+  });
+  const mau = poles.map(o => facW(o.z, o.m)).join('');
+  st += `<li><div><b>Phân tích mẫu thành thừa số.</b> Mỗi cực p cho một thừa số (1 − p·z<sup>−1</sup>):<div class="sdm">${T(polyWr(an) + ' =')} ${T(mau)}</div><small class="muted">Nhân các thừa số lại sẽ ra đúng mẫu số ban đầu.</small></div></li>`;
+  st += `<li><div><b>Viết phần ${frac(polyWr(R), 'mẫu')} thành tổng các mảnh</b>, mỗi thừa số ở mẫu cho một mảnh${poles.some(o => o.m > 1) ? ' (thừa số lặp lại m lần cho m mảnh)' : ''}, hệ số ${pieces.map(P => P.name).join(', ')} chưa biết:
+    <div class="sdm">${T(frac(polyWr(R), mau) + ' =')} ${pieces.map(P => T(frac(P.name, facW(P.p, P.j === 1 ? 'bare' : P.j)))).join(' + ')}</div>
+    <b>Quy đồng:</b> nhân cả hai vế với mẫu ${T(mau)}. Mỗi mảnh nhân với các thừa số mà nó còn thiếu:
+    <div class="sdm">${T(polyWr(R) + ' =')} ${pieces.map(P => T(P.parts === '1' ? P.name : `${P.name}·${P.parts}`)).join(' + ')}</div>
+    <b>Phá ngoặc, gom theo lũy thừa của z<sup>−1</sup>:</b>
+    <div class="sdm">${T(polyWr(R) + ' =')} ${Array.from({length: N}, (_, m) => T('[' + lin(pieces.map(P => [P.col[m], P.name])) + ']' + (m ? '·' + W(m) : ''))).join(' + ')}</div></div></li>`;
+  // hệ phương trình
+  const eqs = Array.from({length: N}, (_, m) => ({m, row: pieces.map(P => P.col[m]), rhs: R[m] || 0}));
+  st += `<li><div><b>So hệ số từng lũy thừa</b> ở hai vế (hai vế bằng nhau với mọi z), được ${N} phương trình cho ${N} ẩn:
+    <div class="tbl-wrap"><table class="t"><tr><th>Lũy thừa</th><th>Vế trái</th><th>Phương trình</th></tr>${eqs.map((e, i) => `<tr><td class="m">${e.m ? W(e.m) : 'không có z<sup>−1</sup>'}</td><td class="m">${fmt(e.rhs)}</td><td class="m">(${i + 1}) &nbsp;${lin(pieces.map((P, k) => [e.row[k], P.name]))} = ${fmt(e.rhs)}</td></tr>`).join('')}</table></div></div></li>`;
+  // giải hệ (khử Gauss, số phức)
+  const Mx = eqs.map(e => [...e.row.map(c => C(c.re, c.im)), C(e.rhs)]);
+  for (let c = 0; c < N; c++){
+    let pv = c; for (let r = c + 1; r < N; r++) if (cabs(Mx[r][c]) > cabs(Mx[pv][c])) pv = r;
+    [Mx[c], Mx[pv]] = [Mx[pv], Mx[c]];
+    for (let r = 0; r < N; r++){ if (r === c) continue; const f = cdiv(Mx[r][c], Mx[c][c]); for (let k = c; k <= N; k++) Mx[r][k] = csub(Mx[r][k], cmul(f, Mx[c][k])); }
+  }
+  pieces.forEach((P, k) => P.X = cdiv(Mx[k][N], Mx[k][k]));
+  if (N === 2){
+    const [P1, P2] = pieces, r0 = C(eqs[0].rhs), r1 = C(eqs[1].rhs), c1 = eqs[1].row[0], c2 = eqs[1].row[1];
+    const lhs = csub(r1, cmul(c1, r0)), k2 = csub(c2, c1);
+    st += `<li><div><b>Giải hệ bằng phương pháp thế.</b><div class="cvs"><div class="cv">
+      <div class="cvr"><span class="cn">①</span><div>Từ (1): <span class="nw">${P1.name} = ${cv(r0)} − ${P2.name}</span></div></div>
+      <div class="cvr"><span class="cn">②</span><div>Thế vào (2):<div class="sdm">${T(vp(c1) + '·(' + cv(r0) + ' − ' + P2.name + ')')} + ${T(vp(c2) + '·' + P2.name + ' = ' + cv(r1))}</div>Chuyển số sang vế phải, gom ${P2.name}:<div class="sdm">${T('[' + vp(c2) + ' − ' + vp(c1) + ']·' + P2.name)} = ${T(cv(r1) + ' − ' + vp(c1) + '·' + vp(r0))} &nbsp;⇒&nbsp; ${T(vp(k2) + '·' + P2.name + ' = ' + cv(lhs))}</div></div></div>
+      <div class="cvr"><span class="cn">③</span><div><div class="sdm"><b>${P2.name}</b> = ${T(frac(cv(lhs), cv(k2)))} = <b class="hl">${cv(P2.X)}</b></div><div class="sdm"><b>${P1.name}</b> = ${T(cv(r0) + ' − ' + vp(P2.X))} = <b class="hl">${cv(P1.X)}</b></div></div></div></div></div></div></li>`;
+  } else {
+    st += `<li><div><b>Giải hệ ${N} phương trình ${N} ẩn</b> (thế dần từng ẩn, hoặc dùng máy tính cầm tay). Phần mềm giải sẵn:<div class="sdm">${pieces.map(P => T(`<b>${P.name}</b> = <b class="hl">${cv(P.X)}</b>`)).join(', &nbsp;')}</div><small class="muted">Hệ có từ 3 cực trở lên thì cách 2 nhanh hơn, vì mỗi hệ số chỉ cần một phép tính.</small></div></li>`;
+  }
+  return hn1Tail(A, {q, pieces, lin, T, cv, vp, facW, st, R, an, N, qName});
+}
+function hn1Tail(A, o){
+  const {q, pieces, lin, T, cv, facW} = o; let st = o.st;
+  const W = k => k === 0 ? '' : `z<sup>−${k}</sup>`;
+  const live = pieces.filter(P => cabs(P.X) > 1e-10);
+  const qTerms = q.map((c, k) => [C(c), k]).filter(([c]) => cabs(c) > 1e-12);
+  const hz = [...qTerms.map(([c, k]) => T(k ? `${cv(c)}·${W(k)}` : cv(c))), ...live.map(P => T(`${Math.abs(P.X.im) < 1e-9 ? cv(P.X) : '(' + cv(P.X) + ')'}·${frac('1', facW(P.p, P.j === 1 ? 'bare' : P.j))}`))].join(' + ').replace(/\+ <span class="nw">−/g, '− <span class="nw">');
+  st += `<li><div><b>Ghép lại H(z)</b> với các số vừa tìm:<div class="sdm big">H(z) = ${hz}</div></div></li>`;
+  const ps = p => Math.abs(p.im) < 1e-9 ? (p.re < 0 || !Number.isInteger(+p.re.toFixed(9)) ? `(${fmt(p.re)})` : fmt(p.re)) : `(${fmtc(p)})`;
+  const bin = j => j === 1 ? '' : j === 2 ? '(n + 1)·' : j === 3 ? '[(n + 1)(n + 2)/2]·' : `C(n+${j - 1}, ${j - 1})·`;
+  const rows = [...qTerms.map(([c, k]) => [k ? `${cv(c)}·${W(k)}` : `${cv(c)} (hằng số)`, k ? `${cv(c)}·δ(n − ${k})` : `${cv(c)}·δ(n)`]),
+    ...live.map(P => [`${Math.abs(P.X.im) < 1e-9 ? cv(P.X) : '(' + cv(P.X) + ')'}·${frac('1', facW(P.p, P.j === 1 ? 'bare' : P.j))}`, `${Math.abs(P.X.im) < 1e-9 ? cv(P.X) : '(' + cv(P.X) + ')'}·${bin(P.j)}${ps(P.p)}<sup>n</sup>·u(n)`])];
+  const hn = lin([...qTerms.map(([c, k]) => [c, k ? `δ(n − ${k})` : 'δ(n)']), ...live.map(P => [P.X, `${bin(P.j)}${ps(P.p)}<sup>n</sup>·u(n)`])]);
+  const hasRep = live.some(P => P.j > 1), hasCx = live.some(P => Math.abs(P.p.im) > 1e-9);
+  st += `<li><div><b>Tra bảng từng mảnh</b> về miền n. Viết theo z<sup>−1</sup> thì bảng tra là:
+    <div class="tbl-wrap" style="margin:6px 0 8px"><table class="t lk"><tr><th>Miền z (theo z<sup>−1</sup>)</th><th>Miền n</th><th>Ghi chú</th></tr>
+    <tr><td class="m">c (hằng số)</td><td class="m">c·δ(n)</td><td>chỉ có ở n = 0</td></tr>
+    <tr><td class="m">c·z<sup>−k</sup></td><td class="m">c·δ(n − k)</td><td>trễ k nhịp</td></tr>
+    <tr><td class="m"><b>1/(1 − a·z<sup>−1</sup>)</b></td><td class="m"><b>aⁿ·u(n)</b></td><td>chính là z/(z − a) trong bảng bài giảng (nhân tử, mẫu với z)</td></tr>
+    <tr><td class="m">1/(1 − a·z<sup>−1</sup>)²</td><td class="m">(n + 1)·aⁿ·u(n)</td><td>khi cực lặp lại 2 lần</td></tr></table></div>
+    Áp dụng cho từng mảnh:
+    <div class="tbl-wrap"><table class="t"><tr><th>Mảnh</th><th>Miền n</th></tr>${rows.map(r => `<tr><td class="m">${r[0]}</td><td class="m">${r[1]}</td></tr>`).join('')}</table></div>
+    <div class="res math">h(n) = ${hn}</div>${hasCx || hasRep ? `<small class="muted">${hasCx ? 'Hai mảnh có cực phức liên hợp cộng lại thành số thực. ' : ''}Viết gọn như cách 2 (cùng một dãy số): h(n) = ${termsHTML(A.res, A.roc)}</small>` : '<small class="muted">Trùng với kết quả của cách 2.</small>'}</div></li>`;
+  const ev = n => { let v = 0; q.forEach((c, k) => { if (n === k) v += c; }); if (n >= 0) live.forEach(P => { let b = 1; for (let i = 1; i < P.j; i++) b = b * (n + i) / i; v += cmul(P.X, cpowi(P.p, n)).re * b; }); return v; };
+  return {st, ev};
+}
+let hnMethod = '1';
+function hnSteps(A){
+  const pick = `<li><div><b>Tìm h(n) = Z<sup>−1</sup>[H(z)]: chọn cách giải</b>
+    <div class="chips" id="hn-meth" style="margin:8px 0 6px"><button type="button" class="chip small" data-hm="1" aria-pressed="${hnMethod === '1'}">Cách 1: đồng nhất hệ số</button><button type="button" class="chip small" data-hm="2" aria-pressed="${hnMethod === '2'}">Cách 2: chia cho z (bài giảng)</button></div>
+    <p class="key" style="margin:0">Hai cách luôn ra cùng h(n). <b>Cách 1</b> làm thẳng trên z<sup>−1</sup>: tách phần nguyên như đổi phân số ra hỗn số, rồi so hệ số hai vế (kiến thức lớp 8); dễ hiểu với hệ bậc 1, bậc 2. <b>Cách 2</b> là cách trong bài giảng: chia H(z) cho z, mỗi hệ số chỉ cần một phép tính; nhanh hơn khi hệ có nhiều cực.</p></div></li>`;
+  let r = hnMethod === '1' ? hnSteps1(A) : hnSteps2(A);
+  if (!r.st && hnMethod === '1') r = hnSteps2(A);
+  if (!r.st) return '';
+  let chk = '';
+  if (r.ev){
+    const rows = [0, 1, 2, 3].map(n => { const f = r.ev(n); return `<tr><td class="m">${n}</td><td class="m">${fmt(A.h[n])}</td><td class="m">${fmt(f)}</td><td>${Math.abs(A.h[n] - f) < 1e-6 * (1 + Math.abs(A.h[n])) ? '<span class="ok">✓</span>' : '<span class="no-ok">✗</span>'}</td></tr>`; }).join('');
+    chk = `<li><div><b>Kiểm tra</b>: cho x = 1, 0, 0, … chạy phương trình sai phân từng nhịp (tính lặp), so với công thức vừa tìm:<div class="tbl-wrap"><table class="t"><tr><th>n</th><th>Tính lặp từ phương trình</th><th>Theo công thức h(n)</th><th></th></tr>${rows}</table></div><small class="muted">Hai cột trùng nhau → lời giải đúng.</small></div></li>`;
+  }
+  return pick + r.st + chk;
 }
 function renderHt(){
   const s = readSys();
@@ -1147,10 +1323,11 @@ const EX = [
    ['Viết theo lũy thừa dương', 'Nhân cả tử và mẫu với z (giá trị phân số không đổi) để dễ tìm nghiệm. Slide in nhầm kết quả này; đây là kết quả đúng.' + M('H(z) = ' + F('z − 3', 'z − 2'))],
    ['Tìm điểm cực, điểm không', 'Điểm cực: cho <b>mẫu</b> = 0 → z − 2 = 0 → <b>z = 2</b>.<br>Điểm không: cho tử = 0 → z − 3 = 0 → z = 3.'],
    ['Xét ổn định', 'Chỉ nhìn điểm cực: |2| = 2 &gt; 1, cực nằm ngoài vòng tròn đơn vị → <b>không ổn định</b>. Điểm không z = 3 không ảnh hưởng đến ổn định.'],
-   ['Tìm h(n): chia H(z) cho z', 'Bảng tra chỉ có dạng z/(z − a), nên chia H(z) cho z rồi tách thành các mảnh nhỏ:' + M(F('H(z)', 'z') + ' = ' + F('z − 3', 'z·(z − 2)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z − 2'))],
+   ['Cách 2 · Tìm h(n): chia H(z) cho z', 'Bảng tra chỉ có dạng z/(z − a), nên chia H(z) cho z rồi tách thành các mảnh nhỏ:' + M(F('H(z)', 'z') + ' = ' + F('z − 3', 'z·(z − 2)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z − 2'))],
    ['Tìm A: nhân hai vế với (z − 2) rồi thay z = 2', 'Nhân cả hai vế của đẳng thức bước 8 với (z − 2). Vế trái: (z − 2) ở tử và mẫu triệt tiêu. Vế phải: mảnh A triệt tiêu, mảnh B còn nhân (z − 2):' + M(F('z − 3', 'z') + ' = A + B·' + F('z − 2', 'z')) + 'Bây giờ vế trái không còn (z − 2) ở mẫu. Thay z = 2 (làm z − 2 = 0, mảnh B mất):' + M(F('2 − 3', '2') + ' = A + B·' + F('0', '2') + '  ⇒  <b>A = −0,5</b>')],
    ['Tìm B: nhân hai vế với z rồi thay z = 0', 'Làm y hệt: nhân cả hai vế của bước 8 với z, z ở tử và mẫu triệt tiêu:' + M(F('z − 3', 'z − 2') + ' = A·' + F('z', 'z − 2') + ' + B') + 'Thay z = 0 (mảnh A mất):' + M(F('0 − 3', '0 − 2') + ' = A·0 + B  ⇒  <b>B = 1,5</b>') + 'Khi đã quen, việc “nhân hai vế rồi thay số” được làm gộp, gọi tắt là <b>mẹo che</b>: che thừa số ở mẫu, thay số vào phần còn lại.'],
-   ['Tra bảng về miền n', 'Nhân trả lại z: H(z) = 1,5 − 0,5·z/(z − 2). Hằng số 1,5 → 1,5δ(n); z/(z − 2) → 2ⁿ.' + M('h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n)')]
+   ['Tra bảng về miền n', 'Nhân trả lại z: H(z) = 1,5 − 0,5·z/(z − 2). Hằng số 1,5 → 1,5δ(n); z/(z − 2) → 2ⁿ.' + M('h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n)')],
+   ['Cách 1: đồng nhất hệ số (cùng kết quả)', 'Làm thẳng trên z⁻¹, không cần chia cho z. Tử và mẫu cùng bậc (đều có z⁻¹), nên viết tử = A·(mẫu) + B, giống đổi 7/2 = 3 + 1/2:' + M('1 − 3z⁻¹ = A·(1 − 2z⁻¹) + B = (A + B) − 2A·z⁻¹') + 'So hệ số hai vế: phần đi với z⁻¹: −2A = −3 ⇒ <b>A = 1,5</b>; phần không có z⁻¹: A + B = 1 ⇒ <b>B = −0,5</b>.' + M('H(z) = 1,5 − 0,5·' + F('1', '1 − 2z⁻¹') + '') + 'Tra bảng: hằng số → δ(n); 1/(1 − a·z⁻¹) → aⁿ·u(n):' + M('h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n)') + 'Trùng với cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 2y(n−1) + x(n) − 3x(n−1)', 'Theo công thức'], r: [['0', '0 + 1 − 0 = 1', '1,5 − 0,5 = 1 ✓'], ['1', '2·1 + 0 − 3·1 = −1', '−0,5·2 = −1 ✓'], ['2', '2·(−1) = −2', '−0,5·4 = −2 ✓'], ['3', '2·(−2) = −4', '−0,5·8 = −4 ✓']], note: 'Gõ một cái: x = 1, 0, 0, 0… Hai cách cho cùng kết quả → lời giải đúng.'},
   a: 'H(z) = (z − 3)/(z − 2); cực z = 2 → không ổn định; h(n) = 1,5δ(n) − 0,5·2ⁿ·u(n).',
@@ -1165,8 +1342,9 @@ const EX = [
    ['Đặt nhân tử chung', M('Y·(1 + 0,5z⁻¹) = X·(2 + 3z⁻¹)')],
    ['Ra H(z)', 'Chia, rồi nhân tử và mẫu với z:' + M('H(z) = ' + F('2 + 3z⁻¹', '1 + 0,5z⁻¹') + ' = ' + F('2z + 3', 'z + 0,5'))],
    ['Cực, không, ổn định', 'Cực: z + 0,5 = 0 → <b>z = −0,5</b>; |−0,5| = 0,5 &lt; 1 → <b>ổn định</b>.<br>Không: 2z + 3 = 0 → z = −1,5.'],
-   ['Tìm h(n): chia z rồi che', M(F('H(z)', 'z') + ' = ' + F('2z + 3', 'z·(z + 0,5)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z + 0,5')) + 'Che z, thay z = 0: A = 3/0,5 = <b>6</b>.<br>Che (z + 0,5), thay z = −0,5: B = (−1 + 3)/(−0,5) = <b>−4</b>.'],
-   ['Tra bảng', 'z/(z + 0,5) chính là z/(z − (−0,5)) → (−0,5)ⁿ.' + M('h(n) = 6δ(n) − 4·(−0,5)ⁿ·u(n)')]
+   ['Cách 2 · Tìm h(n): chia z rồi che', M(F('H(z)', 'z') + ' = ' + F('2z + 3', 'z·(z + 0,5)') + ' = ' + F('A', 'z') + ' + ' + F('B', 'z + 0,5')) + 'Che z, thay z = 0: A = 3/0,5 = <b>6</b>.<br>Che (z + 0,5), thay z = −0,5: B = (−1 + 3)/(−0,5) = <b>−4</b>.'],
+   ['Tra bảng', 'z/(z + 0,5) chính là z/(z − (−0,5)) → (−0,5)ⁿ.' + M('h(n) = 6δ(n) − 4·(−0,5)ⁿ·u(n)')],
+   ['Cách 1: đồng nhất hệ số (cùng kết quả)', 'Tử và mẫu cùng bậc, viết tử = A·(mẫu) + B:' + M('2 + 3z⁻¹ = A·(1 + 0,5z⁻¹) + B = (A + B) + 0,5A·z⁻¹') + 'So hệ số: phần đi với z⁻¹: 0,5A = 3 ⇒ <b>A = 6</b>; phần không có z⁻¹: A + B = 2 ⇒ <b>B = −4</b>.' + M('H(z) = 6 − 4·' + F('1', '1 + 0,5z⁻¹') + '  ⇒  h(n) = 6δ(n) − 4·(−0,5)ⁿ·u(n)') + 'Trùng với cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 2x(n) + 3x(n−1) − 0,5y(n−1)', 'Theo công thức'], r: [['0', '2·1 + 0 − 0 = 2', '6 − 4 = 2 ✓'], ['1', '0 + 3·1 − 0,5·2 = 2', '−4·(−0,5) = 2 ✓'], ['2', '0 + 0 − 0,5·2 = −1', '−4·0,25 = −1 ✓'], ['3', '−0,5·(−1) = 0,5', '−4·(−0,125) = 0,5 ✓']]},
   a: 'H(z) = (2z + 3)/(z + 0,5); cực −0,5 → ổn định; h(n) = 6δ(n) − 4·(−0,5)ⁿ·u(n).',
@@ -1179,9 +1357,10 @@ const EX = [
    ['Đổi sang miền z', 'Lùi 2 nhịp thì nhân z⁻².' + M('Y − 0,9z⁻¹Y + 0,2z⁻²Y = X + z⁻¹X')],
    ['Ra H(z)', 'Nhân tử và mẫu với z²:' + M('H(z) = ' + F('1 + z⁻¹', '1 − 0,9z⁻¹ + 0,2z⁻²') + ' = ' + F('z² + z', 'z² − 0,9z + 0,2'))],
    ['Giải mẫu số tìm cực', 'z² − 0,9z + 0,2 = 0: Δ = 0,81 − 0,8 = 0,01; √Δ = 0,1 → z = (0,9 ± 0,1)/2 → <b>0,5</b> và <b>0,4</b>.<br>Cả hai nhỏ hơn 1 → <b>ổn định</b>.'],
-   ['Chia cho z, chuẩn bị tách', M(F('H(z)', 'z') + ' = ' + F('z + 1', '(z − 0,5)(z − 0,4)') + ' = ' + F('A', 'z − 0,5') + ' + ' + F('B', 'z − 0,4'))],
+   ['Cách 2 · Chia cho z, chuẩn bị tách', M(F('H(z)', 'z') + ' = ' + F('z + 1', '(z − 0,5)(z − 0,4)') + ' = ' + F('A', 'z − 0,5') + ' + ' + F('B', 'z − 0,4'))],
    ['Mẹo che', 'Che (z − 0,5), thay z = 0,5: A = 1,5/(0,5 − 0,4) = 1,5/0,1 = <b>15</b>.<br>Che (z − 0,4), thay z = 0,4: B = 1,4/(0,4 − 0,5) = 1,4/(−0,1) = <b>−14</b>.'],
-   ['Tra bảng', M('h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n)')]
+   ['Tra bảng', M('h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n)')],
+   ['Cách 1: đồng nhất hệ số (cùng kết quả)', 'Tử (z⁻¹) bậc thấp hơn mẫu (z⁻²) nên không có phần nguyên. Mẫu = (1 − 0,5z⁻¹)(1 − 0,4z⁻¹), viết:' + M('' + F('1 + z⁻¹', '(1 − 0,5z⁻¹)(1 − 0,4z⁻¹)') + ' = ' + F('A', '1 − 0,5z⁻¹') + ' + ' + F('B', '1 − 0,4z⁻¹') + '') + 'Quy đồng (nhân hai vế với mẫu), phá ngoặc, gom theo z⁻¹:' + M('1 + z⁻¹ = A·(1 − 0,4z⁻¹) + B·(1 − 0,5z⁻¹) = (A + B) + (−0,4A − 0,5B)·z⁻¹') + 'So hệ số hai vế:' + M('(1)  A + B = 1') + '' + M('(2)  −0,4A − 0,5B = 1') + 'Từ (1): A = 1 − B. Thế vào (2):' + M('−0,4·(1 − B) − 0,5B = 1  ⇒  −0,1B = 1,4  ⇒  B = −14') + 'Suy ra <b>A = 1 − (−14) = 15</b>, <b>B = −14</b>.<br>Ra cùng h(n) = 15·(0,5)ⁿ − 14·(0,4)ⁿ như cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 0,9y(n−1) − 0,2y(n−2) + x(n) + x(n−1)', 'Theo công thức'], r: [['0', '1', '15 − 14 = 1 ✓'], ['1', '0,9·1 + 1 = 1,9', '7,5 − 5,6 = 1,9 ✓'], ['2', '0,9·1,9 − 0,2·1 = 1,51', '3,75 − 2,24 = 1,51 ✓'], ['3', '0,9·1,51 − 0,2·1,9 = 0,979', '1,875 − 0,896 = 0,979 ✓']]},
   a: 'H(z) = (z² + z)/(z² − 0,9z + 0,2); cực 0,5 và 0,4 → ổn định; h(n) = [15·(0,5)ⁿ − 14·(0,4)ⁿ]·u(n).',
@@ -1232,7 +1411,8 @@ const EX = [
    ['Nhân hai hàm truyền', M('H = H₁·H₂ = ' + F('1', '(1 − 0,5z⁻¹)(1 − 0,2z⁻¹)'))],
    ['Phá ngoặc mẫu số', '(1 − 0,5z⁻¹)(1 − 0,2z⁻¹) = 1 − 0,2z⁻¹ − 0,5z⁻¹ + 0,1z⁻² = 1 − 0,7z⁻¹ + 0,1z⁻².' + M('H(z) = ' + F('1', '1 − 0,7z⁻¹ + 0,1z⁻²'))],
    ['Cực và ổn định', 'Mẫu ở dạng tích nên đọc được cực ngay: <b>0,5</b> và <b>0,2</b>, đúng bằng cực của từng khối. Cả hai &lt; 1 → <b>ổn định</b>.'],
-   ['Tìm h(n)', M(F('H(z)', 'z') + ' = ' + F('z', '(z − 0,5)(z − 0,2)')) + 'Che (z − 0,5), thay z = 0,5: A = 0,5/0,3 = <b>5/3</b>.<br>Che (z − 0,2), thay z = 0,2: B = 0,2/(−0,3) = <b>−2/3</b>.' + M('h(n) = [(5/3)·(0,5)ⁿ − (2/3)·(0,2)ⁿ]·u(n)')]
+   ['Cách 2 · Tìm h(n)', M(F('H(z)', 'z') + ' = ' + F('z', '(z − 0,5)(z − 0,2)')) + 'Che (z − 0,5), thay z = 0,5: A = 0,5/0,3 = <b>5/3</b>.<br>Che (z − 0,2), thay z = 0,2: B = 0,2/(−0,3) = <b>−2/3</b>.' + M('h(n) = [(5/3)·(0,5)ⁿ − (2/3)·(0,2)ⁿ]·u(n)')],
+   ['Cách 1: đồng nhất hệ số (cùng kết quả)', 'Viết H thành tổng hai mảnh rồi quy đồng, phá ngoặc:' + M('1 = A·(1 − 0,2z⁻¹) + B·(1 − 0,5z⁻¹) = (A + B) + (−0,2A − 0,5B)·z⁻¹') + 'So hệ số hai vế:' + M('(1)  A + B = 1') + '' + M('(2)  −0,2A − 0,5B = 0') + 'Từ (1): A = 1 − B. Thế vào (2):' + M('−0,2·(1 − B) − 0,5B = 0  ⇒  −0,3B = 0,2  ⇒  B = −2/3') + 'Suy ra <b>A = 1 − (−2/3) = 5/3</b>, <b>B = −2/3</b>. Trùng với cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 0,7y(n−1) − 0,1y(n−2) + x(n)', 'Theo công thức'], r: [['0', '1', '5/3 − 2/3 = 1 ✓'], ['1', '0,7·1 = 0,7', '5/6 − 2/15 = 0,7 ✓'], ['2', '0,7·0,7 − 0,1·1 = 0,39', '5/12 − 2/75 = 0,39 ✓']]},
   a: 'H(z) = 1/(1 − 0,7z⁻¹ + 0,1z⁻²); cực 0,5 và 0,2 → ổn định.',
@@ -1271,9 +1451,10 @@ const EX = [
    ['Đổi sang miền z', 'Điều kiện đầu y(−1) = y(−2) = 0 (máy bắt đầu từ trạng thái nghỉ) nên không có số hạng phụ.' + M('Y − 3z⁻¹Y + 2z⁻²Y = X  ⇒  Y·(1 − 3z⁻¹ + 2z⁻²) = X')],
    ['Đổi đầu vào sang miền z', 'x(n) = 3ⁿ⁻² = 3ⁿ/3² = (1/9)·3ⁿ. Tra bảng: 3ⁿ → z/(z − 3).' + M('X = ' + F('1', '9') + '·' + F('z', 'z − 3'))],
    ['Gọn mẫu số', 'Nhân tử và mẫu với z²: 1 − 3z⁻¹ + 2z⁻² thành z² − 3z + 2 = (z − 1)(z − 2).' + M('Y = X·' + F('z²', '(z − 1)(z − 2)') + ' = ' + F('z³', '9(z − 1)(z − 2)(z − 3)'))],
-   ['Chia cho z, chuẩn bị tách', M(F('Y', 'z') + ' = ' + F('z²', '9(z − 1)(z − 2)(z − 3)') + ' = ' + F('B₁', 'z − 1') + ' + ' + F('B₂', 'z − 2') + ' + ' + F('B₃', 'z − 3'))],
+   ['Cách 2 · Chia cho z, chuẩn bị tách', M(F('Y', 'z') + ' = ' + F('z²', '9(z − 1)(z − 2)(z − 3)') + ' = ' + F('B₁', 'z − 1') + ' + ' + F('B₂', 'z − 2') + ' + ' + F('B₃', 'z − 3'))],
    ['Mẹo che', 'Tử luôn là z², chỉ thay số:<br>B₁: che (z − 1), thay z = 1: 1/[9·(−1)·(−2)] = <b>1/18</b>.<br>B₂: che (z − 2), thay z = 2: 4/[9·1·(−1)] = <b>−4/9</b>.<br>B₃: che (z − 3), thay z = 3: 9/[9·2·1] = <b>1/2</b>.'],
-   ['Tra bảng về miền n', 'Nhân trả lại z, mỗi z/(z − a) → aⁿ (với a = 1 thì 1ⁿ = 1).' + M('y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n)')]
+   ['Tra bảng về miền n', 'Nhân trả lại z, mỗi z/(z − a) → aⁿ (với a = 1 thì 1ⁿ = 1).' + M('y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n)')],
+   ['Còn cách 1 (đồng nhất hệ số)?', 'Làm được, nhưng Y có 3 thừa số ở mẫu nên phải đặt 3 ẩn B₁, B₂, B₃ rồi giải hệ 3 phương trình. Cách 2 ở trên tính mỗi hệ số bằng một phép tính nên nhanh hơn nhiều. Quy tắc chọn: mẫu có 1–2 thừa số thì cách nào cũng được; từ 3 thừa số trở lên nên dùng cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 3y(n−1) − 2y(n−2) + x(n)', 'Theo công thức'], r: [['0', '0 − 0 + 1/9 = 1/9', '1/18 − 8/18 + 9/18 = 1/9 ✓'], ['1', '3·(1/9) + 1/3 = 2/3', '1/18 − 16/18 + 27/18 = 2/3 ✓'], ['2', '3·(2/3) − 2·(1/9) + 1 = 25/9', '1/18 − 32/18 + 81/18 = 25/9 ✓']], note: 'x = 1/9; 1/3; 1; 3… (vì 3⁻² = 1/9, 3⁻¹ = 1/3, 3⁰ = 1).'},
   a: 'y(n) = [1/18 − (4/9)·2ⁿ + (1/2)·3ⁿ]·u(n).',
@@ -1285,8 +1466,9 @@ const EX = [
   s: [
    ['Đổi sang miền z', 'u(n) = 1; 1; 1… tra bảng với a = 1: U = z/(z − 1).' + M('Y·(1 − 0,5z⁻¹) = ' + F('z', 'z − 1'))],
    ['Rút Y', '1 − 0,5z⁻¹ = (z − 0,5)/z, nên:' + M('Y = ' + F('z²', '(z − 0,5)(z − 1)'))],
-   ['Chia z và che', M(F('Y', 'z') + ' = ' + F('z', '(z − 0,5)(z − 1)')) + 'Che (z − 1), thay z = 1: 1/0,5 = <b>2</b>.<br>Che (z − 0,5), thay z = 0,5: 0,5/(−0,5) = <b>−1</b>.'],
-   ['Tra bảng', M('y(n) = 2·1ⁿ − 1·(0,5)ⁿ = 2 − (0,5)ⁿ,  n ≥ 0')]
+   ['Cách 2 · Chia z và che', M(F('Y', 'z') + ' = ' + F('z', '(z − 0,5)(z − 1)')) + 'Che (z − 1), thay z = 1: 1/0,5 = <b>2</b>.<br>Che (z − 0,5), thay z = 0,5: 0,5/(−0,5) = <b>−1</b>.'],
+   ['Tra bảng', M('y(n) = 2·1ⁿ − 1·(0,5)ⁿ = 2 − (0,5)ⁿ,  n ≥ 0')],
+   ['Cách 1: đồng nhất hệ số (cùng kết quả)', 'Viết Y theo z⁻¹: Y = 1/[(1 − 0,5z⁻¹)(1 − z⁻¹)] = A/(1 − z⁻¹) + B/(1 − 0,5z⁻¹). Quy đồng, phá ngoặc:' + M('1 = A·(1 − 0,5z⁻¹) + B·(1 − z⁻¹) = (A + B) + (−0,5A − B)·z⁻¹') + 'So hệ số hai vế:' + M('(1)  A + B = 1') + '' + M('(2)  −0,5A − B = 0') + 'Từ (1): B = 1 − A. Thế vào (2):' + M('−0,5A − (1 − A) = 0  ⇒  0,5A = 1  ⇒  A = 2') + 'Suy ra <b>A = 2</b>, <b>B = 1 − 2 = −1</b>.<br>Ra y(n) = 2 − (0,5)ⁿ, trùng cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = 0,5y(n−1) + 1', 'Theo công thức'], r: [['0', '0 + 1 = 1', '2 − 1 = 1 ✓'], ['1', '0,5 + 1 = 1,5', '2 − 0,5 = 1,5 ✓'], ['2', '0,75 + 1 = 1,75', '2 − 0,25 = 1,75 ✓']]},
   a: 'y(n) = 2 − (0,5)ⁿ: 1; 1,5; 1,75… tiến dần về 2.',
@@ -1312,8 +1494,9 @@ const EX = [
   s: [
    ['Ra H(z)', M('H(z) = ' + F('1', '1 + 0,1z⁻¹ − 0,2z⁻²') + ' = ' + F('z²', 'z² + 0,1z − 0,2'))],
    ['Tìm cực', 'z² + 0,1z − 0,2 = 0: Δ = 0,01 + 0,8 = 0,81; √Δ = 0,9 → z = (−0,1 ± 0,9)/2 → <b>0,4</b> và <b>−0,5</b>.'],
-   ['Chia z và che', M(F('H(z)', 'z') + ' = ' + F('z', '(z − 0,4)(z + 0,5)')) + 'Che (z − 0,4), thay z = 0,4: 0,4/0,9 = <b>4/9</b>.<br>Che (z + 0,5), thay z = −0,5: (−0,5)/(−0,9) = <b>5/9</b>.'],
-   ['Tra bảng', M('h(n) = [(4/9)·(0,4)ⁿ + (5/9)·(−0,5)ⁿ]·u(n)')]
+   ['Cách 2 · Chia z và che', M(F('H(z)', 'z') + ' = ' + F('z', '(z − 0,4)(z + 0,5)')) + 'Che (z − 0,4), thay z = 0,4: 0,4/0,9 = <b>4/9</b>.<br>Che (z + 0,5), thay z = −0,5: (−0,5)/(−0,9) = <b>5/9</b>.'],
+   ['Tra bảng', M('h(n) = [(4/9)·(0,4)ⁿ + (5/9)·(−0,5)ⁿ]·u(n)')],
+   ['Cách 1: đồng nhất hệ số (cùng kết quả)', 'Mẫu = (1 − 0,4z⁻¹)(1 + 0,5z⁻¹). Viết H = A/(1 − 0,4z⁻¹) + B/(1 + 0,5z⁻¹), quy đồng, phá ngoặc:' + M('1 = A·(1 + 0,5z⁻¹) + B·(1 − 0,4z⁻¹) = (A + B) + (0,5A − 0,4B)·z⁻¹') + 'So hệ số hai vế:' + M('(1)  A + B = 1') + '' + M('(2)  0,5A − 0,4B = 0') + 'Từ (1): A = 1 − B. Thế vào (2):' + M('0,5·(1 − B) − 0,4B = 0  ⇒  0,9B = 0,5  ⇒  B = 5/9') + 'Suy ra <b>A = 1 − 5/9 = 4/9</b>, <b>B = 5/9</b>. Trùng với cách 2.']
   ],
   chk: {h: ['n', 'Tính tay: y(n) = −0,1y(n−1) + 0,2y(n−2) + x(n)', 'Theo công thức'], r: [['0', '1', '4/9 + 5/9 = 1 ✓'], ['1', '−0,1·1 = −0,1', '(1,6 − 2,5)/9 = −0,1 ✓'], ['2', '−0,1·(−0,1) + 0,2·1 = 0,21', '(0,64 + 1,25)/9 = 0,21 ✓']]},
   a: 'h(n) = [(4/9)·(0,4)ⁿ + (5/9)·(−0,5)ⁿ]·u(n): 1; −0,1; 0,21…; ổn định.',
@@ -1415,6 +1598,7 @@ $('toggleCtl').addEventListener('click', () => { const h = document.body.classLi
 document.querySelectorAll('[data-sys]').forEach(b => b.addEventListener('click', () => { const [a, bb] = b.dataset.sys.split('|'); $('ht-a').value = a; $('ht-b').value = bb; renderHt(); }));
 $('sd-forms').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; sdForm = b.dataset.f; renderSd(); });
 $('sd-steps').addEventListener('click', e => { const b = e.target.closest('.sdgo'); if (!b) return; sdForm = b.dataset.f; renderSd(); const t = $('sd-title'); if (t.scrollIntoView) t.scrollIntoView({block: 'start', behavior: 'smooth'}); });
+$('ht-steps').addEventListener('click', e => { const b = e.target.closest('[data-hm]'); if (!b) return; hnMethod = b.dataset.hm; renderHt(); const t = $('hn-meth'); if (t && t.scrollIntoView) t.scrollIntoView({block: 'nearest'}); });
 $('sd-next').addEventListener('click', sdRunStep);
 $('sd-reset').addEventListener('click', () => { sdRunReset(); renderSd(); });
 $('sd-inp').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return; sdRun.inp = b.dataset.i; sdRunReset(); renderSd(); });
