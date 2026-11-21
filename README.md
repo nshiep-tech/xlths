@@ -14,7 +14,7 @@ Trang web: https://nshiep-tech.github.io/xlths/
 | `tich-chap.html` | Buổi 2 – Tích chập, phương trình sai phân, bài tập tính chất hệ |
 | `bien-doi-z.html` | Buổi 3 – Biến đổi Z, ROC, cực – không, Z ngược |
 | `he-thong-z.html` | Buổi 4 – Hàm truyền, sơ đồ khối, ghép hệ, Z một phía, ổn định, MATLAB |
-| `fourier.html` | Buổi 5 – Biến đổi Fourier rời rạc (DTFT), phổ biên độ/pha, điều kiện tồn tại, tính chất, Parseval |
+| `fourier.html` | Buổi 5 – Biến đổi Fourier rời rạc (DTFT): tab ★ "Cách vẽ phổ" (cộng vectơ x(n)e^(−jωn), chấm điểm lên |X| và φ), phổ biên độ/pha, điều kiện tồn tại, tính chất, Parseval, 29 bài tập có lời giải |
 | `dap-ung-tan-so.html` | Buổi 6 – Đáp ứng tần số H(e^jω), đánh giá hình học từ cực – không, freqz |
 | `bo-loc-ly-tuong.html` | Buổi 7 – Bộ lọc lý tưởng, phương trình sai phân, cấu trúc DF1/DF2/nối tiếp/song song |
 | `thiet-ke-fir.html` | Buổi 8 – Thiết kế FIR: phương pháp cửa sổ, chọn cửa sổ, Gibbs, lấy mẫu tần số, cấu trúc pha tuyến tính |
