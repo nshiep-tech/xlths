@@ -174,8 +174,31 @@
         <p class="key">Hai điểm kiểm tra nhanh: X(0) = Σx(n) (cộng hết các mẫu); X(π) = x(0) − x(1) + x(2) − … (cộng đan dấu).</p>
       </div>
       <div class="card">
-        <div class="plot-hd"><h3>Bước 3: cộng vectơ trên mặt phẳng phức</h3></div>
+        <div class="plot-hd"><h3>Bước 3: cộng vectơ trên mặt phẳng phức</h3>
+          <div class="seg2" id="ve-dim" role="group" aria-label="Chế độ xem"><button data-d="2d" aria-pressed="true">Dạng 2D</button><button data-d="3d" aria-pressed="false">Dạng 3D</button></div></div>
         <div class="plot" id="ve-ph"></div>
+        <div id="ve-3d" hidden>
+          <p class="key" style="margin:0 0 8px">Thêm trục thứ ba là <b>n</b>. Mẫu x(n) được đặt ở độ cao n. Khi n tăng, vectơ quay một góc −ω mỗi mẫu nên các đầu mũi tạo thành một <b>xoắn ốc</b>. Cộng các vectơ nối đuôi nhau thì đường cộng cũng leo dần theo n, còn <b>bóng của nó trên mặt sàn chính là hình 2D</b>. Chạm và kéo trên hình để xoay.</p>
+          <div class="plot" id="ve-ph3" style="touch-action:none;cursor:grab"></div>
+          <div id="ve-3leg"></div>
+          <div class="field" style="margin-top:8px"><span class="lbl">Chọn góc nhìn</span>
+            <div class="chips">
+              <button class="chip small" data-v3="0|90">Từ trên xuống (ra hình 2D)</button>
+              <button class="chip small" data-v3="0|0">Nhìn ngang: thấy cos</button>
+              <button class="chip small" data-v3="-90|0">Nhìn bên: thấy sin</button>
+              <button class="chip small" data-v3="35|28">Xiên 3D</button>
+            </div></div>
+          <div class="panel-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px;margin-top:8px;display:grid">
+            <div class="field"><span class="lbl">Xoay quanh trục n: <b id="ve-yawo">35°</b></span><input type="range" id="ve-yaw" min="-180" max="180" step="1" value="35" aria-label="Góc xoay ngang"></div>
+            <div class="field"><span class="lbl">Độ cao góc nhìn: <b id="ve-pitcho">28°</b></span><input type="range" id="ve-pitch" min="0" max="90" step="1" value="28" aria-label="Độ cao góc nhìn"></div>
+          </div>
+          <div class="chips" style="margin-top:8px;align-items:center">
+            <label class="switch"><input type="checkbox" id="ve-spiral" checked> Xoắn ốc các số hạng</label>
+            <label class="switch"><input type="checkbox" id="ve-chain" checked> Chuỗi cộng nối đuôi</label>
+            <button class="btn ghost" id="ve-spin" type="button">Tự xoay</button>
+          </div>
+          <p class="key" id="ve-3note" style="margin-top:8px"></p>
+        </div>
         <div class="res math" id="ve-read"></div>
         <ol class="steps" id="ve-steps" style="margin-top:10px"></ol>
       </div>
@@ -185,6 +208,22 @@
         <div class="plot-hd" style="margin-top:12px"><h3>Chấm điểm lên phổ pha φ(ω)</h3></div>
         <div class="plot" id="ve-p2"></div>
         <div class="tbl-wrap" id="ve-tbl" style="margin-top:12px"></div>
+      </div>
+      <div class="card" id="ve-draw">
+        <h2>Chi tiết cách vẽ đồ thị, làm tay trên giấy kẻ ô</h2>
+        <p class="key">Các con số bên dưới tự đổi theo tín hiệu đang chọn ở bảng điều khiển.</p>
+        <ol class="steps" id="ve-dsteps"></ol>
+        <h3 style="margin:16px 0 6px">Vẽ chậm từng điểm</h3>
+        <div class="chips" style="margin-bottom:8px">
+          <button class="btn ghost" id="ve-sprev" type="button">◀ Lùi</button>
+          <button class="btn" id="ve-snext" type="button">Tiếp ▶</button>
+          <button class="btn ghost" id="ve-sreset" type="button">Làm lại từ đầu</button>
+        </div>
+        <div class="res math" id="ve-scap"></div>
+        <div class="plot-hd" style="margin-top:10px"><h3>Đồ thị biên độ |X| (đang vẽ)</h3></div>
+        <div class="plot" id="ve-s1"></div>
+        <div class="plot-hd" style="margin-top:10px"><h3>Đồ thị pha φ, tính bằng độ (đang vẽ)</h3></div>
+        <div class="plot" id="ve-s2"></div>
       </div>
       <div class="card">
         <h2>Vì sao đồ thị pha hay bị gãy răng cưa?</h2>
@@ -439,7 +478,7 @@ function renderDn(){
 }
 
 /* ---------- TAB ★: CÁCH VẼ PHỔ ---------- */
-const VE = {kind: 'fin', mode: 'curve', timer: null};
+const VE = {kind: 'fin', mode: 'curve', dim: '2d', timer: null};
 const W0 = wGrid(361, false);
 function veSignal(){
   if (VE.kind === 'exp'){
@@ -476,13 +515,14 @@ function vePhasor(S, w){
   }
   el.innerHTML = s + '</svg>';
 }
-function renderVe(){
-  setPressed('#ve-kind button', 'k', VE.kind); setPressed('#ve-mode button', 'm', VE.mode);
+function renderVe(onlyW){
+  setPressed('#ve-kind button', 'k', VE.kind); setPressed('#ve-mode button', 'm', VE.mode); setPressed('#ve-dim button', 'd', VE.dim);
+  $('ve-ph').hidden = VE.dim === '3d'; $('ve-3d').hidden = VE.dim !== '3d';
   $('ve-fin').hidden = VE.kind !== 'fin'; $('ve-exp').hidden = VE.kind !== 'exp';
   const S = veSignal();
   if (!S){ $('ve-steps').innerHTML = '<li><div class="bad">Dữ liệu chưa hợp lệ.</div></li>'; $('ve-read').innerHTML = ''; return; }
   const w = parseFloat($('ve-w').value) * PI; $('ve-wo').textContent = piStr(w);
-  vePhasor(S, w);
+  if (VE.dim === '3d') ve3d(S, w); else vePhasor(S, w);
   const X = S.H(w), m = cabs(X), deg = t => { let d = t * 180 / PI; while (d > 180 + 1e-9) d -= 360; while (d <= -180 - 1e-9) d += 360; return d; };
   $('ve-read').innerHTML = `ω = ${piStr(w)} (${fmt(w * 180 / PI, 1)}°) &nbsp;·&nbsp; X = ${fmtc(X, 3)} &nbsp;·&nbsp; |X| = <b>${fmt(m, 3)}</b> &nbsp;·&nbsp; φ = <b>${m < 1e-9 ? 'không xác định' : fmt(deg(carg(X)), 1) + '°'}</b>`;
   const st = [];
@@ -503,6 +543,93 @@ function renderVe(){
   linePlot($('ve-p2'), {x: W0, series: curve ? [{y: phs, color: COL.x, w: 2.2, jump: PI}] : [], ymin: -PI * 1.1, ymax: PI * 1.1, dots: dP, vlines: [{x: w, color: COL.y, dash: '4 4'}], ylabel: 'φ (rad)', label: 'Phổ pha'});
   const pick = [0, PI / 4, PI / 2, 3 * PI / 4, PI].map(t => [t, S.H(t)]);
   $('ve-tbl').innerHTML = `<table class="t"><tr><th>ω</th><th>X(e<sup>jω</sup>)</th><th>|X|</th><th>φ (độ)</th></tr>${pick.map(([t, Z]) => `<tr><td class="m">${piStr(t)}</td><td class="m">${fmtc(Z, 3)}</td><td class="m">${fmt(cabs(Z), 3)}</td><td class="m">${cabs(Z) < 1e-9 ? '—' : fmt(deg(carg(Z)), 1)}</td></tr>`).join('')}</table>`;
+  if (!onlyW) veDraw(S);
+}
+/* ---------- 3D: xoắn ốc e^{-jωn} và chuỗi cộng vectơ ---------- */
+const VE3 = {yaw: 35 * PI / 180, pitch: 28 * PI / 180, spiral: true, chain: true, spin: null};
+function ve3d(S, w){
+  const el = $('ve-ph3'), Wd = Math.min(Math.max(280, el.clientWidth || 360), 520), Hd = Math.round(Wd * 0.92);
+  const L = S.x.length, R = S.R, H = 1.2 * R, dz = H / L;
+  const cw = Math.cos(VE3.yaw), sw = Math.sin(VE3.yaw), cp = Math.cos(VE3.pitch), sp = Math.sin(VE3.pitch);
+  const ext = Math.hypot(R, H / 2) * 1.02, sc = (Math.min(Wd, Hd) / 2 - 28) / ext, cxs = Wd / 2, cys = Hd / 2;
+  const P = (x, y, z) => { const x1 = x * cw - y * sw, y1 = x * sw + y * cw; return [cxs + x1 * sc, cys - ((z - H / 2) * cp + y1 * sp) * sc]; };
+  const pts = a => a.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ');
+  const mono = 'font-family="JetBrains Mono, monospace"';
+  const ring = (r, z) => { const a = []; for (let k = 0; k < 48; k++){ const t = 2 * PI * k / 48; a.push(P(r * Math.cos(t), r * Math.sin(t), z)); } return a; };
+  const arrow = (p0, p1, col, wd) => { const dx = p1[0] - p0[0], dy = p1[1] - p0[1], d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, b = [p1[0] - 11 * ux, p1[1] - 11 * uy]; return `<line x1="${p0[0]}" y1="${p0[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="${wd}" stroke-linecap="round"/><polygon points="${p1[0]},${p1[1]} ${b[0] - 4.5 * uy},${b[1] + 4.5 * ux} ${b[0] + 4.5 * uy},${b[1] - 4.5 * ux}" fill="${col}"/>`; };
+  let s = `<svg width="${Wd}" height="${Hd}" viewBox="0 0 ${Wd} ${Hd}" role="img" aria-label="Hình 3D: xoắn ốc các số hạng và chuỗi cộng vectơ theo n" style="display:block;margin:0 auto;max-width:100%"><rect width="${Wd}" height="${Hd}" rx="10" fill="#fff" stroke="#E2E8F0"/>`;
+  s += `<polygon points="${pts(ring(R, 0))}" fill="#F1F5F9" stroke="#CBD5E1" stroke-dasharray="4 4"/>`;
+  const a1 = P(-R, 0, 0), a2 = P(R, 0, 0), b1 = P(0, -R, 0), b2 = P(0, R, 0), t0 = P(0, 0, 0), t1 = P(0, 0, H + dz * 0.4);
+  s += `<line x1="${a1[0]}" y1="${a1[1]}" x2="${a2[0]}" y2="${a2[1]}" stroke="#94A3B8"/><line x1="${b1[0]}" y1="${b1[1]}" x2="${b2[0]}" y2="${b2[1]}" stroke="#94A3B8"/>`;
+  const lr = P(R * 1.1, 0, 0), li = P(0, R * 1.1, 0);
+  s += `<text x="${lr[0]}" y="${lr[1] + 4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#64748B" ${mono}>Re</text><text x="${li[0]}" y="${li[1] + 4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#64748B" ${mono}>Im</text>`;
+  s += `<line x1="${t0[0]}" y1="${t0[1]}" x2="${t1[0]}" y2="${t1[1]}" stroke="#475569" stroke-width="1.8"/><text x="${t1[0] + 8}" y="${t1[1] + 4}" font-size="13" font-weight="800" fill="#334155">n</text>`;
+  const step = L > 8 ? 2 : 1;
+  for (let i = 0; i <= L; i += step){ const q = P(0, 0, i * dz); s += `<line x1="${q[0] - 3}" y1="${q[1]}" x2="${q[0] + 3}" y2="${q[1]}" stroke="#475569"/><text x="${q[0] - 7}" y="${q[1] + 4}" text-anchor="end" font-size="10.5" fill="#475569" ${mono}>${S.n0 + i}</text>`; }
+  const tips = []; S.x.forEach((v, i) => { const n = S.n0 + i; tips.push([v * Math.cos(w * n), -v * Math.sin(w * n), i * dz, v]); });
+  if (VE3.spiral){
+    tips.forEach(q => { if (Math.abs(q[3]) > 1e-12) s += `<polygon points="${pts(ring(Math.abs(q[3]), q[2]))}" fill="none" stroke="#B7C4D6" stroke-width="1" stroke-dasharray="2 3"/>`; });
+    s += `<polyline points="${pts(tips.map(q => P(q[0], q[1], q[2])))}" fill="none" stroke="${COL.g}" stroke-width="2" opacity=".9" stroke-linejoin="round"/>`;
+    tips.forEach(q => { const a = P(0, 0, q[2]), b = P(q[0], q[1], q[2]); s += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${COL.g}" stroke-width="1.2" opacity=".5"/><circle cx="${b[0]}" cy="${b[1]}" r="3.6" fill="${COL.g}" stroke="#fff" stroke-width="1"/>`; });
+  }
+  const X = S.H(w); let cx = 0, cy = 0; const cum = [[0, 0, 0]];
+  S.x.forEach((v, i) => { const n = S.n0 + i; cx += v * Math.cos(w * n); cy -= v * Math.sin(w * n); cum.push([cx, cy, (i + 1) * dz]); });
+  if (VE3.chain){
+    s += `<polyline points="${pts(cum.map(q => P(q[0], q[1], 0)))}" fill="none" stroke="${COL.x}" stroke-width="1.8" stroke-dasharray="5 4" opacity=".55" stroke-linejoin="round"/>`;
+    s += `<polyline points="${pts(cum.map(q => P(q[0], q[1], q[2])))}" fill="none" stroke="${COL.x}" stroke-width="3" stroke-linejoin="round"/>`;
+    cum.forEach(q => { const b = P(q[0], q[1], q[2]); s += `<circle cx="${b[0]}" cy="${b[1]}" r="3.2" fill="${COL.x}" stroke="#fff" stroke-width="1"/>`; });
+    const e = cum[cum.length - 1], top = P(e[0], e[1], e[2]), fl = P(e[0], e[1], 0);
+    s += `<line x1="${top[0]}" y1="${top[1]}" x2="${fl[0]}" y2="${fl[1]}" stroke="${COL.y}" stroke-dasharray="3 3" opacity=".7"/>`;
+  }
+  const xe = P(X.re, X.im, 0);
+  s += arrow(t0, xe, COL.y, 3.6) + `<text x="${xe[0] + 9}" y="${xe[1] - 7}" font-size="14" font-weight="800" fill="${COL.y}">X</text>`;
+  el.innerHTML = s + '</svg>';
+  $('ve-3leg').innerHTML = legendHTML([[COL.g, 'Xoắn ốc: số hạng x(n)·e<sup>−jωn</sup> ở độ cao n'], [COL.x, 'Chuỗi cộng nối đuôi, leo dần theo n'], [COL.y, 'Vectơ tổng X trên mặt sàn']]);
+  const pd = VE3.pitch * 180 / PI, yd = ((VE3.yaw * 180 / PI + 540) % 360) - 180;
+  let note = 'Góc nhìn tự do. Kéo để xoay, hoặc chọn một góc nhìn có sẵn ở trên.';
+  if (pd >= 85) note = '<b>Từ trên xuống:</b> các độ cao n bị ép phẳng, ta thấy lại đúng hình 2D: chuỗi vectơ xanh nối đuôi nhau và vectơ tổng X màu cam.';
+  else if (pd <= 5 && Math.abs(yd) <= 5) note = '<b>Nhìn ngang theo trục Im:</b> ta thấy phần <b>thực</b> của xoắn ốc theo n, là một dao động cos(ωn). ω càng lớn thì dao động càng dày.';
+  else if (pd <= 5 && Math.abs(yd + 90) <= 5) note = '<b>Nhìn ngang theo trục Re:</b> ta thấy phần <b>ảo</b> của xoắn ốc theo n, là dao động −sin(ωn), lệch một phần tư chu kỳ so với cos.';
+  $('ve-3note').innerHTML = note;
+  $('ve-yawo').textContent = Math.round(yd) + '°'; $('ve-pitcho').textContent = Math.round(pd) + '°';
+}
+function ve3set(yawDeg, pitchDeg){ VE3.yaw = yawDeg * PI / 180; VE3.pitch = Math.min(90, Math.max(0, pitchDeg)) * PI / 180; $('ve-yaw').value = Math.round(((yawDeg + 540) % 360) - 180); $('ve-pitch').value = Math.round(Math.min(90, Math.max(0, pitchDeg))); renderVe(true); }
+function ve3stop(){ if (VE3.spin){ clearInterval(VE3.spin); VE3.spin = null; $('ve-spin').textContent = 'Tự xoay'; } }
+
+/* ---------- Chi tiết cách vẽ đồ thị ---------- */
+const VD = {step: 0};
+const VPTS = [0, PI / 4, PI / 2, 3 * PI / 4, PI];
+function veDraw(S){
+  const rows = VPTS.map(t => { const Z = S.H(t), m = cabs(Z); return {t, Z, m, p: m < 1e-9 ? NaN : carg(Z) * 180 / PI}; });
+  const Hs = W0.map(S.H), mags = Hs.map(cabs), phs = Hs.map(c => cabs(c) < 1e-9 ? NaN : carg(c));
+  const mMax = Math.max(...rows.map(r => r.m), 1e-9), tk = niceTicks(0, mMax * 1.1, 5), top = tk[tk.length - 1], stY = tk.length > 1 ? tk[1] - tk[0] : top;
+  const gmax = Math.max(...mags), gi = mags.indexOf(gmax), gmin = Math.min(...mags), gj = mags.indexOf(gmin);
+  const zeros = []; for (let i = 0; i < mags.length; i++){ if (mags[i] < 0.01 * gmax && (i === 0 || mags[i] <= mags[i - 1]) && (i === mags.length - 1 || mags[i] <= mags[i + 1])) zeros.push(W0[i]); }
+  const jumps = []; for (let i = 1; i < phs.length; i++){ if (isFinite(phs[i]) && isFinite(phs[i - 1])){ const d = Math.abs(phs[i] - phs[i - 1]); if (d > 0.5 * PI) jumps.push({t: W0[i], big: d > 1.5 * PI}); } }
+  const st = [];
+  st.push(`<b>Kẻ khung cho đồ thị biên độ.</b> Trục ngang là ω, kẻ từ 0 đến π và chia <b>đều</b> thành 4 phần: 0, π/4, π/2, 3π/4, π. Trục dọc là |X|: giá trị lớn nhất trong bảng là ${fmt(mMax, 3)}, nên kẻ trục từ 0 đến ${fmt(top, 3)}, mỗi vạch ${fmt(stY, 3)}. Luôn bắt đầu từ 0 vì |X| không bao giờ âm.`);
+  st.push(`<b>Kẻ khung cho đồ thị pha.</b> Trục ngang giống hệt (để hai đồ thị thẳng cột). Trục dọc là φ từ −180° đến 180°, mỗi vạch 90°. Đường nằm ngang φ = 0 là trục chính.`);
+  st.push(`<b>Chấm từng điểm</b> (dóng từ vạch ω lên cao):<br>${rows.map(r => `ω = ${piStr(r.t)}: |X| = ${fmt(r.m, 3)}, ${isFinite(r.p) ? 'φ = ' + fmt(r.p, 1) + '°' : 'X = 0 nên <i>không chấm</i> điểm pha'}`).join('<br>')}`);
+  st.push(`<b>Nối điểm biên độ</b> bằng một đường cong trơn, không gấp khúc. Giá trị lớn nhất khoảng ${fmt(gmax, 3)} tại ω ≈ ${piStr(W0[gi])}, nhỏ nhất khoảng ${fmt(gmin, 3)} tại ω ≈ ${piStr(W0[gj])}. ${zeros.length ? 'Đường chạm trục ngang (|X| = 0) tại ω ≈ ' + zeros.map(piStr).join(', ') + '. ' : 'Đường không chạm trục ngang. '}Nếu 5 điểm chưa đủ thấy dáng đường cong, tính thêm các điểm giữa (π/8, 3π/8, 5π/8, 7π/8) rồi chấm tiếp.`);
+  st.push(`<b>Nối điểm pha.</b> ${jumps.length ? 'Đồ thị pha có ' + jumps.length + ' chỗ nhảy tại ω ≈ ' + jumps.map(j => piStr(j.t) + (j.big ? ' (gói pha, ±360°)' : ' (nhảy 180°, A đổi dấu)')).join(', ') + '. Hãy ngắt nét vẽ tại đó, đừng nối qua chỗ nhảy.' : 'Pha trơn, nối thẳng các điểm theo dáng đường.'} Ở điểm có |X| = 0 thì pha không xác định, để trống.`);
+  let chk;
+  if (VE.kind === 'fin'){ const sum = S.x.reduce((a, v) => a + v, 0), alt = S.x.reduce((a, v, i) => a + v * (((S.n0 + i) % 2 === 0) ? 1 : -1), 0); chk = `X(0) = Σx(n) = ${fmt(sum, 3)} và bảng cho |X(0)| = ${fmt(rows[0].m, 3)}; X(π) = cộng đan dấu = ${fmt(alt, 3)} và bảng cho |X(π)| = ${fmt(rows[4].m, 3)}.`; }
+  else chk = `X(0) = ${fmt(rows[0].Z.re, 3)} (tổng vô hạn Σaⁿ = 1/(1 − a)) và X(π) = ${fmt(rows[4].Z.re, 3)} (1/(1 + a)).`;
+  st.push(`<b>Kiểm tra nhanh.</b> ${chk} Hai số phải khớp đồ thị ở hai đầu.`);
+  $('ve-dsteps').innerHTML = st.map(x => `<li><div>${x}</div></li>`).join('');
+  // vẽ chậm
+  const k = VD.step = Math.max(0, Math.min(6, VD.step)), nd = Math.min(k, 5), curve = k >= 6;
+  const dM = [], dP = [], vl = [], hl1 = [], hl2 = [];
+  rows.slice(0, nd).forEach((r, i) => { const cur = i === nd - 1 && !curve; dM.push({x: r.t, y: r.m, color: cur ? COL.y : COL.x, fill: cur ? COL.y : '#fff', r: cur ? 6 : 4.5, label: fmt(r.m, 2)}); if (isFinite(r.p)) dP.push({x: r.t, y: r.p, color: cur ? COL.y : COL.x, fill: cur ? COL.y : '#fff', r: cur ? 6 : 4.5, label: fmt(r.p, 0) + '°'}); });
+  if (k >= 1 && !curve){ const r = rows[nd - 1]; vl.push({x: r.t, color: COL.a, dash: '4 4'}); hl1.push({y: r.m, color: COL.a, dash: '4 4'}); if (isFinite(r.p)) hl2.push({y: r.p, color: COL.a, dash: '4 4'}); }
+  linePlot($('ve-s1'), {x: W0, series: curve ? [{y: mags, color: COL.x, w: 2.2}] : [], ymin: 0, ymax: top * 1.05, dots: dM, vlines: vl, hlines: hl1, ylabel: '|X|', label: 'Đang vẽ phổ biên độ'});
+  linePlot($('ve-s2'), {x: W0, series: curve ? [{y: phs.map(v => v * 180 / PI), color: COL.x, w: 2.2, jump: 120}] : [], ymin: -200, ymax: 200, dots: dP, vlines: vl, hlines: hl2, ylabel: 'φ (độ)', label: 'Đang vẽ phổ pha'});
+  let cap;
+  if (k === 0) cap = `<b>Bước 0: kẻ khung.</b> Chưa có điểm nào. Bấm "Tiếp" để chấm điểm đầu tiên.`;
+  else if (k <= 5){ const r = rows[k - 1]; cap = `<b>Điểm ${k}/5: ω = ${piStr(r.t)}.</b> Tìm vạch ${piStr(r.t)} trên trục ngang, dóng thẳng lên đến độ cao |X| = ${fmt(r.m, 3)} rồi chấm. ${isFinite(r.p) ? 'Ở đồ thị pha, dóng lên (hoặc xuống) tới φ = ' + fmt(r.p, 1) + '°.' : 'X = 0 nên pha không xác định, không chấm ở đồ thị pha.'}`; }
+  else cap = `<b>Bước cuối: nối điểm.</b> Vẽ đường cong trơn đi qua các điểm. Máy tính làm đúng như vậy, chỉ khác là chấm vài trăm điểm thay vì năm điểm.`;
+  $('ve-scap').innerHTML = cap;
+  $('ve-sprev').disabled = k === 0; $('ve-snext').disabled = k === 6;
 }
 function veStop(){ if (VE.timer){ clearInterval(VE.timer); VE.timer = null; $('ve-play').textContent = 'Chạy tự động'; } }
 
@@ -680,16 +807,35 @@ document.querySelectorAll('[data-ng]').forEach(b => b.addEventListener('click', 
 $('par-kind').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b){ PAR = b.dataset.k; renderPar(); } });
 ['par-a', 'par-x'].forEach(id => $(id).addEventListener('input', renderPar));
 document.querySelectorAll('[data-par]').forEach(b => b.addEventListener('click', () => { const [k, v] = b.dataset.par.split('|'); PAR = k; if (k === 'exp') $('par-a').value = v; else $('par-x').value = v; renderPar(); }));
+$('ve-dim').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b){ VE.dim = b.dataset.d; if (VE.dim !== '3d') ve3stop(); renderVe(true); } });
+document.querySelectorAll('[data-v3]').forEach(b => b.addEventListener('click', () => { ve3stop(); const [y, p] = b.dataset.v3.split('|').map(Number); ve3set(y, p); }));
+$('ve-yaw').addEventListener('input', () => { ve3stop(); ve3set(+$('ve-yaw').value, +$('ve-pitch').value); });
+$('ve-pitch').addEventListener('input', () => { ve3stop(); ve3set(+$('ve-yaw').value, +$('ve-pitch').value); });
+$('ve-spiral').addEventListener('change', () => { VE3.spiral = $('ve-spiral').checked; renderVe(true); });
+$('ve-chain').addEventListener('change', () => { VE3.chain = $('ve-chain').checked; renderVe(true); });
+$('ve-spin').addEventListener('click', () => {
+  if (VE3.spin){ ve3stop(); return; }
+  $('ve-spin').textContent = 'Dừng xoay';
+  VE3.spin = setInterval(() => { if (Lab.current !== 've' || VE.dim !== '3d'){ ve3stop(); return; } ve3set(VE3.yaw * 180 / PI + 2, VE3.pitch * 180 / PI); }, 40);
+});
+(() => { const box = $('ve-ph3'); let drag = null;
+  box.addEventListener('pointerdown', e => { drag = {x: e.clientX, y: e.clientY}; ve3stop(); try { box.setPointerCapture(e.pointerId); } catch (x) {} box.style.cursor = 'grabbing'; });
+  box.addEventListener('pointermove', e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = {x: e.clientX, y: e.clientY}; ve3set(VE3.yaw * 180 / PI + dx * 0.6, VE3.pitch * 180 / PI + dy * 0.5); });
+  const end = () => { drag = null; box.style.cursor = 'grab'; };
+  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end); })();
+$('ve-snext').addEventListener('click', () => { VD.step++; renderVe(); });
+$('ve-sprev').addEventListener('click', () => { VD.step--; renderVe(); });
+$('ve-sreset').addEventListener('click', () => { VD.step = 0; renderVe(); });
 $('ve-kind').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b){ VE.kind = b.dataset.k; renderVe(); } });
 $('ve-mode').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b){ VE.mode = b.dataset.m; renderVe(); } });
 ['ve-x', 've-n0', 've-a'].forEach(id => $(id).addEventListener('input', renderVe));
-$('ve-w').addEventListener('input', () => { veStop(); renderVe(); });
+$('ve-w').addEventListener('input', () => { veStop(); renderVe(true); });
 document.querySelectorAll('[data-ve]').forEach(b => b.addEventListener('click', () => { const p = b.dataset.ve.split('|'); VE.kind = p[0]; if (p[0] === 'fin'){ $('ve-x').value = p[1]; $('ve-n0').value = p[2]; } else $('ve-a').value = p[1]; renderVe(); }));
-document.querySelectorAll('[data-vw]').forEach(b => b.addEventListener('click', () => { veStop(); $('ve-w').value = b.dataset.vw; renderVe(); }));
+document.querySelectorAll('[data-vw]').forEach(b => b.addEventListener('click', () => { veStop(); $('ve-w').value = b.dataset.vw; renderVe(true); }));
 $('ve-play').addEventListener('click', () => {
   if (VE.timer){ veStop(); return; }
   $('ve-play').textContent = 'Dừng';
-  VE.timer = setInterval(() => { if (Lab.current !== 've'){ veStop(); return; } let v = parseFloat($('ve-w').value) + 0.01; if (v > 1) v = 0; $('ve-w').value = v; renderVe(); }, 70);
+  VE.timer = setInterval(() => { if (Lab.current !== 've'){ veStop(); return; } let v = parseFloat($('ve-w').value) + 0.01; if (v > 1) v = 0; $('ve-w').value = v; renderVe(true); }, 70);
 });
 Lab.init({dn: renderDn, ve: renderVe, ton: renderTon, ng: renderNg, tc: renderTc, par: renderPar, ex: renderEx}, 'ft-tab', 'dn');
 
